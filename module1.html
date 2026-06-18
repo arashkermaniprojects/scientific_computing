@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Module 1 · Computing with MATLAB — BCS 311</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+<script>
+window.MathJax = { tex: { inlineMath: [['\\(','\\)']], displayMath: [['\\[','\\]']] }, svg: { fontCache: 'global' } };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" async></script>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="logo" href="index.html"><span class="badge">BCS&nbsp;311</span> Scientific Computing</a>
+    <button class="menu-toggle" aria-label="Menu">☰</button>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="module1.html" class="active">1 · MATLAB</a>
+      <a href="module2.html">2 · Equations</a>
+      <a href="module3.html">3 · Least Squares</a>
+      <a href="module4.html">4 · Interpolation</a>
+      <a href="module5.html">5 · Integration & ODEs</a>
+    </nav>
+  </div>
+</header>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="card">
+      <h4>Module 1 · CLO-1</h4>
+      <ul class="toc">
+        <li><a href="#intro">Why MATLAB?</a></li>
+        <li><a href="#env">1.1 The environment</a></li>
+        <li><a href="#arrays">1.2 Matrices & vectors</a></li>
+        <li><a href="#ops">1.3 Operations & indexing</a></li>
+        <li><a href="#prog">1.4 Scripts, functions, flow</a></li>
+        <li><a href="#vec">1.5 Vectorization</a></li>
+        <li><a href="#numbers">1.6 How numbers are stored</a></li>
+        <li><a href="#demo-plot">🎛 Demo: sampling & plotting</a></li>
+        <li><a href="#quiz">✅ Self-check quiz</a></li>
+      </ul>
+    </div>
+    <div id="progressWidget" class="progress-card"></div>
+  </aside>
+
+  <main class="content">
+
+    <section class="hero" style="padding:2rem 2.2rem">
+      <div class="kicker">Module 1 · CLO-1</div>
+      <h1 style="font-size:2rem">Computing with MATLAB</h1>
+      <p style="margin-bottom:.4rem">Implement numerical techniques in MATLAB. Before we can solve hard numerical problems, we need a fluent command of the tool: the environment, arrays, programming constructs, vectorization, and the limits of finite-precision arithmetic.</p>
+      <div class="pill-row">
+        <span class="clo-chip">📘 Chapra Ch. 2 &amp; 3</span>
+        <span class="clo-chip">⏱ Weeks 1–3</span>
+        <span class="clo-chip">🧪 Assessed by Quiz 1 &amp; Lab</span>
+      </div>
+    </section>
+
+    <!-- INTRO -->
+    <section class="section" id="intro">
+      <div class="panel">
+        <h2>Why MATLAB for scientific computing?</h2>
+        <p>MATLAB — short for <em>MATrix LABoratory</em> — is both an <b>interactive computing system</b> (type a command, get an answer immediately) and a <b>programming language</b>. Its native data type is the matrix, which makes it a natural fit for numerical methods, where almost everything reduces to operations on vectors and matrices.</p>
+        <p>In this module you will learn just enough of the language to implement every method in the rest of the course. The recurring theme is simple: <b>think in arrays, not loops.</b></p>
+        <div class="callout idea"><div class="h">💡 Big idea</div>Numerical methods turn calculus and algebra into <em>arithmetic that a computer can repeat</em>. MATLAB is the machine we use to repeat it accurately and fast.</div>
+      </div>
+    </section>
+
+    <!-- 1.1 ENVIRONMENT -->
+    <section class="section" id="env">
+      <div class="panel">
+        <h2>1.1 The MATLAB environment</h2>
+        <p>When you open MATLAB you meet four key panels: the <b>Command Window</b> (type commands, see results), the <b>Workspace</b> (the variables currently in memory), the <b>Editor</b> (where you write <code>.m</code> script and function files), and the <b>Current Folder</b> browser.</p>
+        <p>Two commands you will use constantly:</p>
+        <ul>
+          <li><code>clc</code> — clear the command window (tidy the screen).</li>
+          <li><code>clear</code> — remove all variables from the workspace (start fresh).</li>
+        </ul>
+        <p>A trailing semicolon <code>;</code> suppresses output. Without it, MATLAB echoes the result of every line — useful while debugging, noisy in finished code.</p>
+
+        <h3>Printing results</h3>
+        <p>Use <code>disp</code> for quick output and <code>fprintf</code> for formatted output. Format specifiers: <code>%d</code> (integer), <code>%f</code> (float), <code>%.2f</code> (2 decimals), <code>\n</code> (new line).</p>
+        <div class="codewrap editable has-output">
+          <div class="codehead"><span class="lang"><span class="dot"></span>MATLAB · editable</span><button class="copybtn">Copy</button></div>
+          <textarea spellcheck="false" rows="11">%% Printing in MATLAB
+disp('Hello, MATLAB!')
+
+x = 10;        % define a variable (semicolon hides the echo)
+disp(x)        % print just the value
+
+a = 5;  b = 3.14159;
+fprintf('The value of a is %d\n', a);    % %d  -> integer
+fprintf('The value of b is %.2f\n', b);  % %.2f -> 2 decimals
+fprintf('a = %d, b = %.4f\n', a, b);     % combine multiple values</textarea>
+        </div>
+<div class="mout"><div class="mout-head">Command Window output</div><pre>Hello, MATLAB!
+    10
+The value of a is 5
+The value of b is 3.14
+a = 5, b = 3.1416</pre></div>
+
+        <p class="note-src">Source: lecture notes <code>matlab_basics_01.m</code>.</p>
+      </div>
+    </section>
+
+    <!-- 1.2 ARRAYS -->
+    <section class="section" id="arrays">
+      <div class="panel">
+        <h2>1.2 Matrices and vectors</h2>
+        <p>Everything in MATLAB is an array. A scalar is a \(1\times 1\) array, a row vector is \(1\times n\), a column vector is \(n\times 1\), and a matrix is \(m\times n\).</p>
+        <ul>
+          <li>Square brackets <code>[ ]</code> build arrays. Spaces (or commas) separate columns; semicolons separate rows.</li>
+          <li><code>zeros(m,n)</code> and <code>ones(m,n)</code> pre-build arrays of a known size — important for <b>preallocation</b>.</li>
+          <li>The colon operator <code>start:step:stop</code> generates evenly spaced vectors.</li>
+        </ul>
+        <div class="codewrap editable has-output">
+          <div class="codehead"><span class="lang"><span class="dot"></span>MATLAB · editable</span><button class="copybtn">Copy</button></div>
+          <textarea spellcheck="false" rows="13">%% Creating arrays
+rowVec = [1 2 3 4]            % 1x4 row vector
+colVec = [1; 2; 3; 4]        % 4x1 column vector
+matA   = [1 2 3; 4 5 6; 7 8 9]   % 3x3 matrix
+
+Z = zeros(2,4)               % 2x4 of zeros
+O = ones(3,2)                % 3x2 of ones
+
+%% Colon operator
+v1 = 1:5                     % 1 2 3 4 5
+v2 = 2:2:10                  % 2 4 6 8 10  (step 2)
+v3 = 10:-2:2                 % 10 8 6 4 2  (step -2)</textarea>
+        </div>
+<div class="mout"><div class="mout-head">Command Window output</div><pre>rowVec =
+
+   1   2   3   4
+
+colVec =
+
+   1
+   2
+   3
+   4
+
+matA =
+
+   1   2   3
+   4   5   6
+   7   8   9
+
+Z =
+
+   0   0   0   0
+   0   0   0   0
+
+O =
+
+   1   1
+   1   1
+   1   1
+
+v1 =
+
+   1   2   3   4   5
+
+v2 =
+
+    2    4    6    8   10
+
+v3 =
+
+   10    8    6    4    2</pre></div>
+
+        <div class="callout def"><div class="h">📐 Definition · column-major order</div>MATLAB stores matrices <b>column by column</b> in memory. <code>A(:)</code> flattens a matrix into a single column by reading down each column in turn. This matters for linear indexing and for writing fast code.</div>
+      </div>
+    </section>
+
+    <!-- 1.3 OPS & INDEXING -->
+    <section class="section" id="ops">
+      <div class="panel">
+        <h2>1.3 Operations and indexing</h2>
+        <h3>Indexing: <code>A(row, col)</code></h3>
+        <p>Use parentheses to read or write elements. A colon means &ldquo;all&rdquo; along that dimension, and <code>end</code> refers to the last index.</p>
+        <div class="codewrap editable has-output">
+          <div class="codehead"><span class="lang"><span class="dot"></span>MATLAB · editable</span><button class="copybtn">Copy</button></div>
+          <textarea spellcheck="false" rows="9">A = [10 20 30; 40 50 60; 70 80 90];
+
+a12  = A(1,2)     % row 1, column 2  -> 20
+col2 = A(:,2)     % the entire second column
+row1 = A(1,:)     % the entire first row
+A(2,:) = 0;       % set the whole second row to zero
+A(end,end)        % bottom-right element -> 90</textarea>
+        </div>
+<div class="mout"><div class="mout-head">Command Window output</div><pre>a12 =
+
+   20
+
+col2 =
+
+   20
+   50
+   80
+
+row1 =
+
+   10   20   30
+
+ans =
+
+   90</pre></div>
+
+
+        <h3>Element-wise vs. matrix operations</h3>
+        <p>This is the single most common source of beginner errors. A <b>dot</b> before <code>*</code>, <code>/</code>, or <code>^</code> means &ldquo;do it element by element&rdquo;. Without the dot, MATLAB performs the <b>linear-algebra</b> operation.</p>
+        <div class="two-col">
+          <div class="callout idea"><div class="h">Element-wise (with dot)</div><code>x .* y</code> · <code>x ./ y</code> · <code>x .^ 2</code><br>Each element combined with the matching element. Arrays must be the same size.</div>
+          <div class="callout tip"><div class="h">Matrix (no dot)</div><code>A * B</code> · <code>A ^ 2</code> · <code>A \ b</code><br>True matrix multiply, power, and solve. Inner dimensions must agree.</div>
+        </div>
+        <div class="codewrap editable has-output">
+          <div class="codehead"><span class="lang"><span class="dot"></span>MATLAB · editable</span><button class="copybtn">Copy</button></div>
+          <textarea spellcheck="false" rows="11">x = [2 4 6];   y = [1 2 3];
+elem_mul = x .* y      % [2 8 18]  elementwise
+elem_pow = x .^ 2      % [4 16 36] square each element
+
+B = [1 2; 3 4];   C = [5; 6];
+mat_mul = B * C        % matrix multiply (2x2 * 2x1 = 2x1)
+mat_pow = B ^ 2        % B * B   (matrix power)
+
+% Solving A x = b: prefer the backslash "solve" operator
+x_sol = B \ C          % numerically better than inv(B)*C</textarea>
+        </div>
+<div class="mout"><div class="mout-head">Command Window output</div><pre>elem_mul =
+
+    2    8   18
+
+elem_pow =
+
+    4   16   36
+
+mat_mul =
+
+   17
+   39
+
+mat_pow =
+
+    7   10
+   15   22
+
+mat_div =
+
+     1     0
+     0     1
+
+x_sol =
+
+   -4.0000
+    4.5000</pre></div>
+
+        <div class="callout warn"><div class="h">⚠️ Watch out</div>To <em>solve</em> \(A\mathbf{x}=\mathbf{b}\), use <code>x = A\b</code> (backslash), <b>not</b> <code>inv(A)*b</code>. The backslash is faster and more accurate — a theme we return to in Module 2.</div>
+      </div>
+    </section>
+
+    <!-- 1.4 PROGRAMMING -->
+    <section class="section" id="prog">
+      <div class="panel">
+        <h2>1.4 Scripts, functions, and flow control</h2>
+        <p>A <b>script m-file</b> is just a list of commands run top to bottom, sharing the workspace. A <b>function m-file</b> takes inputs and returns outputs in its own private workspace — the right tool for any reusable computation (every numerical method we write will be a function).</p>
+
+        <h3>Conditions and loops</h3>
+        <p><code>if / elseif / else</code> choose between branches; <code>for</code> repeats a fixed number of times; <code>while</code> repeats until a condition fails. The <code>mod(a,b)</code> remainder function is your friend for parity and divisibility tests.</p>
+        <div class="codewrap editable has-output">
+          <div class="codehead"><span class="lang"><span class="dot"></span>MATLAB · editable</span><button class="copybtn">Copy</button></div>
+          <textarea spellcheck="false" rows="18">%% Conditions
+x = 7;
+if x > 10
+    disp('x is greater than 10')
+elseif x == 10
+    disp('x equals 10')
+else
+    disp('x is less than 10')
+end
+
+%% Loops
+for i = 1:5
+    fprintf('i = %d\n', i)
+end
+
+count = 1;
+while count <= 5
+    fprintf('count = %d\n', count)
+    count = count + 1;
+end
+
+%% Combine: print only the even numbers from 1 to 10
+for i = 1:10
+    if mod(i,2) == 0
+        fprintf('%d is even\n', i)
+    end
+end</textarea>
+        </div>
+<div class="mout"><div class="mout-head">Command Window output</div><pre>x is less than 10
+i = 1
+i = 2
+i = 3
+i = 4
+i = 5
+count = 1
+count = 2
+count = 3
+count = 4
+count = 5
+2 is even
+4 is even
+6 is even
+8 is even
+10 is even</pre></div>
+
+
+        <h3>Writing a function</h3>
+        <p>A function file begins with the <code>function</code> keyword. Here is a reusable helper that returns both sine and cosine of a vector — we will reuse this pattern (a function plus a calling script) for every numerical method.</p>
+        <div class="codewrap editable has-output">
+          <div class="codehead"><span class="lang"><span class="dot"></span>MATLAB · editable</span><button class="copybtn">Copy</button></div>
+          <textarea spellcheck="false" rows="20">%% Main script
+v = linspace(0, 2*pi, 50);      % 50 equally spaced points
+[s, c] = computeSinCos(v);      % call the function
+
+figure;
+plot(v, s, 'r-',  'LineWidth', 1.5); hold on;
+plot(v, c, 'b--', 'LineWidth', 1.5); hold off;
+xlabel('v (radians)'); ylabel('Value');
+title('Sine and Cosine (0 to 2\pi)');
+legend('sin(v)','cos(v)'); grid on;
+
+%% Function (place at the end of the file)
+function [sine_v, cosine_v] = computeSinCos(v)
+    sine_v   = zeros(size(v));
+    cosine_v = zeros(size(v));
+    for i = 1:length(v)
+        sine_v(i)   = sin(v(i));
+        cosine_v(i) = cos(v(i));
+    end
+end</textarea>
+        </div>
+<div class="figout"><div class="mout-head" style="background:#eef3f9">Figure output</div><img src="assets/figs/m1_sincos.png" alt="figure: sin(v) in red, cos(v) dashed blue over 0 to 2π"><div class="cap">figure: sin(v) in red, cos(v) dashed blue over 0 to 2π</div></div>
+
+        <p class="note-src">Source: lecture notes <code>matlab_basics_02/03.m</code> and the FA2025 MATLAB question bank.</p>
+      </div>
+    </section>
+
+    <!-- 1.5 VECTORIZATION -->
+    <section class="section" id="vec">
+      <div class="panel">
+        <h2>1.5 Vectorization — from loops to array operations</h2>
+        <p><b>Vectorization</b> means operating on entire arrays at once instead of element by element in a loop. MATLAB runs array operations in optimized, compiled C routines, so vectorized code is dramatically faster <em>and</em> closer to the mathematics.</p>
+
+        <h3>Measure first: <code>tic</code> / <code>toc</code></h3>
+        <p>Before optimizing, measure. <code>tic</code> starts a stopwatch and <code>toc</code> reports the elapsed seconds.</p>
+        <div class="codewrap editable has-output">
+          <div class="codehead"><span class="lang"><span class="dot"></span>MATLAB · editable</span><button class="copybtn">Copy</button></div>
+          <textarea spellcheck="false" rows="11">% Loop version
+tic
+for i = 1:1e6
+    a(i) = i^2;
+end
+toc
+
+% Vectorized version
+tic
+a = (1:1e6).^2;
+toc
+% The vectorized version runs much faster.</textarea>
+        </div>
+<div class="mout note"><div class="mout-head">Run note</div><pre>Elapsed time is 0.482137 seconds.   % loop version
+Elapsed time is 0.003915 seconds.   % vectorized version
+
+(Exact timings vary by machine; the vectorized version is typically 10–100× faster.)</pre></div>
+
+
+        <h3>The pattern</h3>
+        <p>Replace a loop that builds <code>y(i)</code> from <code>x(i)</code> with a single array expression:</p>
+        <div class="codewrap editable has-output">
+          <div class="codehead"><span class="lang"><span class="dot"></span>MATLAB · editable</span><button class="copybtn">Copy</button></div>
+          <textarea spellcheck="false" rows="9">% Loop
+for i = 1:length(x)
+    y(i) = 2*x(i) + 3;
+end
+
+% Vectorized — same result, faster and clearer
+y = 2*x + 3;</textarea>
+        </div>
+<div class="mout note"><div class="mout-head">Run note</div><pre>No Command Window output — this snippet only assigns y (it assumes x is already defined and uses a semicolon-free comparison only in comments).</pre></div>
+
+
+        <h3>Logical indexing</h3>
+        <p>A comparison like <code>A &gt; 5</code> produces a <b>logical mask</b> of 0s and 1s the same size as <code>A</code>. Use the mask to select or modify elements without any loop.</p>
+        <div class="codewrap editable has-output">
+          <div class="codehead"><span class="lang"><span class="dot"></span>MATLAB · editable</span><button class="copybtn">Copy</button></div>
+          <textarea spellcheck="false" rows="9">v = [-3 -1 0 2 5 -7 8];
+pos = v(v > 0)        % keep positives -> [2 5 8]
+
+v(v < 0) = 0          % replace negatives with 0 in place
+
+A = randi(20,4,4);
+A(A > 10) = 10;       % cap every element at 10</textarea>
+        </div>
+<div class="mout"><div class="mout-head">Command Window output</div><pre>pos =
+
+   2   5   8
+
+v =
+
+   0   0   0   2   5   0   8</pre></div>
+
+
+        <div class="callout tip"><div class="h">⚡ Useful aggregators</div><code>sum(A)</code>, <code>sum(A,2)</code> (row sums), <code>reshape(A,m,n)</code>, <code>A(:)</code> (flatten), and matrix multiply <code>A*B</code> all replace nested loops. The triple-loop matrix multiply is a classic example: <code>C = A*B;</code> does the same job in one line and orders of magnitude faster.</div>
+        <table class="data" style="margin-top:1rem">
+          <thead><tr><th class="l">Task</th><th class="l">Loop</th><th class="l">Vectorized</th></tr></thead>
+          <tbody>
+            <tr><td class="l">Square a range</td><td class="l">for i…: a(i)=i^2</td><td class="l"><code>(1:n).^2</code></td></tr>
+            <tr><td class="l">Sum a vector</td><td class="l">s=0; for…: s=s+A(i)</td><td class="l"><code>sum(A)</code></td></tr>
+            <tr><td class="l">Row sums</td><td class="l">double loop</td><td class="l"><code>sum(A,2)</code></td></tr>
+            <tr><td class="l">Matrix product</td><td class="l">triple loop</td><td class="l"><code>A*B</code></td></tr>
+          </tbody>
+        </table>
+        <p class="note-src">Source: <em>Vectorization in MATLAB Programming</em> lecture (Dr. Arash Kermani).</p>
+      </div>
+    </section>
+
+    <!-- 1.6 NUMBERS -->
+    <section class="section" id="numbers">
+      <div class="panel">
+        <h2>1.6 How computers store numbers</h2>
+        <p>Computers store real numbers in a finite number of bits using the <b>floating-point</b> format (IEEE 754 double precision: 1 sign bit, 11 exponent bits, 52 fraction bits). Because the fraction is finite, most decimals cannot be stored exactly — only the nearest representable value.</p>
+        <div class="callout def"><div class="h">📐 Two unavoidable errors</div>
+          <b>Round-off error</b> comes from representing numbers with finite precision (e.g. \(0.1\) has no exact binary form). <b>Truncation error</b> comes from approximating an infinite process with a finite one (e.g. stopping a series, or replacing a derivative with a difference quotient).</div>
+        <p>The gap between 1 and the next representable number is <b>machine epsilon</b>, \(\varepsilon \approx 2.22\times10^{-16}\) in double precision (<code>eps</code> in MATLAB). It bounds the relative round-off of a single operation.</p>
+        <p>The classic demonstration: in floating point, \(0.1 + 0.2\) is <em>not</em> exactly \(0.3\). The demo below computes it with the same IEEE-754 arithmetic your browser and MATLAB both use.</p>
+
+        <div class="demo" id="fpdemo">
+          <div class="demo-head"><span class="pill">Live</span> Finite-precision arithmetic</div>
+          <p class="demo-sub">Pick two decimals and add them. The readout shows the result to 20 digits — far past what the screen normally prints.</p>
+          <div class="controls">
+            <div class="control"><label>a</label><input id="fpA" type="number" step="0.1" value="0.1"></div>
+            <div class="control"><label>b</label><input id="fpB" type="number" step="0.1" value="0.2"></div>
+            <button class="btn" id="fpRun">Add them</button>
+          </div>
+          <div class="readout" id="fpOut">Press “Add them”.</div>
+        </div>
+        <div class="callout idea"><div class="h">💡 Takeaway</div>Never test floating-point results with exact equality (<code>==</code>). Numerical methods always compare against a small <b>tolerance</b> \(\varepsilon\), e.g. stop when <code>abs(x_new - x_old) &lt; 1e-6</code>. You will see this stopping rule in every method that follows.</div>
+      </div>
+    </section>
+
+    <!-- DEMO: SAMPLING -->
+    <section class="section" id="demo-plot">
+      <div class="panel">
+        <h2>🎛 Demo: sampling &amp; plotting</h2>
+        <p>MATLAB's <code>plot(x,y)</code> does not draw a smooth curve — it connects your <b>sample points</b> with straight line segments. Use <code>linspace</code> to choose how many points. Too few and the curve looks jagged; enough and it looks smooth. Drag the slider and watch.</p>
+        <div class="demo">
+          <div class="demo-head"><span class="pill">Live</span> linspace &amp; plot</div>
+          <p class="demo-sub">The faint line is the true curve; the colored polyline is what <code>plot</code> actually draws through your samples.</p>
+          <canvas id="plotCanvas" height="320"></canvas>
+          <div class="controls">
+            <div class="control" style="min-width:200px">
+              <label>Function</label>
+              <select id="plotFn">
+                <option value="sin">y = sin(x)</option>
+                <option value="cos">y = cos(x)</option>
+                <option value="quad">y = 0.05·x² − x</option>
+                <option value="damp">y = e^(−0.2x)·sin(2x)</option>
+              </select>
+            </div>
+            <div class="control" style="min-width:240px">
+              <label>Sample points: <span class="val" id="plotNval">8</span></label>
+              <input id="plotN" type="range" min="3" max="80" value="8">
+            </div>
+          </div>
+          <div class="readout" id="plotOut"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- QUIZ -->
+    <section class="section" id="quiz">
+      <div class="quiz">
+        <div class="qhead"><span class="pill">Quiz</span><h2 style="margin:0">Self-check · CLO-1</h2></div>
+        <p class="section-sub" style="margin-top:.4rem">Five questions on the MATLAB essentials. Pick an answer to see the explanation.</p>
+        <div id="quizRoot"></div>
+      </div>
+
+      <div class="complete-bar" id="completeBar">
+        <span class="txt"></span>
+        <button class="btn"></button>
+      </div>
+
+      <div class="lessonnav">
+        <a class="prev" href="index.html"><div class="dir">← Back</div><div class="ttl">Course home</div></a>
+        <a class="next" href="module2.html"><div class="dir">Next →</div><div class="ttl">Module 2 · Linear &amp; Non-linear Systems</div></a>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<footer class="site">BCS 311 · Scientific Computing — Module 1 of 5.</footer>
+
+<script src="assets/app.js"></script>
+<script>
+/* ---------- Floating-point demo ---------- */
+(function(){
+  const out = document.getElementById('fpOut');
+  function run(){
+    const a = parseFloat(document.getElementById('fpA').value);
+    const b = parseFloat(document.getElementById('fpB').value);
+    const s = a + b;
+    const exact = (Math.round((a+b)*1e12)/1e12);
+    out.textContent =
+      'a            = ' + a.toPrecision(20) + '\n' +
+      'b            = ' + b.toPrecision(20) + '\n' +
+      'a + b        = ' + s.toPrecision(20) + '\n' +
+      '"expected"   = ' + exact.toPrecision(20) + '\n' +
+      'a + b === expected ?  ' + (s === exact) +
+      (s === exact ? '' : '   ← round-off error! difference ≈ ' + Math.abs(s-exact).toExponential(3));
+  }
+  document.getElementById('fpRun').addEventListener('click', run);
+  run();
+})();
+
+/* ---------- Sampling & plotting demo ---------- */
+(function(){
+  const cv = document.getElementById('plotCanvas');
+  const ctx = cv.getContext('2d');
+  const sel = document.getElementById('plotFn');
+  const slider = document.getElementById('plotN');
+  const nval = document.getElementById('plotNval');
+  const out = document.getElementById('plotOut');
+  const X0 = 0, X1 = 2*Math.PI;
+  const fns = {
+    sin: x => Math.sin(x),
+    cos: x => Math.cos(x),
+    quad: x => 0.05*x*x - x,
+    damp: x => Math.exp(-0.2*x)*Math.sin(2*x)
+  };
+  function resize(){ cv.width = cv.clientWidth * devicePixelRatio; cv.height = 320 * devicePixelRatio; ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0); }
+  function draw(){
+    resize();
+    const W = cv.clientWidth, H = 320, pad = 36;
+    const f = fns[sel.value];
+    // sample fine for true curve & for y-range
+    const fine = [];
+    for(let i=0;i<=400;i++){ const x = X0 + (X1-X0)*i/400; fine.push([x,f(x)]); }
+    let ymin=Infinity,ymax=-Infinity;
+    fine.forEach(p=>{ymin=Math.min(ymin,p[1]);ymax=Math.max(ymax,p[1]);});
+    const yr = (ymax-ymin)||1; ymin-=0.1*yr; ymax+=0.1*yr;
+    const sx = x => pad + (x-X0)/(X1-X0)*(W-2*pad);
+    const sy = y => H-pad - (y-ymin)/(ymax-ymin)*(H-2*pad);
+    ctx.clearRect(0,0,W,H);
+    // axes
+    ctx.strokeStyle='#e3e9f2'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(pad,sy(0)); ctx.lineTo(W-pad,sy(0)); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(pad,pad); ctx.lineTo(pad,H-pad); ctx.stroke();
+    // true curve (faint)
+    ctx.strokeStyle='#c4d2e3'; ctx.lineWidth=2; ctx.beginPath();
+    fine.forEach((p,i)=>{ i?ctx.lineTo(sx(p[0]),sy(p[1])):ctx.moveTo(sx(p[0]),sy(p[1])); }); ctx.stroke();
+    // samples
+    const n = +slider.value;
+    const xs=[],ys=[];
+    for(let i=0;i<n;i++){ const x=X0+(X1-X0)*i/(n-1); xs.push(x); ys.push(f(x)); }
+    ctx.strokeStyle='#0e7c86'; ctx.lineWidth=2.5; ctx.beginPath();
+    xs.forEach((x,i)=>{ i?ctx.lineTo(sx(x),sy(ys[i])):ctx.moveTo(sx(x),sy(ys[i])); }); ctx.stroke();
+    ctx.fillStyle='#f0913a';
+    xs.forEach((x,i)=>{ ctx.beginPath(); ctx.arc(sx(x),sy(ys[i]),3.2,0,7); ctx.fill(); });
+    nval.textContent = n;
+    out.textContent = 'x = linspace(' + X0.toFixed(2) + ', ' + X1.toFixed(2) + ', ' + n + ');   % ' + n +
+      ' points, spacing Δx = ' + ((X1-X0)/(n-1)).toFixed(4) +
+      '\nplot(x, f(x))  connects these ' + n + ' samples with straight segments.';
+  }
+  sel.addEventListener('change',draw);
+  slider.addEventListener('input',draw);
+  window.addEventListener('resize',draw);
+  setTimeout(draw,60);
+})();
+
+/* ---------- Quiz ---------- */
+renderQuiz('quizRoot','m1',[
+  { q:'Which expression squares <em>each element</em> of a vector <code>x</code>?',
+    options:['<code>x ^ 2</code>','<code>x .^ 2</code>','<code>x * 2</code>','<code>pow(x,2)</code>'],
+    answer:1, explain:'The dot makes the operator element-wise. <code>x.^2</code> squares each element; <code>x^2</code> would attempt a matrix power and error for a non-square array.' },
+  { q:'What does a trailing semicolon do at the end of a MATLAB line?',
+    options:['Comments out the line','Suppresses the output echo','Ends the program','Starts a new function'],
+    answer:1, explain:'A semicolon suppresses the automatic echo of the result. Without it, MATLAB prints the value of the expression.' },
+  { q:'You want to solve the system <code>A x = b</code>. The recommended command is:',
+    options:['<code>x = inv(A)*b</code>','<code>x = A/b</code>','<code>x = A\\b</code>','<code>x = b\\A</code>'],
+    answer:2, explain:'The backslash (left-division) operator <code>A\\b</code> solves the system directly and is both faster and more accurate than forming <code>inv(A)</code>.' },
+  { q:'<code>v(v &gt; 0)</code> for a vector <code>v</code> returns:',
+    options:['A logical mask of 0s and 1s','The number of positive entries','Only the positive entries of v','The first positive entry'],
+    answer:2, explain:'<code>v &gt; 0</code> is the logical mask; using it as an index, <code>v(v&gt;0)</code>, extracts the elements where the mask is true — the positive entries.' },
+  { q:'Why should you compare floating-point results with a tolerance instead of <code>==</code>?',
+    options:['Because <code>==</code> is slower','Because round-off makes exact equality unreliable','Because MATLAB forbids <code>==</code> on doubles','Because tolerances use less memory'],
+    answer:1, explain:'Finite precision means values like 0.1+0.2 are not stored exactly, so two “equal” quantities can differ by ~1e-16. Numerical methods stop when the change is below a small tolerance ε.' }
+]);
+wireCompleteBar('m1');
+</script>
+</body>
+</html>

@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Module 3 · Least-Squares Curve Fitting — BCS 311</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+<script>window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['\\[','\\]']]},svg:{fontCache:'global'}};</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" async></script>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="logo" href="index.html"><span class="badge">BCS&nbsp;311</span> Scientific Computing</a>
+    <button class="menu-toggle" aria-label="Menu">☰</button>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="module1.html">1 · MATLAB</a>
+      <a href="module2.html">2 · Equations</a>
+      <a href="module3.html" class="active">3 · Least Squares</a>
+      <a href="module4.html">4 · Interpolation</a>
+      <a href="module5.html">5 · Integration & ODEs</a>
+    </nav>
+  </div>
+</header>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="card">
+      <h4>Module 3 · CLO-3</h4>
+      <ul class="toc">
+        <li><a href="#intro">Curve fitting</a></li>
+        <li><a href="#best">3.1 Criteria for a best fit</a></li>
+        <li><a href="#linear">3.2 Linear regression</a></li>
+        <li><a href="#demo">🎛 Demo: fit a line</a></li>
+        <li><a href="#error">3.3 How good is the fit?</a></li>
+        <li><a href="#linz">3.4 Linearizing nonlinear models</a></li>
+        <li><a href="#poly">3.5 Polynomial regression</a></li>
+        <li><a href="#matlab">3.6 MATLAB: polyfit</a></li>
+        <li><a href="#quiz">✅ Self-check quiz</a></li>
+      </ul>
+    </div>
+    <div id="progressWidget" class="progress-card"></div>
+  </aside>
+
+  <main class="content">
+
+    <section class="hero" style="padding:2rem 2.2rem">
+      <div class="kicker">Module 3 · CLO-3</div>
+      <h1 style="font-size:2rem">Least-Squares Curve Fitting</h1>
+      <p style="margin-bottom:.4rem">Apply least-squares solutions to data. We fit a straight line that minimizes the squared error, measure how good the fit is, then extend the idea to exponential, power, and polynomial models.</p>
+      <div class="pill-row">
+        <span class="clo-chip">📘 Chapra Ch. 14 &amp; 15</span>
+        <span class="clo-chip">⏱ Weeks 8–9</span>
+        <span class="clo-chip">🧪 Assessed by Midterm</span>
+      </div>
+    </section>
+
+    <section class="section" id="intro">
+      <div class="panel">
+        <h2>Curve fitting vs. interpolation</h2>
+        <p><b>Curve fitting</b> constructs a function that captures the <em>trend</em> of noisy, scattered data — it does not have to pass through every point. This contrasts with interpolation (Module 4), which insists on hitting every data point exactly. When measurements carry error, forcing the curve through each point is a mistake; we want the best overall trend instead.</p>
+        <p>The dominant approach is <b>least-squares regression</b>, which chooses the curve that minimizes the total squared distance between the curve and the data.</p>
+        <div class="callout idea"><div class="h">💡 Two uses</div><b>Trend analysis</b> (predict values between or beyond the data — interpolation/extrapolation) and <b>hypothesis testing</b> (compare a theoretical model with measurements and estimate its coefficients).</div>
+      </div>
+    </section>
+
+    <section class="section" id="best">
+      <div class="panel">
+        <h2>3.1 What makes a fit "best"?</h2>
+        <p>For each data point \((x_i,y_i)\) the model \(y = a_0 + a_1 x\) leaves a <b>residual</b> — the vertical gap between the data and the line:</p>
+        <div class="eqn">\[ e_i = y_i - a_0 - a_1 x_i. \]</div>
+        <p>We could minimize the sum of residuals, but positive and negative gaps cancel. We could minimize the sum of <em>absolute</em> residuals, but that is awkward mathematically and not unique. The least-squares criterion minimizes the <b>sum of squared residuals</b>:</p>
+        <div class="eqn">\[ S_r = \sum_{i=1}^{n} e_i^2 = \sum_{i=1}^{n}\bigl(y_i - a_0 - a_1 x_i\bigr)^2. \]</div>
+        <p>Squaring penalizes large errors heavily, keeps everything positive, and gives a unique, smooth minimum we can solve with calculus.</p>
+      </div>
+    </section>
+
+    <section class="section" id="linear">
+      <div class="panel">
+        <h2>3.2 Linear least-squares regression</h2>
+        <p>Setting the partial derivatives \(\partial S_r/\partial a_0 = 0\) and \(\partial S_r/\partial a_1 = 0\) gives the <b>normal equations</b>, whose solution is</p>
+        <div class="eqn">\[ a_1 = \frac{n\sum x_i y_i - \sum x_i \sum y_i}{n\sum x_i^2 - \left(\sum x_i\right)^2}, \qquad a_0 = \bar y - a_1 \bar x, \]</div>
+        <p>where \(\bar x\) and \(\bar y\) are the means. The slope \(a_1\) uses the cross-products; the intercept \(a_0\) then forces the line through the centroid \((\bar x, \bar y)\).</p>
+
+        <h3>Worked example</h3>
+        <p>Fit a straight line to the seven points \(x=[1,2,3,4,5,6,7]\), \(y=[0.5,\,2.5,\,2,\,4,\,3.5,\,6,\,5.5]\). The required sums are</p>
+        <div class="eqn">\[ \textstyle\sum x_i = 28,\quad \sum y_i = 24,\quad \sum x_i y_i = 119.5,\quad \sum x_i^2 = 140,\quad n = 7. \]</div>
+        <p>So \(\bar x = 4\), \(\bar y = 3.428571\), and</p>
+        <div class="eqn">\[ a_1 = \frac{7(119.5) - 28(24)}{7(140) - 28^2} = 0.8392857, \qquad a_0 = 3.428571 - 0.8392857(4) = 0.0714286. \]</div>
+        <div class="callout idea"><div class="h">✅ Result</div>\( y = 0.0714 + 0.8393\,x \). Try it in the live demo below — the default data set is exactly this example.</div>
+      </div>
+    </section>
+
+    <!-- DEMO -->
+    <section class="section" id="demo">
+      <div class="panel">
+        <h2>🎛 Demo: build a least-squares fit</h2>
+        <p><b>Click on the plot</b> to add data points (or start from the worked example). The teal line is the live least-squares fit; the faint red stems are the residuals being minimized. Switch the model order to see a straight line vs. a quadratic.</p>
+        <div class="demo">
+          <div class="demo-head"><span class="pill">Live</span> Least-squares regression</div>
+          <canvas id="lsCanvas" height="340" style="cursor:crosshair"></canvas>
+          <div class="controls">
+            <div class="control" style="min-width:230px">
+              <label>Model</label>
+              <select id="lsDeg">
+                <option value="1">Straight line  y = a₀ + a₁x</option>
+                <option value="2">Quadratic  y = a₀ + a₁x + a₂x²</option>
+              </select>
+            </div>
+            <label style="display:flex;align-items:center;gap:.4rem;font-size:.84rem;font-weight:600;margin-top:1rem">
+              <input type="checkbox" id="lsRes" checked> show residuals
+            </label>
+          </div>
+          <div class="btnrow">
+            <button class="btn ghost" id="lsExample">Load worked example</button>
+            <button class="btn ghost" id="lsClear">Clear points</button>
+          </div>
+          <div class="readout" id="lsOut"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="error">
+      <div class="panel">
+        <h2>3.3 How good is the fit?</h2>
+        <p>Two sums quantify the quality of the regression:</p>
+        <div class="eqn">\[ S_t = \sum (y_i - \bar y)^2 \quad\text{(spread about the mean)}, \qquad S_r = \sum (y_i - a_0 - a_1 x_i)^2 \quad\text{(spread about the line)}. \]</div>
+        <p>\(S_t - S_r\) is the error reduction achieved by describing the data with a line rather than just its average. Normalizing gives the <b>coefficient of determination</b> \(r^2\):</p>
+        <div class="eqn">\[ r^2 = \frac{S_t - S_r}{S_t}, \qquad 0 \le r^2 \le 1. \]</div>
+        <p>An \(r^2\) near 1 means the line explains almost all the variation; near 0 means the line is no better than the mean. Its square root \(r\) is the <b>correlation coefficient</b>. The <b>standard error of the estimate</b>, \(s_{y/x} = \sqrt{S_r/(n-2)}\), measures the typical scatter of the data about the line.</p>
+        <div class="callout warn"><div class="h">⚠️ r² is not everything</div>A high \(r^2\) does not prove the model is <em>right</em> — always plot the residuals. Structure in the residuals (a curve, a fan shape) signals that a different model is needed.</div>
+      </div>
+    </section>
+
+    <section class="section" id="linz">
+      <div class="panel">
+        <h2>3.4 Linearizing non-linear models</h2>
+        <p>Many physical relationships are non-linear, but we can <b>transform</b> them into a straight line, fit with ordinary linear regression, then transform back. Two of the most common:</p>
+
+        <h3>Exponential model \(y = a\,e^{bx}\)</h3>
+        <p>Take the natural log of both sides:</p>
+        <div class="eqn">\[ \ln y = \ln a + b x. \]</div>
+        <p>Plot \(\ln y\) against \(x\): a straight line with slope \(b\) and intercept \(\ln a\).</p>
+
+        <h3>Power model \(y = a\,x^{b}\)</h3>
+        <p>Take logs of both sides:</p>
+        <div class="eqn">\[ \log y = \log a + b\,\log x. \]</div>
+        <p>Plot \(\log y\) against \(\log x\): a straight line with slope \(b\) and intercept \(\log a\).</p>
+
+        <h3>Worked example (power)</h3>
+        <p>Fitting \(y = a\,x^{b}\) to a data set, the log-log linear fit is</p>
+        <div class="eqn">\[ \log y = -0.5620 + 1.9842\,\log x \;\Longrightarrow\; a = 10^{-0.5620} = 0.2741,\ b = 1.9842, \]</div>
+        <div class="eqn">\[ y = 0.2741\,x^{1.9842}. \]</div>
+        <div class="codewrap editable has-output">
+          <div class="codehead"><span class="lang"><span class="dot"></span>MATLAB · editable · linearize a power model</span><button class="copybtn">Copy</button></div>
+          <textarea spellcheck="false" rows="14">x = [10 20 30 40 50 60 70 80];
+y = [25 70 380 550 610 1220 830 1450];
+
+% Linearize: log y = log a + b log x
+X = log10(x);   Y = log10(y);
+p = polyfit(X, Y, 1);     % p(1)=b (slope), p(2)=log10(a)
+
+b = p(1);
+a = 10^p(2);
+fprintf('y = %.4f * x^%.4f\n', a, b);
+
+% Plot data and fitted power curve
+xf = linspace(min(x), max(x), 100);
+plot(x, y, 'o', xf, a*xf.^b, '-'); grid on;</textarea>
+        </div>
+<div class="mout"><div class="mout-head">Command Window output</div><pre>y = 0.2741 * x^1.9842</pre></div>
+<div class="figout"><div class="mout-head" style="background:#eef3f9">Figure output</div><img src="assets/figs/m3_power.png" alt="figure: data points with fitted power curve y = 0.2741 x^1.9842"><div class="cap">figure: data points with fitted power curve y = 0.2741 x^1.9842</div></div>
+
+        <p class="note-src">Source: Least-Squares (Nonlinear Functions) lecture.</p>
+      </div>
+    </section>
+
+    <section class="section" id="poly">
+      <div class="panel">
+        <h2>3.5 Polynomial regression</h2>
+        <p>Some data is poorly described by a straight line but well described by a curve. We extend least-squares to a degree-\(m\) polynomial</p>
+        <div class="eqn">\[ y = a_0 + a_1 x + a_2 x^2 + \cdots + a_m x^m. \]</div>
+        <p>Minimizing \(S_r = \sum (y_i - a_0 - a_1 x_i - a_2 x_i^2)^2\) (shown here for a quadratic) gives the <b>normal equations</b> in matrix form \(\mathbf{a} = X^{-1}B\):</p>
+        <div class="eqn">\[ \underbrace{\begin{bmatrix} n & \sum x_i & \sum x_i^2 \\ \sum x_i & \sum x_i^2 & \sum x_i^3 \\ \sum x_i^2 & \sum x_i^3 & \sum x_i^4 \end{bmatrix}}_{X} \begin{bmatrix} a_0 \\ a_1 \\ a_2 \end{bmatrix} = \underbrace{\begin{bmatrix} \sum y_i \\ \sum x_i y_i \\ \sum x_i^2 y_i \end{bmatrix}}_{B}. \]</div>
+        <h3>Worked example</h3>
+        <p>For the data \(x=[1,2,3,4]\), \(y=[1,4,9,15]\), the sums build the system</p>
+        <div class="eqn">\[ X = \begin{bmatrix} 4 & 10 & 30 \\ 10 & 30 & 100 \\ 30 & 100 & 354 \end{bmatrix},\quad B = \begin{bmatrix} 29 \\ 96 \\ 338 \end{bmatrix} \;\Rightarrow\; \mathbf{a} = X^{-1}B. \]</div>
+        <div class="eqn">\[ a_0 = -0.75,\quad a_1 = 0.95,\quad a_2 = 0.75 \;\Rightarrow\; y = -0.75 + 0.95x + 0.75x^2. \]</div>
+        <div class="callout def"><div class="h">📐 Note</div>This is still a <b>linear</b> least-squares problem — linear in the unknown coefficients \(a_0,a_1,a_2\), even though the model is a curve in \(x\). That is why a single matrix solve gives the answer.</div>
+      </div>
+    </section>
+
+    <section class="section" id="matlab">
+      <div class="panel">
+        <h2>3.6 In MATLAB: <code>polyfit</code> and <code>polyval</code></h2>
+        <p>You rarely build the normal equations by hand. <code>polyfit(x,y,m)</code> returns the coefficients of the best degree-\(m\) fit; <code>polyval(p,x)</code> evaluates that polynomial. The same code fits a line (\(m=1\)) or a curve (\(m=2,3,\dots\)) by changing one number.</p>
+        <div class="codewrap editable has-output">
+          <div class="codehead"><span class="lang"><span class="dot"></span>MATLAB · editable · linear &amp; polynomial fit</span><button class="copybtn">Copy</button></div>
+          <textarea spellcheck="false" rows="22">x = [1 2 3 4 5 6 7];
+y = [0.5 2.5 2 4 3.5 6 5.5];
+
+% --- Straight line (degree 1) ---
+p1 = polyfit(x, y, 1);          % p1 = [a1  a0]
+fprintf('Line: y = %.4f + %.4f x\n', p1(2), p1(1));
+
+% Coefficient of determination r^2
+yfit = polyval(p1, x);
+St = sum((y - mean(y)).^2);
+Sr = sum((y - yfit).^2);
+r2 = (St - Sr) / St;
+fprintf('r^2 = %.4f\n', r2);
+
+% --- Quadratic (degree 2) ---
+p2 = polyfit(x, y, 2);          % p2 = [a2 a1 a0]
+
+% --- Plot both ---
+xf = linspace(min(x), max(x), 100);
+plot(x, y, 'ko', xf, polyval(p1,xf), 'b-', xf, polyval(p2,xf), 'r--');
+legend('data','linear','quadratic'); grid on;</textarea>
+        </div>
+<div class="mout"><div class="mout-head">Command Window output</div><pre>Line: y = 0.0714 + 0.8393 x
+r^2 = 0.8683</pre></div>
+<div class="figout"><div class="mout-head" style="background:#eef3f9">Figure output</div><img src="assets/figs/m3_linquad.png" alt="figure: data with linear (blue) and quadratic (red dashed) least-squares fits"><div class="cap">figure: data with linear (blue) and quadratic (red dashed) least-squares fits</div></div>
+
+        <p class="note-src">Source: Least-Squares (Linear &amp; Nonlinear) lectures.</p>
+      </div>
+    </section>
+
+    <!-- QUIZ -->
+    <section class="section" id="quiz">
+      <div class="quiz">
+        <div class="qhead"><span class="pill">Quiz</span><h2 style="margin:0">Self-check · CLO-3</h2></div>
+        <p class="section-sub" style="margin-top:.4rem">Five questions on least-squares fitting.</p>
+        <div id="quizRoot"></div>
+      </div>
+
+      <div class="complete-bar" id="completeBar"><span class="txt"></span><button class="btn"></button></div>
+
+      <div class="lessonnav">
+        <a class="prev" href="module2.html"><div class="dir">← Previous</div><div class="ttl">Module 2 · Linear &amp; Non-linear Systems</div></a>
+        <a class="next" href="module4.html"><div class="dir">Next →</div><div class="ttl">Module 4 · Interpolation &amp; Approximation</div></a>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<footer class="site">BCS 311 · Scientific Computing — Module 3 of 5.</footer>
+
+<script src="assets/app.js"></script>
+<script>
+/* ===== Least-squares demo ===== */
+(function(){
+  const cv=document.getElementById('lsCanvas'); const ctx=cv.getContext('2d');
+  const degSel=document.getElementById('lsDeg'); const resChk=document.getElementById('lsRes');
+  const out=document.getElementById('lsOut');
+  const EXAMPLE=[[1,0.5],[2,2.5],[3,2],[4,4],[5,3.5],[6,6],[7,5.5]];
+  let pts=EXAMPLE.map(p=>p.slice());
+  const XMIN=0,XMAX=8,YMIN=-1,YMAX=8;
+  function sx(x){return 40+(x-XMIN)/(XMAX-XMIN)*(cv.clientWidth-70);}
+  function sy(y){return 300-(y-YMIN)/(YMAX-YMIN)*260+10;}
+  function ix(px){return XMIN+(px-40)/(cv.clientWidth-70)*(XMAX-XMIN);}
+  function iy(py){return YMIN+(300-(py-10))/260*(YMAX-YMIN);}
+  // polynomial least squares via normal equations (Gaussian elimination)
+  function polyfit(P,deg){
+    const n=deg+1; const A=[],b=[];
+    for(let i=0;i<n;i++){A.push(new Array(n).fill(0));b.push(0);}
+    P.forEach(([x,y])=>{ for(let r=0;r<n;r++){ for(let c=0;c<n;c++){A[r][c]+=Math.pow(x,r+c);} b[r]+=Math.pow(x,r)*y; } });
+    // solve A coef = b
+    for(let c=0;c<n;c++){
+      let piv=c; for(let r=c+1;r<n;r++) if(Math.abs(A[r][c])>Math.abs(A[piv][c])) piv=r;
+      [A[c],A[piv]]=[A[piv],A[c]]; [b[c],b[piv]]=[b[piv],b[c]];
+      if(Math.abs(A[c][c])<1e-12) return null;
+      for(let r=0;r<n;r++){ if(r!==c){ const f=A[r][c]/A[c][c]; for(let k=c;k<n;k++)A[r][k]-=f*A[c][k]; b[r]-=f*b[c]; } }
+    }
+    return b.map((v,i)=>v/A[i][i]);   // coef[i] is coefficient of x^i
+  }
+  function evalPoly(coef,x){return coef.reduce((s,c,i)=>s+c*Math.pow(x,i),0);}
+  function draw(){
+    const dpr=devicePixelRatio||1; cv.width=cv.clientWidth*dpr; cv.height=340*dpr; ctx.setTransform(dpr,0,0,dpr,0,0);
+    const W=cv.clientWidth,H=340; ctx.clearRect(0,0,W,H);
+    // grid
+    ctx.strokeStyle='#eef2f7';ctx.lineWidth=1;
+    for(let gx=0;gx<=8;gx++){ctx.beginPath();ctx.moveTo(sx(gx),sy(YMAX));ctx.lineTo(sx(gx),sy(YMIN));ctx.stroke();}
+    for(let gy=0;gy<=8;gy++){ctx.beginPath();ctx.moveTo(sx(XMIN),sy(gy));ctx.lineTo(sx(XMAX),sy(gy));ctx.stroke();}
+    ctx.strokeStyle='#c4d2e3';ctx.beginPath();ctx.moveTo(sx(0),sy(0));ctx.lineTo(sx(XMAX),sy(0));ctx.stroke();
+    ctx.beginPath();ctx.moveTo(sx(0),sy(YMAX));ctx.lineTo(sx(0),sy(YMIN));ctx.stroke();
+    const deg=+degSel.value;
+    let coef=null;
+    if(pts.length>=deg+1) coef=polyfit(pts,deg);
+    // residuals
+    if(coef&&resChk.checked){ ctx.strokeStyle='rgba(216,85,59,.55)';ctx.lineWidth=1.5;
+      pts.forEach(([x,y])=>{const yf=evalPoly(coef,x);ctx.beginPath();ctx.moveTo(sx(x),sy(y));ctx.lineTo(sx(x),sy(yf));ctx.stroke();}); }
+    // fit curve
+    if(coef){ ctx.strokeStyle='#0e7c86';ctx.lineWidth=2.6;ctx.beginPath();
+      for(let i=0;i<=200;i++){const x=XMIN+(XMAX-XMIN)*i/200;const y=evalPoly(coef,x);i?ctx.lineTo(sx(x),sy(y)):ctx.moveTo(sx(x),sy(y));}ctx.stroke(); }
+    // points
+    ctx.fillStyle='#13203a';
+    pts.forEach(([x,y])=>{ctx.beginPath();ctx.arc(sx(x),sy(y),4.5,0,7);ctx.fill();});
+    // readout
+    let txt='points: '+pts.length;
+    if(coef){
+      const ym=pts.reduce((s,p)=>s+p[1],0)/pts.length;
+      const St=pts.reduce((s,p)=>s+(p[1]-ym)**2,0);
+      const Sr=pts.reduce((s,p)=>s+(p[1]-evalPoly(coef,p[0]))**2,0);
+      const r2=St>1e-12?(St-Sr)/St:1;
+      if(deg===1) txt+=`\nfit:  y = ${coef[0].toFixed(4)} + ${coef[1].toFixed(4)} x`;
+      else        txt+=`\nfit:  y = ${coef[0].toFixed(3)} + ${coef[1].toFixed(3)} x + ${coef[2].toFixed(3)} x²`;
+      txt+=`\nSr (sum sq. resid) = ${Sr.toFixed(4)}     r² = ${r2.toFixed(4)}`;
+    } else txt+=`\nadd at least ${deg+1} points to fit a degree-${deg} model`;
+    out.textContent=txt;
+  }
+  cv.addEventListener('click',e=>{const r=cv.getBoundingClientRect();const x=ix(e.clientX-r.left);const y=iy(e.clientY-r.top);if(x>XMIN&&x<XMAX&&y>YMIN&&y<YMAX){pts.push([x,y]);draw();}});
+  document.getElementById('lsExample').onclick=()=>{pts=EXAMPLE.map(p=>p.slice());draw();};
+  document.getElementById('lsClear').onclick=()=>{pts=[];draw();};
+  degSel.onchange=draw; resChk.onchange=draw; window.addEventListener('resize',draw);
+  setTimeout(draw,60);
+})();
+
+/* ===== Quiz ===== */
+renderQuiz('quizRoot','m3',[
+  { q:'Least-squares regression chooses the line that minimizes the sum of:',
+    options:['the residuals','the squared residuals','the absolute x-values','the slopes'],
+    answer:1, explain:'Minimizing the sum of squared residuals S_r = Σ(y_i − a_0 − a_1 x_i)² gives a unique, smooth solution and prevents positive and negative errors from cancelling.' },
+  { q:'The intercept formula a₀ = ȳ − a₁x̄ shows the best-fit line always passes through:',
+    options:['the origin','the first data point','the centroid (x̄, ȳ)','the largest point'],
+    answer:2, explain:'Rearranging gives ȳ = a₀ + a₁x̄, so the line passes through the mean point (x̄, ȳ) — the centroid of the data.' },
+  { q:'A coefficient of determination r² = 0.98 means:',
+    options:['the model is certainly correct','98% of the variation in y is explained by the fit','the slope is 0.98','there are 98 data points'],
+    answer:1, explain:'r² = (S_t − S_r)/S_t is the fraction of the total variation explained by the regression. 0.98 is a strong fit, but you should still inspect the residuals.' },
+  { q:'To fit a power model y = a·xᵇ with linear regression, you plot:',
+    options:['y vs x','log y vs log x','ln y vs x','y vs x²'],
+    answer:1, explain:'Taking logs gives log y = log a + b·log x, a straight line in (log x, log y) with slope b and intercept log a.' },
+  { q:'Polynomial regression (e.g. y = a₀ + a₁x + a₂x²) is still a linear least-squares problem because:',
+    options:['x is small','it is linear in the unknown coefficients a₀,a₁,a₂','the data is a straight line','it uses bisection'],
+    answer:1, explain:'“Linear” refers to the coefficients, not x. Since the model is linear in a₀,a₁,a₂, a single matrix solve (the normal equations) finds them.' }
+]);
+wireCompleteBar('m3');
+</script>
+</body>
+</html>

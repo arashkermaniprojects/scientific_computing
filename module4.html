@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Module 4 · Interpolation & Approximation — BCS 311</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+<script>window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['\\[','\\]']]},svg:{fontCache:'global'}};</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" async></script>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="logo" href="index.html"><span class="badge">BCS&nbsp;311</span> Scientific Computing</a>
+    <button class="menu-toggle" aria-label="Menu">☰</button>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="module1.html">1 · MATLAB</a>
+      <a href="module2.html">2 · Equations</a>
+      <a href="module3.html">3 · Least Squares</a>
+      <a href="module4.html" class="active">4 · Interpolation</a>
+      <a href="module5.html">5 · Integration & ODEs</a>
+    </nav>
+  </div>
+</header>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="card">
+      <h4>Module 4 · CLO-4</h4>
+      <ul class="toc">
+        <li><a href="#intro">Interpolation vs extrapolation</a></li>
+        <li><a href="#poly">4.1 Polynomial interpolation</a></li>
+        <li><a href="#lagrange">4.2 Lagrange polynomials</a></li>
+        <li><a href="#newton">4.3 Newton divided differences</a></li>
+        <li><a href="#runge">4.4 The danger of high degree</a></li>
+        <li><a href="#demo">🎛 Demo: interpolate</a></li>
+        <li><a href="#spline">4.5 Piecewise &amp; splines</a></li>
+        <li><a href="#matlab">4.6 MATLAB built-ins</a></li>
+        <li><a href="#quiz">✅ Self-check quiz</a></li>
+      </ul>
+    </div>
+    <div id="progressWidget" class="progress-card"></div>
+  </aside>
+
+  <main class="content">
+
+    <section class="hero" style="padding:2rem 2.2rem">
+      <div class="kicker">Module 4 · CLO-4</div>
+      <h1 style="font-size:2rem">Interpolation &amp; Polynomial Approximation</h1>
+      <p style="margin-bottom:.4rem">Apply interpolation methods and polynomial approximation. Here the curve must pass <em>through</em> every data point. We build interpolating polynomials (Lagrange, Newton), see why high degree is dangerous, and switch to piecewise splines.</p>
+      <div class="pill-row">
+        <span class="clo-chip">📘 Chapra Ch. 17 &amp; 18</span>
+        <span class="clo-chip">⏱ Weeks 10–11</span>
+        <span class="clo-chip">🧪 Assessed by Final</span>
+      </div>
+    </section>
+
+    <section class="section" id="intro">
+      <div class="panel">
+        <h2>Interpolation vs. extrapolation</h2>
+        <p><b>Interpolation</b> estimates values <em>between</em> known data points; <b>extrapolation</b> estimates <em>outside</em> the data range. Unlike least-squares fitting (Module 3), interpolation assumes the data is exact and requires the curve to pass through <b>every</b> point.</p>
+        <div class="two-col">
+          <div class="callout idea"><div class="h">Interpolation (Module 4)</div>Data assumed exact · curve hits every point · use when points come from a precise table or formula.</div>
+          <div class="callout tip"><div class="h">Regression (Module 3)</div>Data assumed noisy · curve captures the trend · use when points are measurements with error.</div>
+        </div>
+        <div class="callout warn"><div class="h">⚠️ Extrapolate with care</div>Predicting outside the data range is far riskier than interpolating inside it — interpolating polynomials can swing wildly just beyond the last point.</div>
+      </div>
+    </section>
+
+    <section class="section" id="poly">
+      <div class="panel">
+        <h2>4.1 Polynomial interpolation</h2>
+        <p>Through any \(n\) data points with distinct \(x\)-values, there is exactly <b>one</b> polynomial of degree at most \(n-1\) that passes through all of them. Two points define a unique line; three points a unique parabola; and so on.</p>
+        <div class="eqn">\[ P(x) = a_0 + a_1 x + a_2 x^2 + \cdots + a_{n-1} x^{n-1}. \]</div>
+        <p>You <em>could</em> find the coefficients by solving a linear system (a Vandermonde system), but that matrix is often ill-conditioned. The Lagrange and Newton forms construct the same unique polynomial more reliably.</p>
+      </div>
+    </section>
+
+    <section class="section" id="lagrange">
+      <div class="panel">
+        <h2>4.2 Lagrange interpolating polynomials</h2>
+        <p>The Lagrange form writes the interpolant as a weighted sum of the data values:</p>
+        <div class="eqn">\[ P(x) = \sum_{i=1}^{n} y_i\, L_i(x), \qquad L_i(x) = \prod_{\substack{j=1 \\ j\neq i}}^{n} \frac{x - x_j}{x_i - x_j}. \]</div>
+        <p>Each <b>basis polynomial</b> \(L_i(x)\) is cleverly built to equal \(1\) at its own node \(x_i\) and \(0\) at every other node. So at \(x=x_k\) only the \(k\)-th term survives and \(P(x_k)=y_k\) — the curve hits every point by construction.</p>
+        <h3>Worked example</h3>
+        <p>Interpolate the three points \((1,1),(2,4),(3,9)\):</p>
+        <div class="eqn">\[ L_1=\frac{(x-2)(x-3)}{(1-2)(1-3)},\ \ L_2=\frac{(x-1)(x-3)}{(2-1)(2-3)},\ \ L_3=\frac{(x-1)(x-2)}{(3-1)(3-2)}. \]</div>
+        <div class="eqn">\[ P(x) = 1\cdot L_1 + 4\cdot L_2 + 9\cdot L_3 = x^2. \]</div>
+        <p>As expected, the unique degree-2 polynomial through those points is \(y=x^2\).</p>
+        <div class="codewrap editable has-output">
+          <div class="codehead"><span class="lang"><span class="dot"></span>MATLAB · editable · Lagrange interpolation</span><button class="copybtn">Copy</button></div>
+          <textarea spellcheck="false" rows="20">function yq = lagrange_interp(x, y, xq)
+    n = length(x);
+    yq = zeros(size(xq));
+    for i = 1:n
+        L = ones(size(xq));         % basis polynomial L_i
+        for j = 1:n
+            if j ~= i
+                L = L .* (xq - x(j)) / (x(i) - x(j));
+            end
+        end
+        yq = yq + y(i) * L;         % add weighted contribution
+    end
+end
+
+% Demo
+x = [1 2 3];   y = [1 4 9];
+xq = linspace(1, 3, 50);
+yq = lagrange_interp(x, y, xq);
+plot(x, y, 'ro', xq, yq, 'b-'); grid on;   % recovers y = x^2</textarea>
+        </div>
+<div class="figout"><div class="mout-head" style="background:#eef3f9">Figure output</div><img src="assets/figs/m4_lagrange.png" alt="figure: Lagrange interpolant through (1,1),(2,4),(3,9) — recovers y = x²"><div class="cap">figure: Lagrange interpolant through (1,1),(2,4),(3,9) — recovers y = x²</div></div>
+
+        <p class="note-src">Source: Interpolation lecture (Lagrange code lab).</p>
+      </div>
+    </section>
+
+    <section class="section" id="newton">
+      <div class="panel">
+        <h2>4.3 Newton's divided-difference form</h2>
+        <p>Newton's form builds the same polynomial incrementally, which makes it cheap to <b>add a new data point</b> without recomputing everything:</p>
+        <div class="eqn">\[ P(x) = b_0 + b_1(x-x_0) + b_2(x-x_0)(x-x_1) + \cdots \]</div>
+        <p>The coefficients \(b_k\) are <b>divided differences</b>, computed from a triangular table:</p>
+        <div class="eqn">\[ f[x_i,x_j] = \frac{f(x_j)-f(x_i)}{x_j-x_i}, \qquad f[x_i,x_j,x_k] = \frac{f[x_j,x_k]-f[x_i,x_j]}{x_k-x_i}, \ \dots \]</div>
+        <p>Lagrange and Newton give <em>identical</em> polynomials — they are just two ways to write the unique interpolant. Newton is preferred when points arrive one at a time; Lagrange is conceptually cleaner.</p>
+      </div>
+    </section>
+
+    <section class="section" id="runge">
+      <div class="panel">
+        <h2>4.4 The danger of high-degree interpolation</h2>
+        <p>It is tempting to fit many points with one high-degree polynomial. But high-degree interpolants <b>oscillate wildly</b> between equally spaced points — especially near the ends of the interval. This is <b>Runge's phenomenon</b>, classically shown with</p>
+        <div class="eqn">\[ f(x) = \frac{1}{1+25x^2} \quad\text{on}\quad [-1,1]. \]</div>
+        <p>As you add equally spaced nodes, the interpolating polynomial fits the nodes exactly yet swings further and further from \(f\) between them. The demo below lets you watch this happen.</p>
+        <div class="callout idea"><div class="h">💡 The fix</div>Don't raise the degree — lower it and use <b>many low-degree pieces</b>. That is exactly what splines do.</div>
+      </div>
+    </section>
+
+    <!-- DEMO -->
+    <section class="section" id="demo">
+      <div class="panel">
+        <h2>🎛 Demo: interpolation methods &amp; Runge's phenomenon</h2>
+        <p><b>Click to add points</b>, or load the Runge preset and increase the node count. Compare the single high-degree <b>Lagrange polynomial</b> against a <b>piecewise-linear</b> interpolant and a <b>cubic spline</b>.</p>
+        <div class="demo">
+          <div class="demo-head"><span class="pill">Live</span> Interpolation explorer</div>
+          <canvas id="inCanvas" height="340" style="cursor:crosshair"></canvas>
+          <div class="controls">
+            <div class="control" style="min-width:220px">
+              <label>Method</label>
+              <select id="inMethod">
+                <option value="lag">Lagrange polynomial (degree n−1)</option>
+                <option value="lin">Piecewise linear</option>
+                <option value="spl">Cubic spline</option>
+              </select>
+            </div>
+            <div class="control" style="min-width:240px" id="inNodeWrap">
+              <label>Runge nodes: <span class="val" id="inNval">7</span></label>
+              <input id="inNodes" type="range" min="3" max="15" value="7">
+            </div>
+          </div>
+          <div class="btnrow">
+            <button class="btn ghost" id="inRunge">Load Runge function</button>
+            <button class="btn ghost" id="inClear">Clear points</button>
+          </div>
+          <div class="readout" id="inOut"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="spline">
+      <div class="panel">
+        <h2>4.5 Piecewise &amp; spline interpolation</h2>
+        <p>Instead of one global polynomial, a <b>spline</b> joins many low-degree polynomials, one per interval between data points.</p>
+        <ul>
+          <li><b>Linear spline:</b> connect adjacent points with straight segments. Simple, but kinked (the slope jumps at each node).</li>
+          <li><b>Cubic spline:</b> a separate cubic on each interval, chosen so the pieces meet smoothly — matching value, first derivative, and second derivative at every interior node. The result is smooth and avoids Runge oscillation.</li>
+        </ul>
+        <div class="callout def"><div class="h">📐 Why cubic?</div>Cubic is the lowest degree that can match position and curvature smoothly at the joints. That is why cubic splines are the standard for smooth interpolation of tabulated data.</div>
+      </div>
+    </section>
+
+    <section class="section" id="matlab">
+      <div class="panel">
+        <h2>4.6 MATLAB's built-in interpolation</h2>
+        <p>MATLAB ships fast, robust interpolation functions — you rarely write your own in practice:</p>
+        <div class="codewrap editable has-output">
+          <div class="codehead"><span class="lang"><span class="dot"></span>MATLAB · editable · interp1, spline, polyfit</span><button class="copybtn">Copy</button></div>
+          <textarea spellcheck="false" rows="18">x = [1 2 3 4 5];
+y = [1 4 9 16 25];          % sample data (here y = x^2)
+xq = linspace(1, 5, 100);   % query points
+
+% 1) Piecewise linear interpolation
+y_lin = interp1(x, y, xq, 'linear');
+
+% 2) Cubic spline interpolation (smooth)
+y_spl = interp1(x, y, xq, 'spline');   % or  spline(x, y, xq)
+
+% 3) Single interpolating polynomial via polyfit (degree n-1)
+p     = polyfit(x, y, length(x)-1);
+y_pol = polyval(p, xq);
+
+plot(x, y, 'ko', xq, y_lin, 'g-', xq, y_spl, 'b-', xq, y_pol, 'r--');
+legend('data','linear','spline','polynomial'); grid on;</textarea>
+        </div>
+<div class="figout"><div class="mout-head" style="background:#eef3f9">Figure output</div><img src="assets/figs/m4_interp.png" alt="figure: linear (green), spline (blue) and polynomial (red dashed) interpolation of y = x² data"><div class="cap">figure: linear (green), spline (blue) and polynomial (red dashed) interpolation of y = x² data</div></div>
+
+        <div class="callout tip"><div class="h">🛠 In practice</div>Use <code>interp1(...,'spline')</code> for smooth interpolation of a data table, and <code>'linear'</code> when you just need quick in-between values. Reserve a single high-degree polynomial for a small number of points.</div>
+        <p class="note-src">Source: Interpolation &amp; Functional Approximation lectures.</p>
+      </div>
+    </section>
+
+    <!-- QUIZ -->
+    <section class="section" id="quiz">
+      <div class="quiz">
+        <div class="qhead"><span class="pill">Quiz</span><h2 style="margin:0">Self-check · CLO-4</h2></div>
+        <p class="section-sub" style="margin-top:.4rem">Five questions on interpolation.</p>
+        <div id="quizRoot"></div>
+      </div>
+
+      <div class="complete-bar" id="completeBar"><span class="txt"></span><button class="btn"></button></div>
+
+      <div class="lessonnav">
+        <a class="prev" href="module3.html"><div class="dir">← Previous</div><div class="ttl">Module 3 · Least-Squares Curve Fitting</div></a>
+        <a class="next" href="module5.html"><div class="dir">Next →</div><div class="ttl">Module 5 · Integration &amp; ODEs</div></a>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<footer class="site">BCS 311 · Scientific Computing — Module 4 of 5.</footer>
+
+<script src="assets/app.js"></script>
+<script>
+/* ===== Interpolation demo ===== */
+(function(){
+  const cv=document.getElementById('inCanvas'); const ctx=cv.getContext('2d');
+  const methodSel=document.getElementById('inMethod');
+  const nodes=document.getElementById('inNodes'); const nval=document.getElementById('inNval');
+  const nodeWrap=document.getElementById('inNodeWrap'); const out=document.getElementById('inOut');
+  let mode='free';   // 'free' (click) or 'runge'
+  let pts=[[1,1.2],[2.5,3.6],[4,2.2],[5.5,4.8],[7,3]];
+  const XMIN=-1,XMAX=8,YMIN=-1.5,YMAX=6;
+  let view={xmin:XMIN,xmax:XMAX,ymin:YMIN,ymax:YMAX};
+  function sx(x){return 42+(x-view.xmin)/(view.xmax-view.xmin)*(cv.clientWidth-72);}
+  function sy(y){return 300-(y-view.ymin)/(view.ymax-view.ymin)*260+10;}
+  function ix(px){return view.xmin+(px-42)/(cv.clientWidth-72)*(view.xmax-view.xmin);}
+  function iy(py){return view.ymin+(300-(py-10))/260*(view.ymax-view.ymin);}
+  function rungeF(x){return 1/(1+25*x*x);}
+  function lagrange(P,x){let s=0;for(let i=0;i<P.length;i++){let L=1;for(let j=0;j<P.length;j++)if(j!==i)L*=(x-P[j][0])/(P[i][0]-P[j][0]);s+=P[i][1]*L;}return s;}
+  function linInterp(P,x){for(let i=0;i<P.length-1;i++){if(x>=P[i][0]&&x<=P[i+1][0]){const t=(x-P[i][0])/(P[i+1][0]-P[i][0]);return P[i][1]+t*(P[i+1][1]-P[i][1]);}}return null;}
+  // natural cubic spline
+  function buildSpline(P){const n=P.length;if(n<3)return null;const x=P.map(p=>p[0]),y=P.map(p=>p[1]);
+    const h=[];for(let i=0;i<n-1;i++)h.push(x[i+1]-x[i]);
+    const al=new Array(n).fill(0);
+    for(let i=1;i<n-1;i++)al[i]=3*((y[i+1]-y[i])/h[i]-(y[i]-y[i-1])/h[i-1]);
+    const l=new Array(n).fill(0),mu=new Array(n).fill(0),z=new Array(n).fill(0);
+    l[0]=1;
+    for(let i=1;i<n-1;i++){l[i]=2*(x[i+1]-x[i-1])-h[i-1]*mu[i-1];mu[i]=h[i]/l[i];z[i]=(al[i]-h[i-1]*z[i-1])/l[i];}
+    l[n-1]=1;
+    const c=new Array(n).fill(0),b=new Array(n).fill(0),d=new Array(n).fill(0);
+    for(let j=n-2;j>=0;j--){c[j]=z[j]-mu[j]*c[j+1];b[j]=(y[j+1]-y[j])/h[j]-h[j]*(c[j+1]+2*c[j])/3;d[j]=(c[j+1]-c[j])/(3*h[j]);}
+    return {x,y,b,c,d};
+  }
+  function evalSpline(S,xx){if(!S)return null;const {x,y,b,c,d}=S;let i=x.length-2;for(let k=0;k<x.length-1;k++)if(xx>=x[k]&&xx<=x[k+1]){i=k;break;}const dx=xx-x[i];return y[i]+b[i]*dx+c[i]*dx*dx+d[i]*dx*dx*dx;}
+  function setRunge(){mode='runge';const n=+nodes.value;pts=[];for(let i=0;i<n;i++){const x=-1+2*i/(n-1);pts.push([x,rungeF(x)]);}view={xmin:-1.15,xmax:1.15,ymin:-0.5,ymax:1.4};}
+  function setFree(){mode='free';view={xmin:XMIN,xmax:XMAX,ymin:YMIN,ymax:YMAX};}
+  function draw(){
+    nodeWrap.style.display = mode==='runge' ? 'flex' : 'none';
+    const dpr=devicePixelRatio||1;cv.width=cv.clientWidth*dpr;cv.height=340*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);
+    const W=cv.clientWidth,H=340;ctx.clearRect(0,0,W,H);
+    // axes
+    ctx.strokeStyle='#e3e9f2';ctx.lineWidth=1;
+    if(view.ymin<0&&view.ymax>0){ctx.beginPath();ctx.moveTo(sx(view.xmin),sy(0));ctx.lineTo(sx(view.xmax),sy(0));ctx.stroke();}
+    ctx.beginPath();ctx.moveTo(sx(0),sy(view.ymax));ctx.lineTo(sx(0),sy(view.ymin));ctx.stroke();
+    const P=pts.slice().sort((a,b)=>a[0]-b[0]);
+    // true Runge curve
+    if(mode==='runge'){ctx.strokeStyle='#9bb0c9';ctx.lineWidth=2;ctx.setLineDash([4,4]);ctx.beginPath();
+      for(let i=0;i<=300;i++){const x=view.xmin+(view.xmax-view.xmin)*i/300;const y=rungeF(x);i?ctx.lineTo(sx(x),sy(y)):ctx.moveTo(sx(x),sy(y));}ctx.stroke();ctx.setLineDash([]);}
+    // interpolant
+    const m=methodSel.value; let S=null; if(m==='spl')S=buildSpline(P);
+    if(P.length>=2){
+      ctx.strokeStyle='#0e7c86';ctx.lineWidth=2.6;ctx.beginPath();let started=false;
+      const x0=P[0][0],x1=P[P.length-1][0];
+      for(let i=0;i<=320;i++){const x=x0+(x1-x0)*i/320;let y;
+        if(m==='lag')y=lagrange(P,x);else if(m==='lin')y=linInterp(P,x);else y=evalSpline(S,x);
+        if(y===null||!isFinite(y))continue;const X=sx(x),Y=sy(y);started?ctx.lineTo(X,Y):ctx.moveTo(X,Y);started=true;}
+      ctx.stroke();
+    }
+    // points
+    ctx.fillStyle='#13203a';P.forEach(([x,y])=>{ctx.beginPath();ctx.arc(sx(x),sy(y),4.5,0,7);ctx.fill();});
+    let txt=`method: ${m==='lag'?'Lagrange (degree '+(P.length-1)+')':m==='lin'?'piecewise linear':'cubic spline'}   ·   points: ${P.length}`;
+    if(mode==='runge'){
+      // max error to true function
+      let maxe=0;for(let i=0;i<=200;i++){const x=-1+2*i/200;let y;if(m==='lag')y=lagrange(P,x);else if(m==='lin')y=linInterp(P,x);else y=evalSpline(S,x);if(y!=null&&isFinite(y))maxe=Math.max(maxe,Math.abs(y-rungeF(x)));}
+      txt+=`\nRunge f(x)=1/(1+25x²)   max |error| ≈ ${maxe.toFixed(3)}`;
+      if(m==='lag'&&P.length>=9)txt+='   ← watch the oscillation explode at the ends!';
+    } else txt+='\nclick the plot to add points';
+    out.textContent=txt;
+  }
+  cv.addEventListener('click',e=>{if(mode!=='free')setFree();const r=cv.getBoundingClientRect();const x=ix(e.clientX-r.left),y=iy(e.clientY-r.top);if(x>view.xmin&&x<view.xmax&&y>view.ymin&&y<view.ymax){pts.push([x,y]);draw();}});
+  document.getElementById('inRunge').onclick=()=>{setRunge();draw();};
+  document.getElementById('inClear').onclick=()=>{setFree();pts=[];draw();};
+  nodes.oninput=()=>{nval.textContent=nodes.value;if(mode==='runge'){setRunge();draw();}};
+  methodSel.onchange=draw;window.addEventListener('resize',draw);
+  setTimeout(draw,60);
+})();
+
+/* ===== Quiz ===== */
+renderQuiz('quizRoot','m4',[
+  { q:'The key difference between interpolation and least-squares regression is that interpolation:',
+    options:['ignores the data','passes exactly through every data point','always uses a straight line','needs no data points'],
+    answer:1, explain:'Interpolation assumes the data is exact and forces the curve through every point; regression assumes noise and only follows the trend.' },
+  { q:'How many points uniquely determine a polynomial of degree at most n−1?',
+    options:['n − 1','n','n + 1','2n'],
+    answer:1, explain:'Exactly n points with distinct x-values determine a unique polynomial of degree ≤ n−1 (2 points → line, 3 → parabola, …).' },
+  { q:'A Lagrange basis polynomial Lᵢ(x) is constructed so that at the nodes it equals:',
+    options:['1 everywhere','1 at xᵢ and 0 at every other node','0 at xᵢ','the data value yᵢ'],
+    answer:1, explain:'Lᵢ(xᵢ)=1 and Lᵢ(xⱼ)=0 for j≠i. That property makes P(xₖ)=yₖ at every node, so the interpolant passes through all points.' },
+  { q:'Runge\'s phenomenon is the tendency of high-degree interpolating polynomials to:',
+    options:['converge instantly','oscillate wildly between equally spaced nodes','become a straight line','lose all data points'],
+    answer:1, explain:'With many equally spaced nodes, the single high-degree polynomial fits the nodes but oscillates strongly between them, especially near the interval ends.' },
+  { q:'To smoothly interpolate many points without Runge oscillation, the best choice is usually:',
+    options:['a higher-degree polynomial','a cubic spline (many low-degree pieces)','bisection','extrapolation'],
+    answer:1, explain:'A cubic spline joins low-degree cubics that match value and curvature at the nodes — smooth and stable, unlike one global high-degree polynomial.' }
+]);
+wireCompleteBar('m4');
+</script>
+</body>
+</html>

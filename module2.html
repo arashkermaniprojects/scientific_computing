@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Module 2 · Linear & Non-linear Systems — BCS 311</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+<script>window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['\\[','\\]']]},svg:{fontCache:'global'}};</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" async></script>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="logo" href="index.html"><span class="badge">BCS&nbsp;311</span> Scientific Computing</a>
+    <button class="menu-toggle" aria-label="Menu">☰</button>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="module1.html">1 · MATLAB</a>
+      <a href="module2.html" class="active">2 · Equations</a>
+      <a href="module3.html">3 · Least Squares</a>
+      <a href="module4.html">4 · Interpolation</a>
+      <a href="module5.html">5 · Integration & ODEs</a>
+    </nav>
+  </div>
+</header>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="card">
+      <h4>Module 2 · CLO-2</h4>
+      <ul class="toc">
+        <li><a href="#intro">Root finding: the problem</a></li>
+        <li><a href="#fixed">2.1 Fixed-point iteration</a></li>
+        <li><a href="#bisect">2.2 Bisection</a></li>
+        <li><a href="#bisect-demo">🎛 Demo: bisection</a></li>
+        <li><a href="#newton">2.3 Newton's method</a></li>
+        <li><a href="#newton-demo">🎛 Demo: Newton</a></li>
+        <li><a href="#secant">2.4 Secant method</a></li>
+        <li><a href="#compare">2.5 Comparison & polynomials</a></li>
+        <li><a href="#gauss">2.6 Gaussian elimination</a></li>
+        <li><a href="#lu">2.7 LU factorization</a></li>
+        <li><a href="#chol">2.8 Cholesky factorization</a></li>
+        <li><a href="#quiz">✅ Self-check quiz</a></li>
+      </ul>
+    </div>
+    <div id="progressWidget" class="progress-card"></div>
+  </aside>
+
+  <main class="content">
+
+    <section class="hero" style="padding:2rem 2.2rem">
+      <div class="kicker">Module 2 · CLO-2</div>
+      <h1 style="font-size:2rem">Linear &amp; Non-linear Systems</h1>
+      <p style="margin-bottom:.4rem">Solve linear and non-linear systems of equations. We first find roots of a single non-linear equation (fixed-point, bisection, Newton, secant), then solve linear systems by Gaussian elimination and matrix factorization (LU, Cholesky).</p>
+      <div class="pill-row">
+        <span class="clo-chip">📘 Chapra Ch. 5, 6, 9, 10, 11</span>
+        <span class="clo-chip">⏱ Weeks 4–7</span>
+        <span class="clo-chip">🧪 Assessed by Midterm &amp; Lab</span>
+      </div>
+    </section>
+
+    <section class="section" id="intro">
+      <div class="panel">
+        <h2>Root finding: the problem</h2>
+        <p>A great many problems reduce to finding the <b>root</b> of an equation: a value \(x\) for which</p>
+        <div class="eqn">\[ f(x) = 0. \]</div>
+        <p>Graphically, a root is where the curve \(y=f(x)\) crosses the \(x\)-axis. For linear or simple quadratic \(f\) we can solve by hand. But for most non-linear equations — \(\cos x = x\), \(x^3 - 2x - 1 = 0\) — there is <b>no closed-form solution</b>, so we approximate the root with an <b>iterative method</b>: start from a guess, improve it repeatedly, and stop when the change is below a tolerance \(\varepsilon\).</p>
+        <p>The four methods below trade off <em>robustness</em> (will it converge?) against <em>speed</em> (how fast?).</p>
+      </div>
+    </section>
+
+    <!-- FIXED POINT -->
+    <section class="section" id="fixed">
+      <div class="panel">
+        <h2>2.1 Fixed-point iteration</h2>
+        <p>The idea: algebraically rearrange \(f(x)=0\) into the form \(x = g(x)\). A solution of this is a <b>fixed point</b> — a value the function maps to itself, \(g(x^\*)=x^\*\). We then iterate</p>
+        <div class="eqn">\[ x_{k+1} = g(x_k), \qquad k = 0,1,2,\dots \]</div>
+        <p>and stop when \(|x_{k+1}-x_k| < \varepsilon\). The link to the original problem is \(f(x) = g(x) - x\): where \(g(x)=x\), we have \(f(x)=0\).</p>
+        <div class="callout def"><div class="h">📐 Convergence condition</div>The iteration converges to a fixed point \(x^\*\) only if \(|g'(x^\*)| < 1\) near the root. Choosing a good rearrangement \(g\) is the whole art of the method — a poor choice diverges.</div>
+
+        <h3>Worked example</h3>
+        <p>Solve \(2x^3 - 2x - 5 = 0\). Rearrange to isolate \(x\):</p>
+        <div class="eqn">\[ x = \left(\frac{2x+5}{2}\right)^{1/3} \;=\; g(x), \quad\text{which satisfies } |g'(x)|<1 \text{ near } x=1.5. \]</div>
+        <div class="tablewrap">
+          <table class="data">
+            <thead><tr><th>n</th><th>\(x_n\)</th><th>\(x_{n+1}=g(x_n)\)</th></tr></thead>
+            <tbody>
+              <tr><td>0</td><td>1.5</td><td>1.5874</td></tr>
+              <tr><td>1</td><td>1.5874</td><td>1.5989</td></tr>
+              <tr><td>2</td><td>1.5989</td><td>1.60037</td></tr>
+              <tr><td>3</td><td>1.60037</td><td>1.60057</td></tr>
+              <tr><td>4</td><td>1.60057</td><td>1.60059</td></tr>
+              <tr class="converged"><td>5</td><td>1.60059</td><td>1.6006 ✓</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>The approximate root is \(x \approx 1.6006\). A second classic example, \(\cos x = 3x-1\) rearranged to \(g(x)=\tfrac{\cos x + 1}{3}\), converges from \(x_0=0\) to \(x \approx 0.6071\).</p>
+
+        <div class="codewrap editable has-output">
+          <div class="codehead"><span class="lang"><span class="dot"></span>MATLAB · editable · Fixed_point_iteration.m</span><button class="copybtn">Copy</button></div>
+          <textarea spellcheck="false" rows="20">g = @(x) cos(x);            % rearranged equation g(x)
+
+function root = fixed_point_iteration(x0, tol, max_iter, g)
+    iteration = 0;
+    while iteration < max_iter
+        x1 = g(x0);
+        fprintf('Iteration %d: x = %.6f, g(x) = %.6f\n', iteration, x0, x1);
+        if abs(x1 - x0) < tol
+            break;
+        end
+        x0 = x1;
+        iteration = iteration + 1;
+    end
+    root = x1;
+    fprintf('Approximate root: %.6f\n', root);
+end
+
+% Call it
+root = fixed_point_iteration(0.5, 1e-6, 100, g);</textarea>
+        </div>
+<div class="mout"><div class="mout-head">Command Window output</div><pre>Iteration 0: x = 0.500000, g(x) = 0.877583
+Iteration 1: x = 0.877583, g(x) = 0.639012
+Iteration 2: x = 0.639012, g(x) = 0.802685
+Iteration 3: x = 0.802685, g(x) = 0.694778
+Iteration 4: x = 0.694778, g(x) = 0.768196
+Iteration 5: x = 0.768196, g(x) = 0.719165
+Iteration 6: x = 0.719165, g(x) = 0.752356
+Iteration 7: x = 0.752356, g(x) = 0.730081
+Iteration 8: x = 0.730081, g(x) = 0.745120
+Iteration 9: x = 0.745120, g(x) = 0.735006
+Iteration 10: x = 0.735006, g(x) = 0.741827
+Iteration 11: x = 0.741827, g(x) = 0.737236
+Iteration 12: x = 0.737236, g(x) = 0.740330
+Iteration 13: x = 0.740330, g(x) = 0.738246
+Iteration 14: x = 0.738246, g(x) = 0.739650
+Iteration 15: x = 0.739650, g(x) = 0.738705
+Iteration 16: x = 0.738705, g(x) = 0.739341
+Iteration 17: x = 0.739341, g(x) = 0.738912
+Iteration 18: x = 0.738912, g(x) = 0.739201
+Iteration 19: x = 0.739201, g(x) = 0.739007
+Iteration 20: x = 0.739007, g(x) = 0.739138
+Iteration 21: x = 0.739138, g(x) = 0.739050
+Iteration 22: x = 0.739050, g(x) = 0.739109
+Iteration 23: x = 0.739109, g(x) = 0.739069
+Iteration 24: x = 0.739069, g(x) = 0.739096
+Iteration 25: x = 0.739096, g(x) = 0.739078
+Iteration 26: x = 0.739078, g(x) = 0.739090
+Iteration 27: x = 0.739090, g(x) = 0.739082
+Iteration 28: x = 0.739082, g(x) = 0.739087
+Iteration 29: x = 0.739087, g(x) = 0.739084
+Iteration 30: x = 0.739084, g(x) = 0.739086
+Iteration 31: x = 0.739086, g(x) = 0.739084
+Iteration 32: x = 0.739084, g(x) = 0.739086
+Iteration 33: x = 0.739086, g(x) = 0.739085
+Approximate root: 0.739085</pre></div>
+
+        <p class="note-src">Source: Root Finding lecture &amp; <code>Fixed_pont_iteration.m</code>.</p>
+      </div>
+    </section>
+
+    <!-- BISECTION -->
+    <section class="section" id="bisect">
+      <div class="panel">
+        <h2>2.2 Bisection — the reliable bracket method</h2>
+        <p>Bisection needs two starting guesses \(a\) and \(b\) that <b>bracket</b> the root: \(f(a)\) and \(f(b)\) must have opposite signs, so by the Intermediate Value Theorem a continuous \(f\) must cross zero between them.</p>
+        <ol>
+          <li>Compute the midpoint \(c = \dfrac{a+b}{2}\).</li>
+          <li>Check the sign of \(f(c)\). Keep whichever half still contains the sign change: if \(f(a)\,f(c) < 0\) set \(b=c\), otherwise set \(a=c\).</li>
+          <li>Repeat. The bracket halves every step, so the error is at most \(\dfrac{b-a}{2^{n}}\).</li>
+        </ol>
+        <div class="callout idea"><div class="h">💡 Guaranteed but slow</div>Bisection <b>always</b> converges for a sign-changing continuous function, but only <b>linearly</b> — it gains roughly one bit of accuracy per step. It is the dependable fallback when faster methods misbehave.</div>
+        <div class="codewrap editable has-output">
+          <div class="codehead"><span class="lang"><span class="dot"></span>MATLAB · editable · Bisection.m</span><button class="copybtn">Copy</button></div>
+          <textarea spellcheck="false" rows="20">f = @(x) x^2 - 4;
+
+function root = bisection_method(a, b, tol, max_iter, f)
+    iteration = 0;
+    while iteration < max_iter
+        c = (a + b) / 2;
+        fprintf('Iter %d: a=%.6f b=%.6f c=%.6f f(c)=%.6f\n', iteration, a, b, c, f(c));
+        if abs(f(c)) == 0 || abs(b - a) < tol
+            break;
+        end
+        if f(a) * f(c) < 0        % sign change is in [a, c]
+            b = c;
+        else                      % sign change is in [c, b]
+            a = c;
+        end
+        iteration = iteration + 1;
+    end
+    root = c;
+    fprintf('Approximate root: %.6f\n', root);
+end
+
+root = bisection_method(0, 3, 1e-6, 100, f);</textarea>
+        </div>
+<div class="mout"><div class="mout-head">Command Window output</div><pre>Iter 0: a=0.000000 b=3.000000 c=1.500000 f(c)=-1.750000
+Iter 1: a=1.500000 b=3.000000 c=2.250000 f(c)=1.062500
+Iter 2: a=1.500000 b=2.250000 c=1.875000 f(c)=-0.484375
+Iter 3: a=1.875000 b=2.250000 c=2.062500 f(c)=0.253906
+Iter 4: a=1.875000 b=2.062500 c=1.968750 f(c)=-0.124023
+Iter 5: a=1.968750 b=2.062500 c=2.015625 f(c)=0.062744
+Iter 6: a=1.968750 b=2.015625 c=1.992188 f(c)=-0.031189
+Iter 7: a=1.992188 b=2.015625 c=2.003906 f(c)=0.015640
+Iter 8: a=1.992188 b=2.003906 c=1.998047 f(c)=-0.007809
+Iter 9: a=1.998047 b=2.003906 c=2.000977 f(c)=0.003907
+Iter 10: a=1.998047 b=2.000977 c=1.999512 f(c)=-0.001953
+Iter 11: a=1.999512 b=2.000977 c=2.000244 f(c)=0.000977
+Iter 12: a=1.999512 b=2.000244 c=1.999878 f(c)=-0.000488
+Iter 13: a=1.999878 b=2.000244 c=2.000061 f(c)=0.000244
+Iter 14: a=1.999878 b=2.000061 c=1.999969 f(c)=-0.000122
+Iter 15: a=1.999969 b=2.000061 c=2.000015 f(c)=0.000061
+Iter 16: a=1.999969 b=2.000015 c=1.999992 f(c)=-0.000031
+Iter 17: a=1.999992 b=2.000015 c=2.000004 f(c)=0.000015
+Iter 18: a=1.999992 b=2.000004 c=1.999998 f(c)=-0.000008
+Iter 19: a=1.999998 b=2.000004 c=2.000001 f(c)=0.000004
+Iter 20: a=1.999998 b=2.000001 c=2.000000 f(c)=-0.000002
+Iter 21: a=2.000000 b=2.000001 c=2.000000 f(c)=0.000001
+Iter 22: a=2.000000 b=2.000000 c=2.000000 f(c)=-0.000000
+Approximate root: 2.000000</pre></div>
+
+        <p class="note-src">Source: <code>Bisection.m</code> (Lab 4 solutions).</p>
+      </div>
+    </section>
+
+    <!-- BISECTION DEMO -->
+    <section class="section" id="bisect-demo">
+      <div class="panel">
+        <h2>🎛 Demo: watch bisection bracket a root</h2>
+        <p>The shaded band is the current bracket \([a,b]\). Each step halves it and keeps the half where the sign changes. Press <b>Step</b> to advance one iteration, or <b>Auto</b> to run.</p>
+        <div class="demo">
+          <div class="demo-head"><span class="pill">Live</span> Bisection method</div>
+          <canvas id="biCanvas" height="320"></canvas>
+          <div class="controls">
+            <div class="control" style="min-width:230px">
+              <label>Function</label>
+              <select id="biFn">
+                <option value="0">f(x) = x² − 2   on [0, 2]</option>
+                <option value="1">f(x) = x³ − 2x − 1   on [1, 2]</option>
+                <option value="2">f(x) = cos(x) − x   on [0, 1]</option>
+              </select>
+            </div>
+          </div>
+          <div class="btnrow">
+            <button class="btn" id="biStep">Step ▸</button>
+            <button class="btn accent" id="biAuto">Auto ▶</button>
+            <button class="btn ghost" id="biReset">Reset</button>
+          </div>
+          <div class="readout" id="biOut"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- NEWTON -->
+    <section class="section" id="newton">
+      <div class="panel">
+        <h2>2.3 Newton's method</h2>
+        <p>Newton's (Newton–Raphson) method uses the slope of \(f\) to leap toward the root. From a guess \(x_n\), draw the tangent line to \(y=f(x)\); where that tangent crosses the \(x\)-axis is the next guess:</p>
+        <div class="eqn">\[ x_{n+1} = x_n - \frac{f(x_n)}{f'(x_n)}. \]</div>
+        <p>It requires the derivative \(f'\) and a reasonable starting guess, but when those are available it converges <b>quadratically</b> — the number of correct digits roughly <em>doubles</em> each step.</p>
+
+        <h3>Worked example</h3>
+        <p>Solve \(\cos x - x = 0\) from \(x_0 = \pi/4 \approx 0.785398\), with \(f'(x) = -\sin x - 1\):</p>
+        <div class="tablewrap">
+          <table class="data">
+            <thead><tr><th>n</th><th>\(x_n\)</th><th>\(f(x_n)\)</th><th>\(f'(x_n)\)</th><th>\(x_{n+1}\)</th></tr></thead>
+            <tbody>
+              <tr><td>0</td><td>0.785398</td><td>−0.078291</td><td>−1.707107</td><td>0.739536</td></tr>
+              <tr><td>1</td><td>0.739536</td><td>−0.000755</td><td>−1.673012</td><td>0.739085</td></tr>
+              <tr class="converged"><td>2</td><td>0.739085</td><td>−0.0000001</td><td>−1.673033</td><td>0.739085 ✓</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>Three steps reach the true root \(x \approx 0.739085\) to six decimals — far faster than bisection.</p>
+        <div class="codewrap editable has-output">
+          <div class="codehead"><span class="lang"><span class="dot"></span>MATLAB · editable · Newton.m</span><button class="copybtn">Copy</button></div>
+          <textarea spellcheck="false" rows="19">f       = @(x) x^3 - 2*x + 1;
+f_prime = @(x) 3*x^2 - 2;
+
+function root = newton_method(x0, tol, max_iter, f, f_prime)
+    iteration = 0;
+    while iteration < max_iter
+        x1 = x0 - f(x0) / f_prime(x0);
+        fprintf('Iter %d: x = %.6f, f(x) = %.6f\n', iteration, x0, f(x0));
+        if abs(x1 - x0) < tol
+            break;
+        end
+        x0 = x1;
+        iteration = iteration + 1;
+    end
+    root = x1;
+    fprintf('Approximate root: %.6f\n', root);
+end
+
+root = newton_method(0.5, 1e-6, 100, f, f_prime);</textarea>
+        </div>
+<div class="mout"><div class="mout-head">Command Window output</div><pre>Iter 0: x = 0.500000, f(x) = 0.125000
+Iter 1: x = 0.600000, f(x) = 0.016000
+Iter 2: x = 0.617391, f(x) = 0.000550
+Iter 3: x = 0.618033, f(x) = 0.000001
+Approximate root: 0.618034</pre></div>
+
+        <div class="callout warn"><div class="h">⚠️ When Newton fails</div>If \(f'(x_n)\) is near zero the step explodes; a poor starting guess can send the iteration to a different root or diverge. That is why robust solvers combine Newton with a bracket (a hybrid method).</div>
+      </div>
+    </section>
+
+    <!-- NEWTON DEMO -->
+    <section class="section" id="newton-demo">
+      <div class="panel">
+        <h2>🎛 Demo: Newton's tangent leaps</h2>
+        <p>Choose a function and a starting point \(x_0\). Each step draws the tangent (orange) and drops to the \(x\)-axis to get the next guess. Notice how quickly the steps shrink.</p>
+        <div class="demo">
+          <div class="demo-head"><span class="pill">Live</span> Newton–Raphson</div>
+          <canvas id="nwCanvas" height="320"></canvas>
+          <div class="controls">
+            <div class="control" style="min-width:230px">
+              <label>Function</label>
+              <select id="nwFn">
+                <option value="0">f(x) = x² − 2   (root √2)</option>
+                <option value="1">f(x) = x³ − 2x − 1   (root ≈1.618)</option>
+                <option value="2">f(x) = cos(x) − x   (root ≈0.739)</option>
+              </select>
+            </div>
+            <div class="control" style="min-width:240px">
+              <label>Start x₀: <span class="val" id="nwX0val">2.0</span></label>
+              <input id="nwX0" type="range" min="-2" max="3" step="0.1" value="2">
+            </div>
+          </div>
+          <div class="btnrow">
+            <button class="btn" id="nwStep">Step ▸</button>
+            <button class="btn accent" id="nwAuto">Auto ▶</button>
+            <button class="btn ghost" id="nwReset">Reset</button>
+          </div>
+          <div class="readout" id="nwOut"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECANT -->
+    <section class="section" id="secant">
+      <div class="panel">
+        <h2>2.4 The secant method</h2>
+        <p>The secant method is Newton's method with the derivative <b>replaced by a finite-difference estimate</b> from the two most recent points. No derivative needed:</p>
+        <div class="eqn">\[ x_{n+1} = x_n - f(x_n)\,\frac{x_n - x_{n-1}}{f(x_n) - f(x_{n-1})}. \]</div>
+        <p>It needs two starting points but no \(f'\), and converges <b>superlinearly</b> (order \(\approx 1.618\)) — slower than Newton, faster than bisection. A practical compromise when the derivative is awkward to compute.</p>
+        <div class="codewrap editable has-output">
+          <div class="codehead"><span class="lang"><span class="dot"></span>MATLAB · editable · Secant.m</span><button class="copybtn">Copy</button></div>
+          <textarea spellcheck="false" rows="18">f = @(x) x^2 - 2;
+
+function root = secant_method(x0, x1, tol, max_iter, f)
+    iteration = 0;
+    while iteration < max_iter
+        x2 = x1 - f(x1) * (x1 - x0) / (f(x1) - f(x0));   % secant update
+        fprintf('Iter %d: x0=%.4f x1=%.4f x2=%.4f\n', iteration, x0, x1, x2);
+        if abs(x2 - x1) < tol
+            break;
+        end
+        x0 = x1;
+        x1 = x2;
+        iteration = iteration + 1;
+    end
+    root = x2;
+    fprintf('Approximate root: %.4f\n', root);
+end
+
+root = secant_method(1, 2, 1e-6, 100, f);</textarea>
+        </div>
+<div class="mout"><div class="mout-head">Command Window output</div><pre>Iter 0: x0=1.0000 x1=2.0000 x2=1.3333
+Iter 1: x0=2.0000 x1=1.3333 x2=1.4000
+Iter 2: x0=1.3333 x1=1.4000 x2=1.4146
+Iter 3: x0=1.4000 x1=1.4146 x2=1.4142
+Iter 4: x0=1.4146 x1=1.4142 x2=1.4142
+Iter 5: x0=1.4142 x1=1.4142 x2=1.4142
+Approximate root: 1.4142</pre></div>
+
+      </div>
+    </section>
+
+    <!-- COMPARE -->
+    <section class="section" id="compare">
+      <div class="panel">
+        <h2>2.5 Choosing a method · polynomial roots</h2>
+        <div class="tablewrap">
+          <table class="data">
+            <thead><tr><th class="l">Method</th><th>Needs</th><th>Convergence</th><th>Guaranteed?</th></tr></thead>
+            <tbody>
+              <tr><td class="l">Bisection</td><td>bracket [a,b]</td><td>linear</td><td>✅ yes (if sign change)</td></tr>
+              <tr><td class="l">Fixed-point</td><td>good \(g(x)\)</td><td>linear</td><td>only if \(|g'|<1\)</td></tr>
+              <tr><td class="l">Newton</td><td>\(f'\) + guess</td><td>quadratic</td><td>no</td></tr>
+              <tr><td class="l">Secant</td><td>two guesses</td><td>superlinear (~1.62)</td><td>no</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout tip"><div class="h">🛠 Rule of thumb</div>Use <b>bisection</b> to safely locate a bracket, then switch to <b>Newton</b> or <b>secant</b> for fast final convergence — exactly what a hybrid method (e.g. Brent's method, MATLAB's <code>fzero</code>) does internally.</div>
+        <h3>Roots of polynomials</h3>
+        <p>For polynomials, MATLAB finds <em>all</em> roots at once from the coefficient vector with <code>roots</code>:</p>
+        <div class="codewrap editable has-output">
+          <div class="codehead"><span class="lang"><span class="dot"></span>MATLAB · editable</span><button class="copybtn">Copy</button></div>
+          <textarea spellcheck="false" rows="6">% Roots of 2x^3 - 2x - 5 = 0  ->  coefficients [2 0 -2 -5]
+p = [2 0 -2 -5];
+r = roots(p)          % returns all three roots (one real ≈ 1.6006)
+
+x = fzero(@(x) cos(x) - x, 0.5)   % built-in robust root finder</textarea>
+        </div>
+<div class="mout"><div class="mout-head">Command Window output</div><pre>r =
+
+   1.6006 + 0.0000i
+  -0.8003 + 0.9599i
+  -0.8003 - 0.9599i
+
+x =
+
+    0.7391</pre></div>
+
+      </div>
+    </section>
+
+    <!-- GAUSS -->
+    <section class="section" id="gauss">
+      <div class="panel">
+        <h2>2.6 Solving linear systems: Gaussian elimination</h2>
+        <p>Now we turn from one equation to <b>systems</b> \(A\mathbf{x} = \mathbf{b}\). Gaussian elimination is the workhorse direct method. It uses three <b>elementary row operations</b> — swapping rows, scaling a row by a nonzero constant, and adding a multiple of one row to another — to transform the augmented matrix \([A\,|\,\mathbf{b}]\) into <b>row-echelon (upper-triangular) form</b>.</p>
+        <ol>
+          <li><b>Forward elimination:</b> introduce zeros below each pivot, column by column, until the system is upper triangular.</li>
+          <li><b>Back substitution:</b> solve the last equation for the last unknown, then work upward.</li>
+        </ol>
+        <h3>Worked example</h3>
+        <p>Find the parabola \(y = ax^2 + bx + c\) through \((3,25)\), \((1,5)\), \((-2,20)\). Substituting the points gives a \(3\times3\) system; elimination + back-substitution yields</p>
+        <div class="eqn">\[ a = 3, \quad b = -2, \quad c = 4 \;\Rightarrow\; y = 3x^2 - 2x + 4. \]</div>
+        <div class="codewrap editable has-output">
+          <div class="codehead"><span class="lang"><span class="dot"></span>MATLAB · editable · Gaussian_Elimination.m</span><button class="copybtn">Copy</button></div>
+          <textarea spellcheck="false" rows="24">A = [10 3 1 1;
+      3 10 2 2;
+      1  2 10 3;
+      2  3 4 10];
+B = [19; 29; 35; 45];
+
+N = length(B);   X = zeros(N,1);
+aug = [A B];                 % augmented matrix [A | B]
+
+% Forward elimination
+for x = 1:N-1
+    for y = x+1:N
+        m = aug(y,x) / aug(x,x);          % multiplier
+        aug(y,:) = aug(y,:) - m*aug(x,:); % zero out below the pivot
+    end
+end
+
+% Back substitution
+X(N) = aug(N,N+1) / aug(N,N);
+for p = N-1:-1:1
+    X(p) = (aug(p,N+1) - aug(p,p+1:N)*X(p+1:N)) / aug(p,p);
+end
+
+disp('Solution vector X ='); disp(X)
+
+% In practice, just use the backslash operator:
+X_builtin = A \ B;</textarea>
+        </div>
+<div class="mout"><div class="mout-head">Command Window output</div><pre>Solution vector X = 
+    0.9050
+    1.5962
+    2.2025
+    2.9591</pre></div>
+
+        <div class="callout warn"><div class="h">⚠️ Numerical limitation</div>If a pivot is zero (or tiny), the multiplier blows up. <b>Partial pivoting</b> — swapping in the row with the largest pivot — keeps elimination stable. MATLAB's <code>\</code> does this automatically.</div>
+        <p class="note-src">Source: Gaussian Elimination lecture &amp; <code>Gausssian_Elimination.m</code>.</p>
+      </div>
+    </section>
+
+    <!-- LU -->
+    <section class="section" id="lu">
+      <div class="panel">
+        <h2>2.7 LU factorization</h2>
+        <p>LU decomposition factors a square matrix into a <b>lower</b>-triangular \(L\) (ones on the diagonal) times an <b>upper</b>-triangular \(U\):</p>
+        <div class="eqn">\[ A = L\,U. \]</div>
+        <p>This is Gaussian elimination's bookkeeping made reusable. Once you have \(L\) and \(U\), solving \(A\mathbf{x}=\mathbf{b}\) is two cheap triangular solves:</p>
+        <div class="eqn">\[ L\mathbf{y} = \mathbf{b}\ \text{(forward)},\qquad U\mathbf{x} = \mathbf{y}\ \text{(backward)}. \]</div>
+        <div class="callout idea"><div class="h">💡 Why factor?</div>The expensive elimination is done <b>once</b>. To solve the same \(A\) against many right-hand sides \(\mathbf{b}\), you reuse \(L\) and \(U\) — only the two fast triangular solves repeat. Hugely efficient for repeated solves.</div>
+        <div class="codewrap editable has-output">
+          <div class="codehead"><span class="lang"><span class="dot"></span>MATLAB · editable</span><button class="copybtn">Copy</button></div>
+          <textarea spellcheck="false" rows="14">% Solve A x = b via LU
+A = [1 -3 0; 0 1 3; 2 -10 2];
+b = [-5; -1; -20];
+
+[L, U] = lu(A);     % built-in LU factorization
+
+y = L \ b;          % step 1: forward solve  L y = b
+x = U \ y;          % step 2: backward solve U x = y
+
+disp('Solution x ='); disp(x)</textarea>
+        </div>
+<div class="mout"><div class="mout-head">Command Window output</div><pre>Solution x =
+      1
+      2
+     -1</pre></div>
+
+        <p class="note-src">Source: LU Factorization lecture (slides).</p>
+      </div>
+    </section>
+
+    <!-- CHOLESKY -->
+    <section class="section" id="chol">
+      <div class="panel">
+        <h2>2.8 Cholesky factorization</h2>
+        <p>When \(A\) is <b>symmetric and positive definite</b> (all eigenvalues positive), it has a special, cheaper factorization into a lower-triangular matrix times its own transpose:</p>
+        <div class="eqn">\[ A = L\,L^{\mathsf{T}}. \]</div>
+        <p>Cholesky is about <b>twice as fast</b> as LU and numerically very stable — the method of choice for the symmetric positive-definite systems that arise in least-squares (Module 3) and many engineering problems. Solving uses the same two-step idea:</p>
+        <div class="eqn">\[ L\mathbf{y} = \mathbf{b}, \qquad L^{\mathsf{T}}\mathbf{x} = \mathbf{y}. \]</div>
+        <h3>Worked example</h3>
+        <p>Solve the symmetric system</p>
+        <div class="eqn">\[ \begin{aligned} 6x + 15y + 55z &= 76\\ 15x + 55y + 225z &= 295\\ 55x + 225y + 979z &= 1259 \end{aligned} \]</div>
+        <div class="codewrap editable has-output">
+          <div class="codehead"><span class="lang"><span class="dot"></span>MATLAB · editable</span><button class="copybtn">Copy</button></div>
+          <textarea spellcheck="false" rows="12">A = [ 6  15  55;
+     15  55 225;
+     55 225 979];
+b = [76; 295; 1259];
+
+L = chol(A, 'lower');   % A = L * L'
+
+y = L  \ b;             % L y = b
+x = L' \ y;             % L' x = y
+
+disp('Solution x ='); disp(x)</textarea>
+        </div>
+<div class="mout"><div class="mout-head">Command Window output</div><pre>Solution x =
+     1
+     1
+     1</pre></div>
+
+        <div class="callout def"><div class="h">📐 Positive definite?</div>A symmetric matrix is positive definite iff every pivot in Cholesky is real and positive. If <code>chol</code> errors, \(A\) is not positive definite — fall back to LU.</div>
+        <p class="note-src">Source: Cholesky Factorization lecture (slides).</p>
+      </div>
+    </section>
+
+    <!-- QUIZ -->
+    <section class="section" id="quiz">
+      <div class="quiz">
+        <div class="qhead"><span class="pill">Quiz</span><h2 style="margin:0">Self-check · CLO-2</h2></div>
+        <p class="section-sub" style="margin-top:.4rem">Six questions across root finding and linear systems.</p>
+        <div id="quizRoot"></div>
+      </div>
+
+      <div class="complete-bar" id="completeBar"><span class="txt"></span><button class="btn"></button></div>
+
+      <div class="lessonnav">
+        <a class="prev" href="module1.html"><div class="dir">← Previous</div><div class="ttl">Module 1 · Computing with MATLAB</div></a>
+        <a class="next" href="module3.html"><div class="dir">Next →</div><div class="ttl">Module 3 · Least-Squares Curve Fitting</div></a>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<footer class="site">BCS 311 · Scientific Computing — Module 2 of 5.</footer>
+
+<script src="assets/app.js"></script>
+<script>
+/* ===== shared plot helper ===== */
+function makePlotter(cv){
+  const ctx = cv.getContext('2d');
+  return function(opts){
+    const dpr = devicePixelRatio||1;
+    cv.width = cv.clientWidth*dpr; cv.height = 320*dpr; ctx.setTransform(dpr,0,0,dpr,0,0);
+    const W = cv.clientWidth, H = 320, pad = 38;
+    const {f, xmin, xmax} = opts;
+    const pts=[]; for(let i=0;i<=400;i++){const x=xmin+(xmax-xmin)*i/400; pts.push([x,f(x)]);}
+    let ymin=Infinity,ymax=-Infinity; pts.forEach(p=>{if(isFinite(p[1])){ymin=Math.min(ymin,p[1]);ymax=Math.max(ymax,p[1]);}});
+    const yr=(ymax-ymin)||1; ymin-=0.15*yr; ymax+=0.15*yr;
+    const sx=x=>pad+(x-xmin)/(xmax-xmin)*(W-2*pad);
+    const sy=y=>H-pad-(y-ymin)/(ymax-ymin)*(H-2*pad);
+    ctx.clearRect(0,0,W,H);
+    ctx.strokeStyle='#e3e9f2';ctx.lineWidth=1;
+    if(ymin<0&&ymax>0){ctx.beginPath();ctx.moveTo(pad,sy(0));ctx.lineTo(W-pad,sy(0));ctx.stroke();}
+    ctx.beginPath();ctx.moveTo(sx(0)||pad,pad);ctx.lineTo(sx(0)||pad,H-pad);ctx.stroke();
+    // curve
+    ctx.strokeStyle='#2563a8';ctx.lineWidth=2.4;ctx.beginPath();
+    pts.forEach((p,i)=>{const X=sx(p[0]),Y=sy(p[1]);i?ctx.lineTo(X,Y):ctx.moveTo(X,Y);});ctx.stroke();
+    return {ctx,W,H,pad,sx,sy,xmin,xmax,ymin,ymax};
+  };
+}
+const FNS = [
+  {f:x=>x*x-2,     d:x=>2*x,            xmin:0, xmax:2,  br:[0,2],  root:Math.SQRT2},
+  {f:x=>x**3-2*x-1,d:x=>3*x*x-2,        xmin:1, xmax:2,  br:[1,2],  root:1.6180339887},
+  {f:x=>Math.cos(x)-x, d:x=>-Math.sin(x)-1, xmin:0, xmax:1, br:[0,1], root:0.7390851332}
+];
+
+/* ===== Bisection demo ===== */
+(function(){
+  const cv=document.getElementById('biCanvas'); const plot=makePlotter(cv);
+  const sel=document.getElementById('biFn'); const out=document.getElementById('biOut');
+  let st, timer=null;
+  function reset(){ const F=FNS[+sel.value]; st={a:F.br[0],b:F.br[1],n:0,log:[]}; stop(); render(); }
+  function step(){ const F=FNS[+sel.value]; const {a,b}=st; const c=(a+b)/2; const fc=F.f(c);
+    st.log.unshift(`iter ${st.n}:  a=${a.toFixed(6)}  b=${b.toFixed(6)}  c=${c.toFixed(6)}  f(c)=${fc.toFixed(6)}`);
+    if(F.f(a)*fc<0){st.b=c;}else{st.a=c;} st.c=c; st.n++;
+    if(Math.abs(b-a)<1e-6||Math.abs(fc)<1e-12) stop();
+    render();
+  }
+  function render(){ const F=FNS[+sel.value];
+    const g=plot({f:F.f,xmin:F.xmin,xmax:F.xmax});
+    // shade bracket
+    g.ctx.fillStyle='rgba(240,145,58,.16)';
+    g.ctx.fillRect(g.sx(st.a),g.pad,g.sx(st.b)-g.sx(st.a),g.H-2*g.pad);
+    [['a',st.a,'#0e7c86'],['b',st.b,'#0e7c86']].forEach(([lab,x,c])=>{
+      g.ctx.strokeStyle=c;g.ctx.lineWidth=1.5;g.ctx.beginPath();g.ctx.moveTo(g.sx(x),g.pad);g.ctx.lineTo(g.sx(x),g.H-g.pad);g.ctx.stroke();
+    });
+    if(st.c!==undefined){ g.ctx.fillStyle='#d8553b'; g.ctx.beginPath(); g.ctx.arc(g.sx(st.c),g.sy(0),4.5,0,7); g.ctx.fill(); }
+    out.textContent = (st.log.slice(0,6).join('\n')||'Press Step to begin.') +
+      `\n\nbracket width = ${Math.abs(st.b-st.a).toExponential(3)}   (true root ≈ ${F.root.toFixed(6)})`;
+  }
+  function stop(){ if(timer){clearInterval(timer);timer=null;} document.getElementById('biAuto').textContent='Auto ▶'; }
+  document.getElementById('biStep').onclick=step;
+  document.getElementById('biReset').onclick=reset;
+  document.getElementById('biAuto').onclick=function(){ if(timer){stop();} else { this.textContent='Pause ⏸'; timer=setInterval(()=>{ if(Math.abs(st.b-st.a)<1e-6){stop();return;} step(); },550);} };
+  sel.onchange=reset; window.addEventListener('resize',render);
+  setTimeout(reset,80);
+})();
+
+/* ===== Newton demo ===== */
+(function(){
+  const cv=document.getElementById('nwCanvas'); const plot=makePlotter(cv);
+  const sel=document.getElementById('nwFn'); const x0s=document.getElementById('nwX0');
+  const x0v=document.getElementById('nwX0val'); const out=document.getElementById('nwOut');
+  let st, timer=null;
+  function ext(F){ return {xmin:Math.min(F.xmin,-2.2,+x0s.value-0.3), xmax:Math.max(F.xmax,3.2,+x0s.value+0.3)}; }
+  function reset(){ st={x:parseFloat(x0s.value),n:0,log:[],seg:null}; x0v.textContent=parseFloat(x0s.value).toFixed(1); stop(); render(); }
+  function step(){ const F=FNS[+sel.value]; const x=st.x; const fx=F.f(x); const dfx=F.d(x);
+    if(Math.abs(dfx)<1e-12){ st.log.unshift(`iter ${st.n}: derivative ≈ 0 — Newton stalls`); stop(); render(); return; }
+    const xn=x-fx/dfx;
+    st.log.unshift(`iter ${st.n}:  x=${x.toFixed(6)}  f(x)=${fx.toFixed(6)}  ->  x_next=${xn.toFixed(6)}`);
+    st.seg={x0:x,fx:fx,x1:xn}; st.x=xn; st.n++;
+    if(Math.abs(xn-x)<1e-7) stop();
+    render();
+  }
+  function render(){ const F=FNS[+sel.value]; const e=ext(F);
+    const g=plot({f:F.f,xmin:e.xmin,xmax:e.xmax});
+    if(st.seg){ const s=st.seg;
+      g.ctx.strokeStyle='#f0913a';g.ctx.lineWidth=2;g.ctx.setLineDash([5,4]);
+      g.ctx.beginPath();g.ctx.moveTo(g.sx(s.x0),g.sy(s.fx));g.ctx.lineTo(g.sx(s.x1),g.sy(0));g.ctx.stroke();
+      g.ctx.setLineDash([]);
+      g.ctx.strokeStyle='#f0913a';g.ctx.beginPath();g.ctx.moveTo(g.sx(s.x0),g.sy(0));g.ctx.lineTo(g.sx(s.x0),g.sy(s.fx));g.ctx.stroke();
+      g.ctx.fillStyle='#d8553b';g.ctx.beginPath();g.ctx.arc(g.sx(s.x1),g.sy(0),4.5,0,7);g.ctx.fill();
+    }
+    g.ctx.fillStyle='#0e7c86';g.ctx.beginPath();g.ctx.arc(g.sx(st.x),g.sy(0),4,0,7);g.ctx.fill();
+    out.textContent = (st.log.slice(0,6).join('\n')||'Press Step to begin.') +
+      `\n\ncurrent x = ${st.x.toFixed(8)}   (true root ≈ ${F.root.toFixed(6)})`;
+  }
+  function stop(){ if(timer){clearInterval(timer);timer=null;} document.getElementById('nwAuto').textContent='Auto ▶'; }
+  document.getElementById('nwStep').onclick=step;
+  document.getElementById('nwReset').onclick=reset;
+  document.getElementById('nwAuto').onclick=function(){ if(timer){stop();} else { this.textContent='Pause ⏸'; timer=setInterval(()=>{ step(); if(st.n>12)stop(); },650);} };
+  sel.onchange=reset; x0s.oninput=reset; window.addEventListener('resize',render);
+  setTimeout(reset,80);
+})();
+
+/* ===== Quiz ===== */
+renderQuiz('quizRoot','m2',[
+  { q:'Bisection requires that, on the starting interval [a,b]:',
+    options:['f is differentiable','f(a) and f(b) have opposite signs','f(a) = f(b)','a and b are both positive'],
+    answer:1, explain:'A sign change f(a)·f(b) &lt; 0 guarantees a continuous f crosses zero in [a,b] (Intermediate Value Theorem). That bracket is what makes bisection foolproof.' },
+  { q:'Newton\'s method update formula is:',
+    options:['x_{n+1} = x_n + f(x_n)f\'(x_n)','x_{n+1} = x_n − f(x_n)/f\'(x_n)','x_{n+1} = (a+b)/2','x_{n+1} = g(x_n)'],
+    answer:1, explain:'Newton steps to where the tangent line at x_n meets the x-axis: x_{n+1} = x_n − f(x_n)/f\'(x_n).' },
+  { q:'The main advantage of the secant method over Newton\'s method is that it:',
+    options:['Always converges','Does not need the derivative f\'','Converges quadratically','Needs only one starting point'],
+    answer:1, explain:'Secant replaces f\' with a finite-difference estimate from the last two points, so no derivative is required. It converges superlinearly (~1.62), a bit slower than Newton.' },
+  { q:'In fixed-point iteration x = g(x), convergence near the root requires:',
+    options:['|g\'(x*)| &gt; 1','|g\'(x*)| &lt; 1','g(x*) = 0','g\'(x*) = 1'],
+    answer:1, explain:'The iteration is a contraction only when |g\'(x*)| &lt; 1 near the fixed point; otherwise it diverges.' },
+  { q:'After computing the LU factorization A = LU, you solve A x = b by:',
+    options:['Inverting L and U','Forward solve Ly=b, then backward solve Ux=y','One bisection step','Computing roots(A)'],
+    answer:1, explain:'Two cheap triangular solves: first Ly=b for y (forward substitution), then Ux=y for x (back substitution). The expensive factorization is done only once.' },
+  { q:'Cholesky factorization A = L·Lᵀ applies when A is:',
+    options:['Any square matrix','Symmetric and positive definite','Upper triangular','Singular'],
+    answer:1, explain:'Cholesky needs a symmetric positive-definite matrix; it is then about twice as fast as LU and very stable. If chol() errors, A is not positive definite.' }
+]);
+wireCompleteBar('m2');
+</script>
+</body>
+</html>

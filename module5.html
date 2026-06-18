@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Module 5 · Integration & ODEs — BCS 311</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+<script>window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['\\[','\\]']]},svg:{fontCache:'global'}};</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" async></script>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="logo" href="index.html"><span class="badge">BCS&nbsp;311</span> Scientific Computing</a>
+    <button class="menu-toggle" aria-label="Menu">☰</button>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="module1.html">1 · MATLAB</a>
+      <a href="module2.html">2 · Equations</a>
+      <a href="module3.html">3 · Least Squares</a>
+      <a href="module4.html">4 · Interpolation</a>
+      <a href="module5.html" class="active">5 · Integration & ODEs</a>
+    </nav>
+  </div>
+</header>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="card">
+      <h4>Module 5 · CLO-5</h4>
+      <ul class="toc">
+        <li><a href="#intro">The definite integral</a></li>
+        <li><a href="#mid">5.1 Midpoint rule</a></li>
+        <li><a href="#trap">5.2 Trapezoidal rule</a></li>
+        <li><a href="#simp">5.3 Simpson's rule</a></li>
+        <li><a href="#int-demo">🎛 Demo: integration</a></li>
+        <li><a href="#quad">5.4 Gaussian &amp; adaptive quadrature</a></li>
+        <li><a href="#ode">5.5 Differential equations</a></li>
+        <li><a href="#euler">5.6 Euler's method</a></li>
+        <li><a href="#euler-demo">🎛 Demo: Euler vs RK4</a></li>
+        <li><a href="#rk">5.7 Runge–Kutta &amp; beyond</a></li>
+        <li><a href="#quiz">✅ Self-check quiz</a></li>
+      </ul>
+    </div>
+    <div id="progressWidget" class="progress-card"></div>
+  </aside>
+
+  <main class="content">
+
+    <section class="hero" style="padding:2rem 2.2rem">
+      <div class="kicker">Module 5 · CLO-5</div>
+      <h1 style="font-size:2rem">Numerical Integration &amp; ODEs</h1>
+      <p style="margin-bottom:.4rem">Solve differential equations using numerical integration. We approximate definite integrals by summing simple shapes, then use the same idea to march the solution of an ordinary differential equation forward in time.</p>
+      <div class="pill-row">
+        <span class="clo-chip">📘 Chapra Ch. 19, 20, 22, 23</span>
+        <span class="clo-chip">⏱ Weeks 12–15</span>
+        <span class="clo-chip">🧪 Assessed by Quiz 2, Lab final &amp; Final</span>
+      </div>
+    </section>
+
+    <section class="section" id="intro">
+      <div class="panel">
+        <h2>The definite integral as area</h2>
+        <p>A definite integral is the <b>area under the curve</b> between two limits:</p>
+        <div class="eqn">\[ I = \int_a^b f(x)\,dx. \]</div>
+        <p>For complicated or non-elementary functions there is often no analytic antiderivative. Numerical integration (<b>quadrature</b>) approximates the area by breaking \([a,b]\) into subintervals and summing the areas of simple shapes — rectangles, trapezoids, or parabola-capped strips — that hug the curve.</p>
+        <p>All the rules below split the interval into \(n\) segments of width</p>
+        <div class="eqn">\[ \Delta x = \frac{b-a}{n}. \]</div>
+      </div>
+    </section>
+
+    <section class="section" id="mid">
+      <div class="panel">
+        <h2>5.1 The midpoint rule</h2>
+        <p>Approximate each strip by a rectangle whose height is the function value at the <b>midpoint</b> of that strip:</p>
+        <div class="eqn">\[ I \approx \Delta x \sum_{k} f(m_k), \qquad m_k = \text{midpoint of strip } k. \]</div>
+        <ol>
+          <li>Compute \(\Delta x = (b-a)/n\).</li>
+          <li>Find the midpoint of each subinterval.</li>
+          <li>Evaluate \(f\) at every midpoint, sum, and multiply by \(\Delta x\).</li>
+        </ol>
+        <h3>Worked example</h3>
+        <p>Approximate \(\int_0^{10} x^3\,dx\) with \(n=5\). Then \(\Delta x = 2\) and the midpoints are \(1,3,5,7,9\):</p>
+        <div class="eqn">\[ S = 1^3+3^3+5^3+7^3+9^3 = 1+27+125+343+729 = 1225, \]</div>
+        <div class="eqn">\[ I \approx \Delta x \cdot S = 2(1225) = 2450 \quad(\text{exact } 2500,\ \text{error } 2\%). \]</div>
+      </div>
+    </section>
+
+    <section class="section" id="trap">
+      <div class="panel">
+        <h2>5.2 The trapezoidal rule</h2>
+        <p>Connect adjacent points with straight lines and sum the resulting <b>trapezoids</b>. The interior points are counted twice (each is shared by two trapezoids), giving the weighting \(1,2,2,\dots,2,1\):</p>
+        <div class="eqn">\[ I \approx \frac{\Delta x}{2}\Bigl[\,f(x_0) + 2\sum_{i=1}^{n-1} f(x_i) + f(x_n)\,\Bigr]. \]</div>
+        <h3>Worked example</h3>
+        <p>Approximate \(\int_0^{8} x^2\,dx\) with \(n=4\), so \(\Delta x = 2\) and grid points \(0,2,4,6,8\):</p>
+        <div class="eqn">\[ S = f(0)+f(8) + 2\bigl[f(2)+f(4)+f(6)\bigr] = 0 + 64 + 2(4+16+36) = 176, \]</div>
+        <div class="eqn">\[ I \approx \frac{\Delta x}{2}\,S = \frac{2}{2}(176) = 176 \quad(\text{exact } 170.67). \]</div>
+        <div class="codewrap editable has-output">
+          <div class="codehead"><span class="lang"><span class="dot"></span>MATLAB · editable · trapezoidal rule</span><button class="copybtn">Copy</button></div>
+          <textarea spellcheck="false" rows="14">f = @(x) x.^2;
+a = 0;  b = 8;  n = 4;
+
+dx = (b - a) / n;
+x  = a:dx:b;            % grid points
+y  = f(x);
+
+I = (dx/2) * ( y(1) + y(end) + 2*sum(y(2:end-1)) );
+fprintf('Trapezoidal estimate = %.4f\n', I);
+
+% MATLAB built-in:
+I_builtin = trapz(x, y);</textarea>
+        </div>
+<div class="mout"><div class="mout-head">Command Window output</div><pre>Trapezoidal estimate = 176.0000</pre></div>
+
+        <p class="note-src">Source: Numerical Integration lecture.</p>
+      </div>
+    </section>
+
+    <section class="section" id="simp">
+      <div class="panel">
+        <h2>5.3 Simpson's 1/3 rule</h2>
+        <p>Instead of straight lines, fit a <b>parabola</b> through each pair of strips. This is far more accurate for smooth functions. With an <b>even</b> number of segments, the weighting pattern is \(1,4,2,4,\dots,4,1\):</p>
+        <div class="eqn">\[ I \approx \frac{\Delta x}{3}\Bigl[\,f(x_0) + 4\!\!\sum_{i\,\text{odd}}\!\! f(x_i) + 2\!\!\sum_{i\,\text{even}}\!\! f(x_i) + f(x_n)\,\Bigr]. \]</div>
+        <div class="callout idea"><div class="h">💡 Accuracy ladder</div>Midpoint &amp; trapezoid are exact for straight lines (low order). Simpson is exact for cubics — for the same number of points it is typically far more accurate. That extra accuracy comes free, just from smarter weights.</div>
+        <div class="codewrap editable has-output">
+          <div class="codehead"><span class="lang"><span class="dot"></span>MATLAB · editable · Simpson's 1/3 rule</span><button class="copybtn">Copy</button></div>
+          <textarea spellcheck="false" rows="13">f = @(x) x.^2;
+a = 0;  b = 8;  n = 4;          % n must be even
+
+dx = (b - a) / n;
+x  = a:dx:b;
+y  = f(x);
+
+I = (dx/3) * ( y(1) + y(end) ...
+             + 4*sum(y(2:2:end-1)) ...
+             + 2*sum(y(3:2:end-2)) );
+fprintf('Simpson estimate = %.4f\n', I);   % exact for x^2</textarea>
+        </div>
+<div class="mout"><div class="mout-head">Command Window output</div><pre>Simpson estimate = 170.6667</pre></div>
+
+      </div>
+    </section>
+
+    <!-- INTEGRATION DEMO -->
+    <section class="section" id="int-demo">
+      <div class="panel">
+        <h2>🎛 Demo: watch the area approximation tighten</h2>
+        <p>Pick a function and a rule, then increase the number of segments \(n\). Watch the shaded shapes hug the curve and the error shrink.</p>
+        <div class="demo">
+          <div class="demo-head"><span class="pill">Live</span> Numerical integration</div>
+          <canvas id="intCanvas" height="320"></canvas>
+          <div class="controls">
+            <div class="control" style="min-width:200px">
+              <label>Function on [a, b]</label>
+              <select id="intFn">
+                <option value="0">x²   on [0, 8]</option>
+                <option value="1">x³   on [0, 10]</option>
+                <option value="2">sin(x)   on [0, π]</option>
+                <option value="3">eˣ   on [0, 2]</option>
+              </select>
+            </div>
+            <div class="control" style="min-width:180px">
+              <label>Rule</label>
+              <select id="intRule">
+                <option value="mid">Midpoint (rectangles)</option>
+                <option value="trap">Trapezoidal</option>
+              </select>
+            </div>
+            <div class="control" style="min-width:230px">
+              <label>Segments n: <span class="val" id="intNval">4</span></label>
+              <input id="intN" type="range" min="1" max="40" value="4">
+            </div>
+          </div>
+          <div class="readout" id="intOut"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="quad">
+      <div class="panel">
+        <h2>5.4 Gaussian &amp; adaptive quadrature</h2>
+        <p><b>Gaussian quadrature</b> drops the requirement of equally spaced points. By choosing both the sample locations <em>and</em> their weights optimally, an \(n\)-point Gauss rule integrates polynomials up to degree \(2n-1\) exactly — remarkable accuracy from very few evaluations.</p>
+        <p><b>Adaptive quadrature</b> puts the effort where the function is hard: it subdivides only the regions where the estimate is still changing, using many small strips on wiggly parts and few large strips on smooth parts. MATLAB's <code>integral</code> is adaptive.</p>
+        <div class="codewrap editable has-output">
+          <div class="codehead"><span class="lang"><span class="dot"></span>MATLAB · editable · adaptive quadrature</span><button class="copybtn">Copy</button></div>
+          <textarea spellcheck="false" rows="6">f = @(x) exp(-x.^2);          % no elementary antiderivative
+I = integral(f, 0, 2);         % adaptive, high-accuracy
+fprintf('integral = %.8f\n', I);</textarea>
+        </div>
+<div class="mout"><div class="mout-head">Command Window output</div><pre>integral = 0.88208139</pre></div>
+
+        <p>We also handle <b>improper integrals</b> (infinite limits or integrable singularities) by transformation or by special adaptive handling near the trouble spot.</p>
+      </div>
+    </section>
+
+    <section class="section" id="ode">
+      <div class="panel">
+        <h2>5.5 Ordinary differential equations</h2>
+        <p>A differential equation relates an unknown function to its derivatives. A first-order <b>initial-value problem</b> has the form</p>
+        <div class="eqn">\[ \frac{dy}{dx} = f(x,y), \qquad y(x_0) = y_0. \]</div>
+        <p>The derivative tells us the <b>slope</b> of the solution at every point; the initial condition pins down which specific curve we are on. Integrating \(dy/dx\) alone gives a family of curves differing by a constant \(c\); the initial value selects one.</p>
+        <div class="callout def"><div class="h">📐 Example</div>From \(dy/dx = -20x + 8.5\) we get \(y = -10x^2 + 8.5x + c\). The initial condition \(y(0)=1\) fixes \(c=1\), so \(y = -10x^2 + 8.5x + 1\).</div>
+        <p>When \(f(x,y)\) has no closed-form solution, we <b>march forward</b> in small steps of size \(h\), using the slope to predict the next value — the same &ldquo;sum small pieces&rdquo; idea as integration.</p>
+      </div>
+    </section>
+
+    <section class="section" id="euler">
+      <div class="panel">
+        <h2>5.6 Euler's method</h2>
+        <p>The simplest one-step method. From the current point, follow the slope \(f(x_i,y_i)\) in a straight line for one step of width \(h\):</p>
+        <div class="eqn">\[ y_{i+1} = y_i + h\,f(x_i, y_i), \qquad x_{i+1} = x_i + h. \]</div>
+        <p>Each step uses a tangent-line approximation, so Euler accumulates error: it is <b>first-order</b> (halving \(h\) roughly halves the error). Smaller steps are more accurate but cost more evaluations.</p>
+        <div class="codewrap editable has-output">
+          <div class="codehead"><span class="lang"><span class="dot"></span>MATLAB · editable · Euler's method</span><button class="copybtn">Copy</button></div>
+          <textarea spellcheck="false" rows="16">f  = @(x,y) y;          % dy/dx = y, exact solution y = e^x
+x0 = 0;  y0 = 1;        % initial condition y(0)=1
+h  = 0.1;  xend = 2;
+
+x = x0;  y = y0;
+fprintf('x=%.2f  y=%.6f\n', x, y);
+while x < xend - 1e-9
+    y = y + h * f(x, y);    % Euler update
+    x = x + h;
+    fprintf('x=%.2f  y=%.6f\n', x, y);
+end
+
+% Compare with the exact solution:
+fprintf('exact y(%.1f) = %.6f\n', xend, exp(xend));</textarea>
+        </div>
+<div class="mout"><div class="mout-head">Command Window output</div><pre>x=0.00  y=1.000000
+x=0.10  y=1.100000
+x=0.20  y=1.210000
+x=0.30  y=1.331000
+x=0.40  y=1.464100
+x=0.50  y=1.610510
+x=0.60  y=1.771561
+x=0.70  y=1.948717
+x=0.80  y=2.143589
+x=0.90  y=2.357948
+x=1.00  y=2.593742
+x=1.10  y=2.853117
+x=1.20  y=3.138428
+x=1.30  y=3.452271
+x=1.40  y=3.797498
+x=1.50  y=4.177248
+x=1.60  y=4.594973
+x=1.70  y=5.054470
+x=1.80  y=5.559917
+x=1.90  y=6.115909
+x=2.00  y=6.727500
+exact y(2.0) = 7.389056</pre></div>
+
+        <p class="note-src">Source: Numerical Integration of ODEs lecture.</p>
+      </div>
+    </section>
+
+    <!-- EULER DEMO -->
+    <section class="section" id="euler-demo">
+      <div class="panel">
+        <h2>🎛 Demo: Euler's method &amp; step size</h2>
+        <p>The faint line is the <b>true</b> solution; the teal polyline is <b>Euler's</b> step-by-step approximation; the orange line is <b>RK4</b> (next section). Shrink the step \(h\) and watch Euler close in on the true curve — while RK4 is already almost exact.</p>
+        <div class="demo">
+          <div class="demo-head"><span class="pill">Live</span> Euler vs Runge–Kutta</div>
+          <canvas id="odeCanvas" height="320"></canvas>
+          <div class="controls">
+            <div class="control" style="min-width:250px">
+              <label>Problem</label>
+              <select id="odeFn">
+                <option value="0">dy/dx = y,  y(0)=1   (exact eˣ)</option>
+                <option value="1">dy/dx = −y,  y(0)=1   (exact e⁻ˣ)</option>
+                <option value="2">dy/dx = cos(x),  y(0)=0   (exact sin x)</option>
+              </select>
+            </div>
+            <div class="control" style="min-width:230px">
+              <label>Step h: <span class="val" id="odeHval">0.50</span></label>
+              <input id="odeH" type="range" min="0.05" max="1" step="0.05" value="0.5">
+            </div>
+            <label style="display:flex;align-items:center;gap:.4rem;font-size:.84rem;font-weight:600;margin-top:1rem">
+              <input type="checkbox" id="odeRK" checked> show RK4
+            </label>
+          </div>
+          <div class="readout" id="odeOut"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="rk">
+      <div class="panel">
+        <h2>5.7 Runge–Kutta &amp; higher-order methods</h2>
+        <p>Euler uses the slope only at the start of each step. <b>Runge–Kutta</b> methods sample the slope several times across the step and combine them, capturing curvature Euler misses. The classic <b>RK4</b> averages four slope estimates:</p>
+        <div class="eqn">\[ y_{i+1} = y_i + \frac{h}{6}\bigl(k_1 + 2k_2 + 2k_3 + k_4\bigr), \]</div>
+        <div class="eqn">\[ k_1 = f(x_i,y_i),\ \ k_2 = f\!\left(x_i+\tfrac{h}{2}, y_i+\tfrac{h}{2}k_1\right),\ \ k_3 = f\!\left(x_i+\tfrac{h}{2}, y_i+\tfrac{h}{2}k_2\right),\ \ k_4 = f(x_i+h, y_i+hk_3). \]</div>
+        <p>RK4 is <b>fourth-order</b>: halving \(h\) cuts the error by about 16×. For the same accuracy it needs far larger steps than Euler.</p>
+        <ul>
+          <li><b>Adaptive step size:</b> automatically shrink \(h\) where the solution changes fast and grow it where it is smooth (MATLAB's <code>ode45</code> does this).</li>
+          <li><b>Coupled / higher-order ODEs:</b> rewrite an \(n\)-th-order equation as a system of \(n\) first-order equations and march the whole vector forward together.</li>
+        </ul>
+        <div class="codewrap editable has-output">
+          <div class="codehead"><span class="lang"><span class="dot"></span>MATLAB · editable · ode45 (adaptive RK)</span><button class="copybtn">Copy</button></div>
+          <textarea spellcheck="false" rows="9">f = @(x,y) y;                 % dy/dx = y
+[xspan, ysol] = ode45(f, [0 2], 1);   % adaptive Runge-Kutta
+
+plot(xspan, ysol, 'b-o', xspan, exp(xspan), 'r--');
+legend('ode45','exact e^x'); grid on;</textarea>
+        </div>
+<div class="figout"><div class="mout-head" style="background:#eef3f9">Figure output</div><img src="assets/figs/m5_ode45.png" alt="figure: ode45 solution (blue) vs exact e^x (red dashed) for dy/dx = y"><div class="cap">figure: ode45 solution (blue) vs exact e^x (red dashed) for dy/dx = y</div></div>
+
+        <p class="note-src">Source: Numerical Integration of ODEs lecture (Euler &amp; built-in solvers).</p>
+      </div>
+    </section>
+
+    <!-- QUIZ -->
+    <section class="section" id="quiz">
+      <div class="quiz">
+        <div class="qhead"><span class="pill">Quiz</span><h2 style="margin:0">Self-check · CLO-5</h2></div>
+        <p class="section-sub" style="margin-top:.4rem">Six questions on integration and ODEs.</p>
+        <div id="quizRoot"></div>
+      </div>
+
+      <div class="complete-bar" id="completeBar"><span class="txt"></span><button class="btn"></button></div>
+
+      <div class="lessonnav">
+        <a class="prev" href="module4.html"><div class="dir">← Previous</div><div class="ttl">Module 4 · Interpolation &amp; Approximation</div></a>
+        <a class="next" href="index.html"><div class="dir">Finish →</div><div class="ttl">Back to course home</div></a>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<footer class="site">BCS 311 · Scientific Computing — Module 5 of 5.</footer>
+
+<script src="assets/app.js"></script>
+<script>
+/* ===== Integration demo ===== */
+(function(){
+  const cv=document.getElementById('intCanvas');const ctx=cv.getContext('2d');
+  const fnSel=document.getElementById('intFn');const ruleSel=document.getElementById('intRule');
+  const nS=document.getElementById('intN');const nval=document.getElementById('intNval');const out=document.getElementById('intOut');
+  const FN=[
+    {f:x=>x*x, a:0,b:8, exact:512/3, name:'x²'},
+    {f:x=>x*x*x, a:0,b:10, exact:2500, name:'x³'},
+    {f:x=>Math.sin(x), a:0,b:Math.PI, exact:2, name:'sin(x)'},
+    {f:x=>Math.exp(x), a:0,b:2, exact:Math.exp(2)-1, name:'eˣ'}
+  ];
+  function draw(){
+    const F=FN[+fnSel.value];const rule=ruleSel.value;const n=+nS.value;nval.textContent=n;
+    const dpr=devicePixelRatio||1;cv.width=cv.clientWidth*dpr;cv.height=320*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);
+    const W=cv.clientWidth,H=320,pad=38;
+    let ymin=0,ymax=-Infinity;for(let i=0;i<=200;i++){const x=F.a+(F.b-F.a)*i/200;ymax=Math.max(ymax,F.f(x));ymin=Math.min(ymin,F.f(x));}
+    ymax*=1.1;if(ymin>0)ymin=0;
+    const sx=x=>pad+(x-F.a)/(F.b-F.a)*(W-2*pad);const sy=y=>H-pad-(y-ymin)/(ymax-ymin)*(H-2*pad);
+    ctx.clearRect(0,0,W,H);
+    ctx.strokeStyle='#e3e9f2';ctx.beginPath();ctx.moveTo(pad,sy(0));ctx.lineTo(W-pad,sy(0));ctx.stroke();
+    ctx.beginPath();ctx.moveTo(pad,pad);ctx.lineTo(pad,H-pad);ctx.stroke();
+    const dx=(F.b-F.a)/n; let approx=0;
+    ctx.fillStyle='rgba(14,124,134,.18)';ctx.strokeStyle='rgba(14,124,134,.7)';ctx.lineWidth=1;
+    for(let k=0;k<n;k++){const xl=F.a+k*dx,xr=xl+dx;
+      if(rule==='mid'){const m=(xl+xr)/2;const h=F.f(m);approx+=dx*h;
+        ctx.beginPath();ctx.rect(sx(xl),sy(h),sx(xr)-sx(xl),sy(0)-sy(h));ctx.fill();ctx.stroke();
+      }else{const yl=F.f(xl),yr=F.f(xr);approx+=dx*(yl+yr)/2;
+        ctx.beginPath();ctx.moveTo(sx(xl),sy(0));ctx.lineTo(sx(xl),sy(yl));ctx.lineTo(sx(xr),sy(yr));ctx.lineTo(sx(xr),sy(0));ctx.closePath();ctx.fill();ctx.stroke();
+      }}
+    // curve
+    ctx.strokeStyle='#2563a8';ctx.lineWidth=2.6;ctx.beginPath();
+    for(let i=0;i<=300;i++){const x=F.a+(F.b-F.a)*i/300;const X=sx(x),Y=sy(F.f(x));i?ctx.lineTo(X,Y):ctx.moveTo(X,Y);}ctx.stroke();
+    const err=Math.abs(approx-F.exact),pct=F.exact!==0?100*err/Math.abs(F.exact):0;
+    out.textContent=`∫ ${F.name} dx on [${F.a}, ${F.b.toFixed(2)}]   with ${rule==='mid'?'midpoint':'trapezoidal'} rule, n=${n}\n`+
+      `approximation = ${approx.toFixed(5)}     exact = ${F.exact.toFixed(5)}\n`+
+      `error = ${err.toExponential(3)}   (${pct.toFixed(3)}%)`;
+  }
+  fnSel.onchange=draw;ruleSel.onchange=draw;nS.oninput=draw;window.addEventListener('resize',draw);
+  setTimeout(draw,60);
+})();
+
+/* ===== Euler vs RK4 demo ===== */
+(function(){
+  const cv=document.getElementById('odeCanvas');const ctx=cv.getContext('2d');
+  const fnSel=document.getElementById('odeFn');const hS=document.getElementById('odeH');
+  const hv=document.getElementById('odeHval');const rkChk=document.getElementById('odeRK');const out=document.getElementById('odeOut');
+  const P=[
+    {f:(x,y)=>y, sol:x=>Math.exp(x), x0:0,y0:1,xend:2, name:'dy/dx=y'},
+    {f:(x,y)=>-y, sol:x=>Math.exp(-x), x0:0,y0:1,xend:3, name:'dy/dx=-y'},
+    {f:(x,y)=>Math.cos(x), sol:x=>Math.sin(x), x0:0,y0:0,xend:2*Math.PI, name:'dy/dx=cos(x)'}
+  ];
+  function integ(F,h,method){
+    const xs=[F.x0],ys=[F.y0];let x=F.x0,y=F.y0;
+    while(x<F.xend-1e-9){
+      if(method==='euler'){y=y+h*F.f(x,y);}
+      else{const k1=F.f(x,y),k2=F.f(x+h/2,y+h/2*k1),k3=F.f(x+h/2,y+h/2*k2),k4=F.f(x+h,y+h*k3);y=y+h/6*(k1+2*k2+2*k3+k4);}
+      x=x+h;xs.push(x);ys.push(y);
+    }
+    return {xs,ys};
+  }
+  function draw(){
+    const F=P[+fnSel.value];const h=parseFloat(hS.value);hv.textContent=h.toFixed(2);
+    const dpr=devicePixelRatio||1;cv.width=cv.clientWidth*dpr;cv.height=320*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);
+    const W=cv.clientWidth,H=320,pad=40;
+    // y-range from true solution
+    let ymin=Infinity,ymax=-Infinity;for(let i=0;i<=200;i++){const x=F.x0+(F.xend-F.x0)*i/200;const y=F.sol(x);ymin=Math.min(ymin,y);ymax=Math.max(ymax,y);}
+    const eu=integ(F,h,'euler');eu.ys.forEach(y=>{ymin=Math.min(ymin,y);ymax=Math.max(ymax,y);});
+    const yr=(ymax-ymin)||1;ymin-=0.1*yr;ymax+=0.1*yr;
+    const sx=x=>pad+(x-F.x0)/(F.xend-F.x0)*(W-2*pad);const sy=y=>H-pad-(y-ymin)/(ymax-ymin)*(H-2*pad);
+    ctx.clearRect(0,0,W,H);
+    ctx.strokeStyle='#e3e9f2';if(ymin<0&&ymax>0){ctx.beginPath();ctx.moveTo(pad,sy(0));ctx.lineTo(W-pad,sy(0));ctx.stroke();}
+    ctx.beginPath();ctx.moveTo(pad,pad);ctx.lineTo(pad,H-pad);ctx.stroke();
+    // true solution
+    ctx.strokeStyle='#9bb0c9';ctx.lineWidth=2.2;ctx.setLineDash([5,4]);ctx.beginPath();
+    for(let i=0;i<=300;i++){const x=F.x0+(F.xend-F.x0)*i/300;const X=sx(x),Y=sy(F.sol(x));i?ctx.lineTo(X,Y):ctx.moveTo(X,Y);}ctx.stroke();ctx.setLineDash([]);
+    // RK4
+    let rkErr=null;
+    if(rkChk.checked){const rk=integ(F,h,'rk4');ctx.strokeStyle='#f0913a';ctx.lineWidth=2.2;ctx.beginPath();
+      rk.xs.forEach((x,i)=>{const X=sx(x),Y=sy(rk.ys[i]);i?ctx.lineTo(X,Y):ctx.moveTo(X,Y);});ctx.stroke();
+      ctx.fillStyle='#f0913a';rk.xs.forEach((x,i)=>{ctx.beginPath();ctx.arc(sx(x),sy(rk.ys[i]),2.5,0,7);ctx.fill();});
+      rkErr=Math.abs(rk.ys[rk.ys.length-1]-F.sol(F.xend));}
+    // Euler
+    ctx.strokeStyle='#0e7c86';ctx.lineWidth=2.4;ctx.beginPath();
+    eu.xs.forEach((x,i)=>{const X=sx(x),Y=sy(eu.ys[i]);i?ctx.lineTo(X,Y):ctx.moveTo(X,Y);});ctx.stroke();
+    ctx.fillStyle='#0e7c86';eu.xs.forEach((x,i)=>{ctx.beginPath();ctx.arc(sx(x),sy(eu.ys[i]),3,0,7);ctx.fill();});
+    const euErr=Math.abs(eu.ys[eu.ys.length-1]-F.sol(F.xend));
+    out.textContent=`${F.name}   step h=${h.toFixed(2)}   (${eu.xs.length-1} steps)\n`+
+      `Euler  y(end) = ${eu.ys[eu.ys.length-1].toFixed(5)}   |error| = ${euErr.toExponential(3)}\n`+
+      (rkErr!==null?`RK4    y(end) = ${integ(F,h,'rk4').ys.slice(-1)[0].toFixed(5)}   |error| = ${rkErr.toExponential(3)}\n`:'')+
+      `exact  y(end) = ${F.sol(F.xend).toFixed(5)}`;
+  }
+  fnSel.onchange=draw;hS.oninput=draw;rkChk.onchange=draw;window.addEventListener('resize',draw);
+  setTimeout(draw,60);
+})();
+
+/* ===== Quiz ===== */
+renderQuiz('quizRoot','m5',[
+  { q:'In all the basic quadrature rules, the segment width is Δx =',
+    options:['(b−a)·n','(b−a)/n','n/(b−a)','b−a'],
+    answer:1, explain:'The interval [a,b] is split into n equal segments, so each has width Δx = (b−a)/n.' },
+  { q:'The trapezoidal-rule weighting of the interior points is:',
+    options:['all 1','1,4,2,4,…,1','1,2,2,…,2,1','all 2'],
+    answer:2, explain:'End points count once, interior points twice (each shared by two trapezoids): 1,2,2,…,2,1, with the whole sum scaled by Δx/2.' },
+  { q:'Simpson\'s 1/3 rule is more accurate than the trapezoidal rule because it fits each pair of strips with a:',
+    options:['rectangle','straight line','parabola','spline'],
+    answer:2, explain:'Simpson fits a parabola through three points, capturing curvature and making the rule exact for cubics — much better for smooth functions.' },
+  { q:'An initial-value problem dy/dx = f(x,y), y(x₀)=y₀ needs the initial condition in order to:',
+    options:['define the derivative','select one curve from the family of solutions','make f linear','compute Δx'],
+    answer:1, explain:'Integrating the slope alone gives a family of curves differing by a constant; the initial condition pins down the single curve we want.' },
+  { q:'Euler\'s method updates the solution with:',
+    options:['y_{i+1} = y_i + h·f(x_i, y_i)','y_{i+1} = y_i − f(x_i)/f\'(x_i)','y_{i+1} = (a+b)/2','y_{i+1} = h·f only'],
+    answer:0, explain:'Euler follows the slope f(x_i,y_i) for one step of width h: y_{i+1} = y_i + h·f(x_i,y_i). It is first-order accurate.' },
+  { q:'Compared with Euler\'s method, RK4 achieves much higher accuracy by:',
+    options:['using a larger step always','sampling the slope several times per step and averaging','ignoring the initial condition','solving a linear system'],
+    answer:1, explain:'RK4 evaluates the slope four times across each step and combines them (weights 1,2,2,1), capturing curvature Euler misses — it is fourth-order accurate.' }
+]);
+wireCompleteBar('m5');
+</script>
+</body>
+</html>
