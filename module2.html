@@ -76,10 +76,10 @@
     <section class="section" id="fixed">
       <div class="panel">
         <h2>2.1 Fixed-point iteration</h2>
-        <p>The idea: algebraically rearrange \(f(x)=0\) into the form \(x = g(x)\). A solution of this is a <b>fixed point</b> — a value the function maps to itself, \(g(x^\*)=x^\*\). We then iterate</p>
+        <p>The idea: algebraically rearrange \(f(x)=0\) into the form \(x = g(x)\). A solution of this is a <b>fixed point</b> — a value the function maps to itself, \(g(x^{*})=x^{*}\). We then iterate</p>
         <div class="eqn">\[ x_{k+1} = g(x_k), \qquad k = 0,1,2,\dots \]</div>
         <p>and stop when \(|x_{k+1}-x_k| < \varepsilon\). The link to the original problem is \(f(x) = g(x) - x\): where \(g(x)=x\), we have \(f(x)=0\).</p>
-        <div class="callout def"><div class="h">📐 Convergence condition</div>The iteration converges to a fixed point \(x^\*\) only if \(|g'(x^\*)| < 1\) near the root. Choosing a good rearrangement \(g\) is the whole art of the method — a poor choice diverges.</div>
+        <div class="callout def"><div class="h">📐 Convergence condition</div>The iteration converges to a fixed point \(x^{*}\) only if \(|g'(x^{*})| < 1\) near the root. Choosing a good rearrangement \(g\) is the whole art of the method — a poor choice diverges.</div>
 
         <h3>Worked example</h3>
         <p>Solve \(2x^3 - 2x - 5 = 0\). Rearrange to isolate \(x\):</p>
@@ -556,7 +556,7 @@ disp('Solution x ='); disp(x)</textarea>
   </main>
 </div>
 
-<footer class="site">BCS 311 · Scientific Computing — Module 2 of 5.</footer>
+<footer class="site">BCS 311 · Scientific Computing — Module 2 of 5 · Dr. Arash Kermani Kolankeh.</footer>
 
 <script src="assets/app.js"></script>
 <script>
