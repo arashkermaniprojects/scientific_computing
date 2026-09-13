@@ -40,6 +40,7 @@ window.MathJax = { tex: { inlineMath: [['\\(','\\)']], displayMath: [['\\[','\\]
         <li><a href="#ops">1.3 Operations & indexing</a></li>
         <li><a href="#prog">1.4 Scripts, functions, flow</a></li>
         <li><a href="#vec">1.5 Vectorization</a></li>
+        <li><a href="#logical" class="sub">↳ Logical indexing 🎛</a></li>
         <li><a href="#numbers">1.6 How numbers are stored</a></li>
         <li><a href="#demo-plot">🎛 Demo: sampling & plotting</a></li>
         <li><a href="#quiz">✅ Self-check quiz</a></li>
@@ -394,25 +395,183 @@ y = 2*x + 3;</textarea>
 <div class="mout note"><div class="mout-head">Run note</div><pre>No Command Window output — this snippet only assigns y (it assumes x is already defined and uses a semicolon-free comparison only in comments).</pre></div>
 
 
-        <h3>Logical indexing</h3>
-        <p>A comparison like <code>A &gt; 5</code> produces a <b>logical mask</b> of 0s and 1s the same size as <code>A</code>. Use the mask to select or modify elements without any loop.</p>
+        <h3 id="logical">Logical indexing — selecting with conditions</h3>
+        <p>Logical indexing is one of the most powerful ideas in MATLAB — and one of the most confusing the first time you meet it. Once it clicks, entire loops collapse into a single readable line. The secret is to stop reading <code>v(v &gt; 0)</code> as one mysterious thing and instead see it as <b>three separate steps</b> that happen in order.</p>
+
+        <div class="callout def"><div class="h">📐 The three-step mental model</div>
+          <b>① Compare.</b> A condition such as <code>v &gt; 0</code> is tested at <em>every</em> element at once, producing a <b>logical mask</b>: an array the same size as <code>v</code> holding only <code>true</code> (1) or <code>false</code> (0).<br>
+          <b>② Mask.</b> That mask records <em>which positions passed</em> the test — it is a genuine array you can store and look at.<br>
+          <b>③ Apply.</b> Use the mask as an index to <em>read</em> the marked elements (<code>v(mask)</code>) or to <em>write</em> them (<code>v(mask) = …</code>). Everything not marked is left untouched.
+        </div>
+
+        <p>The step people skip is ①→②: the comparison is not a question, it is an <b>array</b>. Store it and print it to see for yourself:</p>
         <div class="codewrap editable has-output">
-          <div class="codehead"><span class="lang"><span class="dot"></span>MATLAB · editable</span><button class="copybtn">Copy</button></div>
-          <textarea spellcheck="false" rows="9">v = [-3 -1 0 2 5 -7 8];
-pos = v(v > 0)        % keep positives -> [2 5 8]
+          <div class="codehead"><span class="lang"><span class="dot"></span>MATLAB · editable · the mask is an array</span><button class="copybtn">Copy</button></div>
+          <textarea spellcheck="false" rows="5">v    = [-3 -1 0 2 5 -7 8];
+mask = v > 0        % same size as v: 1 where true, 0 where false
+pos  = v(mask)      % use the mask to pull out the marked elements</textarea>
+        </div>
+<div class="mout"><div class="mout-head">Command Window output</div><pre>mask =
 
-v(v < 0) = 0          % replace negatives with 0 in place
+  1×7 <b>logical</b> array
 
-A = randi(20,4,4);
-A(A > 10) = 10;       % cap every element at 10</textarea>
+   0   0   0   1   1   0   1
+
+pos =
+
+   2   5   8</pre></div>
+
+        <!-- DEMO A: mask builder -->
+        <div class="demo" style="margin-top:1.4rem">
+          <div class="demo-head"><span class="pill">Live</span> Build a logical mask, step by step</div>
+          <p class="demo-sub">Choose a condition. The top row is the vector <code>v</code>; the bottom row is the mask MATLAB builds. Press <b>Animate</b> to watch each element get tested left to right, or change any control for an instant update.</p>
+          <div class="controls">
+            <div class="control" style="min-width:190px">
+              <label>Condition on each element</label>
+              <select id="liCond">
+                <option value="gt">v &gt; t   (greater than)</option>
+                <option value="ge">v &gt;= t  (greater or equal)</option>
+                <option value="lt">v &lt; t   (less than)</option>
+                <option value="le">v &lt;= t  (less or equal)</option>
+                <option value="eq">v == t  (equal to)</option>
+                <option value="ne">v ~= t  (not equal)</option>
+                <option value="even">mod(v,2)==0  (even)</option>
+                <option value="odd">mod(v,2)==1  (odd)</option>
+              </select>
+            </div>
+            <div class="control" style="min-width:210px" id="liThrWrap">
+              <label>Threshold t = <span class="val" id="liThrVal">0</span></label>
+              <input id="liThr" type="range" min="-9" max="9" value="0">
+            </div>
+            <label style="display:flex;align-items:center;gap:.4rem;font-size:.82rem;font-weight:600;margin-top:1rem">
+              <input type="checkbox" id="liCombine"> add 2nd condition
+            </label>
+          </div>
+          <div class="controls" id="liCond2Wrap" style="display:none;margin-top:.2rem">
+            <div class="control" style="min-width:120px">
+              <label>combine with</label>
+              <select id="liLogic"><option value="and">&amp; (AND)</option><option value="or">| (OR)</option></select>
+            </div>
+            <div class="control" style="min-width:170px">
+              <label>2nd condition</label>
+              <select id="liCond2">
+                <option value="gt">v &gt; t2</option><option value="ge">v &gt;= t2</option>
+                <option value="lt" selected>v &lt; t2</option><option value="le">v &lt;= t2</option>
+                <option value="eq">v == t2</option><option value="ne">v ~= t2</option>
+              </select>
+            </div>
+            <div class="control" style="min-width:190px">
+              <label>t2 = <span class="val" id="liThr2Val">5</span></label>
+              <input id="liThr2" type="range" min="-9" max="9" value="5">
+            </div>
+          </div>
+
+          <div style="background:#fff;border:1px solid var(--line);border-radius:11px;padding:1rem 1.1rem;margin-top:.8rem">
+            <div class="li-row"><span class="li-rowlabel">v =</span><div class="li-cells" id="liVec"></div></div>
+            <div class="li-row"><span class="li-rowlabel">mask =</span><div class="li-cells" id="liMask"></div></div>
+            <div class="li-row"><span class="li-rowlabel">v(mask) =</span><div class="li-cells" id="liResult"></div></div>
+          </div>
+          <div class="li-legend">
+            <span><span class="li-swatch" style="background:#e7f7ee;border-color:#1f9d57"></span> passes → mask 1</span>
+            <span><span class="li-swatch" style="background:#f4f6f9;border-color:#dde5ee"></span> fails → mask 0</span>
+          </div>
+          <div class="btnrow">
+            <button class="btn accent" id="liAnimate">▶ Animate</button>
+            <button class="btn" id="liFill">Fill instantly</button>
+            <button class="btn ghost" id="liNew">New numbers</button>
+          </div>
+          <div class="li-expr" id="liExpr"></div>
+        </div>
+
+        <h4>Reading vs. writing with a mask</h4>
+        <p>Once you have a mask, the same square brackets do two very different jobs depending on which side of the <code>=</code> the indexed array sits.</p>
+        <ul>
+          <li><b>Read / select:</b> <code>pos = v(v&gt;0)</code> — pulls the marked elements out into a new (usually shorter) vector.</li>
+          <li><b>Write / modify in place:</b> <code>v(v&lt;0) = 0</code> — overwrites only the marked elements and leaves the rest exactly as they were. The right-hand side is either one scalar (broadcast to all marked spots) or an array with as many values as there are <code>true</code>s in the mask.</li>
+        </ul>
+        <div class="codewrap editable has-output">
+          <div class="codehead"><span class="lang"><span class="dot"></span>MATLAB · editable · select, modify, cap</span><button class="copybtn">Copy</button></div>
+          <textarea spellcheck="false" rows="10">v = [-3 -1 0 2 5 -7 8];
+pos = v(v > 0)        % SELECT: read positives   -> [2 5 8]
+n   = sum(v > 0)      % COUNT: how many passed?  -> 3
+
+v(v < 0) = 0          % MODIFY: negatives become 0 in place
+
+A = [3 14 7; 22 5 11];
+A(A > 10) = 10;       % CAP: clamp everything above 10 down to 10</textarea>
         </div>
 <div class="mout"><div class="mout-head">Command Window output</div><pre>pos =
 
    2   5   8
 
+n =
+
+   3
+
 v =
 
    0   0   0   2   5   0   8</pre></div>
+
+        <!-- DEMO B: select vs modify -->
+        <div class="demo" style="margin-top:1.4rem">
+          <div class="demo-head"><span class="pill">Live</span> Watch selection vs. modification on a matrix</div>
+          <p class="demo-sub">Logical indexing works on matrices too — the mask matches the matrix shape. Pick an operation and press <b>Animate</b> to see each element tested, then either pulled out (select) or overwritten (modify).</p>
+          <div class="controls">
+            <div class="control" style="min-width:250px">
+              <label>Operation</label>
+              <select id="lbOp">
+                <option value="extract">Select:  A(A &gt; t)   → pull out</option>
+                <option value="cap">Modify:  A(A &gt; t) = t   → cap above t</option>
+                <option value="zero">Modify:  A(A &lt; 0) = 0   → floor negatives</option>
+                <option value="abs">Modify:  A(A &lt; 0) = -A(A &lt; 0)  → make positive</option>
+              </select>
+            </div>
+            <div class="control" style="min-width:210px" id="lbThrWrap">
+              <label>Threshold t = <span class="val" id="lbThrVal">10</span></label>
+              <input id="lbThr" type="range" min="0" max="20" value="10">
+            </div>
+          </div>
+          <div style="background:#fff;border:1px solid var(--line);border-radius:11px;padding:1rem 1.1rem;margin-top:.8rem;display:flex;gap:1.6rem;flex-wrap:wrap;align-items:center">
+            <div><div class="li-rowlabel" style="text-align:left;margin-bottom:.4rem">A =</div><div class="li-matrix" id="lbMat"></div></div>
+            <div style="font-size:1.6rem;color:var(--muted)">→</div>
+            <div><div class="li-rowlabel" style="text-align:left;margin-bottom:.4rem" id="lbOutLabel">result =</div><div class="li-cells" id="lbOut" style="max-width:220px"></div></div>
+          </div>
+          <div class="btnrow">
+            <button class="btn accent" id="lbAnimate">▶ Animate</button>
+            <button class="btn ghost" id="lbReset">Reset</button>
+          </div>
+          <div class="li-expr" id="lbExpr"></div>
+        </div>
+
+        <h4>Combining conditions: <code>&amp;</code> and <code>|</code></h4>
+        <p>Real filters usually need more than one test. Join masks element-wise with <code>&amp;</code> (<b>and</b> — both must pass) or <code>|</code> (<b>or</b> — either passes). You can build a two-sided band this way. (Try the "add 2nd condition" box in the demo above.)</p>
+        <div class="codewrap editable has-output">
+          <div class="codehead"><span class="lang"><span class="dot"></span>MATLAB · editable · combine masks</span><button class="copybtn">Copy</button></div>
+          <textarea spellcheck="false" rows="8">v = [-3 -1 0 2 5 -7 8];
+
+inRange = v(v >= 0 & v <= 5)   % AND: keep values in [0, 5]
+outside = v(v < 0  | v > 5)    % OR:  keep everything else
+
+idx = find(v > 0)              % POSITIONS (not values) that pass</textarea>
+        </div>
+<div class="mout"><div class="mout-head">Command Window output</div><pre>inRange =
+
+   0   2   5
+
+outside =
+
+  -3  -1  -7   8
+
+idx =
+
+   4   5   7</pre></div>
+
+        <div class="callout warn"><div class="h">⚠️ Four classic traps</div>
+          <b>1. Use <code>&amp;</code> and <code>|</code>, not <code>&amp;&amp;</code> / <code>||</code></b> for arrays — the double forms are for single true/false values and will error or mislead on vectors.<br>
+          <b>2. Mind the parentheses:</b> write <code>v(v&gt;=0 &amp; v&lt;=5)</code>; comparison and <code>&amp;</code> mix in a way that often needs them.<br>
+          <b>3. Mask size must match</b> the array it indexes — it comes from a comparison <em>on that same array</em>, so this is automatic unless you mix arrays.<br>
+          <b>4. Positions vs. values:</b> <code>v(v&gt;0)</code> gives the <em>values</em>; use <code>find(v&gt;0)</code> when you need the <em>indices</em>.
+        </div>
 
 
         <div class="callout tip"><div class="h">⚡ Useful aggregators</div><code>sum(A)</code>, <code>sum(A,2)</code> (row sums), <code>reshape(A,m,n)</code>, <code>A(:)</code> (flatten), and matrix multiply <code>A*B</code> all replace nested loops. The triple-loop matrix multiply is a classic example: <code>C = A*B;</code> does the same job in one line and orders of magnitude faster.</div>
@@ -581,6 +740,135 @@ v =
   slider.addEventListener('input',draw);
   window.addEventListener('resize',draw);
   setTimeout(draw,60);
+})();
+
+/* ---------- Demo A: logical mask builder ---------- */
+(function(){
+  const vecEl=document.getElementById('liVec'), maskEl=document.getElementById('liMask'),
+        resEl=document.getElementById('liResult'), exprEl=document.getElementById('liExpr'),
+        condSel=document.getElementById('liCond'), thr=document.getElementById('liThr'),
+        thrVal=document.getElementById('liThrVal'), thrWrap=document.getElementById('liThrWrap'),
+        combine=document.getElementById('liCombine'), cond2Wrap=document.getElementById('liCond2Wrap'),
+        logic=document.getElementById('liLogic'), cond2=document.getElementById('liCond2'),
+        thr2=document.getElementById('liThr2'), thr2Val=document.getElementById('liThr2Val');
+  let v=[-3,-1,0,2,5,-7,8], timer=null;
+  const SYM={gt:'>',ge:'>=',lt:'<',le:'<=',eq:'==',ne:'~='};
+  function test(x,cond,t){
+    switch(cond){case 'gt':return x>t;case 'ge':return x>=t;case 'lt':return x<t;
+      case 'le':return x<=t;case 'eq':return x===t;case 'ne':return x!==t;
+      case 'even':return ((x%2)+2)%2===0;case 'odd':return ((x%2)+2)%2===1;}
+  }
+  function condExpr(cond,t){
+    if(cond==='even')return 'mod(v,2)==0'; if(cond==='odd')return 'mod(v,2)==1';
+    return 'v '+SYM[cond]+' '+t;
+  }
+  function maskArray(){
+    const c1=condSel.value, t1=+thr.value;
+    let m=v.map(x=>test(x,c1,t1));
+    if(combine.checked){ const c2=cond2.value,t2=+thr2.value,useAnd=logic.value==='and';
+      m=m.map((b,i)=>useAnd?(b&&test(v[i],c2,t2)):(b||test(v[i],c2,t2))); }
+    return m;
+  }
+  function buildCells(){
+    vecEl.innerHTML=''; maskEl.innerHTML='';
+    v.forEach(x=>{const c=document.createElement('div');c.className='li-cell';c.textContent=x;vecEl.appendChild(c);
+      const m=document.createElement('div');m.className='li-maskcell pending';m.textContent='?';maskEl.appendChild(m);});
+  }
+  function exprText(){
+    const useEvenOdd=(condSel.value==='even'||condSel.value==='odd');
+    thrWrap.style.display=useEvenOdd?'none':'flex';
+    let cond='('+condExpr(condSel.value,+thr.value)+')';
+    if(combine.checked) cond='('+condExpr(condSel.value,+thr.value)+' '+(logic.value==='and'?'&':'|')+' '+condExpr(cond2.value,+thr2.value)+')';
+    else cond=condExpr(condSel.value,+thr.value);
+    return cond;
+  }
+  function render(animate){
+    thrVal.textContent=thr.value; thr2Val.textContent=thr2.value;
+    cond2Wrap.style.display=combine.checked?'flex':'none';
+    buildCells();
+    const m=maskArray();
+    const cond=exprText();
+    const vc=vecEl.children, mc=maskEl.children;
+    function paint(i){
+      const c=vc[i], mk=mc[i];
+      c.classList.remove('active'); c.classList.add(m[i]?'pass':'fail');
+      mk.classList.remove('pending'); mk.textContent=m[i]?'1':'0'; mk.classList.toggle('one',m[i]);
+    }
+    function finish(){
+      resEl.innerHTML='';
+      v.forEach((x,i)=>{ if(m[i]){const r=document.createElement('div');r.className='li-cell pass';r.textContent=x;resEl.appendChild(r);} });
+      if(!resEl.children.length){const e=document.createElement('div');e.style.cssText='font-family:var(--mono);color:var(--muted);font-size:.85rem';e.textContent='(empty — nothing passed)';resEl.appendChild(e);}
+      exprEl.innerHTML='<span class="k">mask</span> = '+cond+'   →   ['+m.map(b=>b?1:0).join(' ')+']\n<span class="k">v(mask)</span> = <span class="r">['+v.filter((x,i)=>m[i]).join(' ')+']</span>';
+    }
+    if(timer){clearInterval(timer);timer=null;}
+    if(animate){
+      resEl.innerHTML=''; let i=0;
+      timer=setInterval(()=>{
+        if(i>0) vc[i-1].classList.remove('active');
+        if(i>=v.length){clearInterval(timer);timer=null;finish();return;}
+        vc[i].classList.add('active'); paint(i); i++;
+      },420);
+    } else { for(let i=0;i<v.length;i++) paint(i); finish(); }
+  }
+  document.getElementById('liAnimate').onclick=()=>render(true);
+  document.getElementById('liFill').onclick=()=>render(false);
+  document.getElementById('liNew').onclick=()=>{ v=Array.from({length:7},()=>Math.floor(Math.random()*19)-9); render(false); };
+  [condSel,thr,combine,logic,cond2,thr2].forEach(el=>el.addEventListener('input',()=>render(false)));
+  render(false);
+})();
+
+/* ---------- Demo B: select vs modify on a matrix ---------- */
+(function(){
+  const matEl=document.getElementById('lbMat'), outEl=document.getElementById('lbOut'),
+        outLabel=document.getElementById('lbOutLabel'), exprEl=document.getElementById('lbExpr'),
+        opSel=document.getElementById('lbOp'), thr=document.getElementById('lbThr'),
+        thrVal=document.getElementById('lbThrVal'), thrWrap=document.getElementById('lbThrWrap');
+  const M0=[3,14,7,19,-2,11,5,8,16,1,-4,12];   // 3x4 row-major
+  let M=M0.slice(), timer=null;
+  function build(){ matEl.innerHTML=''; M.forEach(x=>{const c=document.createElement('div');c.className='li-cell';c.textContent=x;matEl.appendChild(c);}); }
+  function passes(x){ const op=opSel.value,t=+thr.value;
+    if(op==='extract'||op==='cap')return x>t; return x<0; }
+  function codeLine(){ const t=+thr.value; return {
+    extract:'A(A > '+t+')', cap:'A(A > '+t+') = '+t, zero:'A(A < 0) = 0', abs:'A(A < 0) = -A(A < 0)'
+  }[opSel.value]; }
+  function render(animate){
+    thrVal.textContent=thr.value;
+    thrWrap.style.display=(opSel.value==='extract'||opSel.value==='cap')?'flex':'none';
+    M=M0.slice(); build();
+    const op=opSel.value, t=+thr.value, cells=matEl.children;
+    outLabel.textContent = op==='extract' ? 'A(mask) =' : 'A (after) =';
+    function apply(i){
+      const c=cells[i], x=M[i], hit=passes(x);
+      c.classList.remove('active');
+      if(op==='extract'){ if(hit){c.classList.add('pass');} else {c.classList.add('dim');} }
+      else { if(hit){ let nv=x; if(op==='cap')nv=t; else if(op==='zero')nv=0; else if(op==='abs')nv=-x;
+               M[i]=nv; c.textContent=nv; c.classList.add('flash'); c.classList.add('pass'); } }
+    }
+    function finish(){
+      outEl.innerHTML='';
+      if(op==='extract'){
+        const picked=M.filter(x=>x>t);
+        picked.forEach(x=>{const r=document.createElement('div');r.className='li-cell pass';r.textContent=x;outEl.appendChild(r);});
+        if(!picked.length){const e=document.createElement('div');e.style.cssText='font-family:var(--mono);color:var(--muted)';e.textContent='(none)';outEl.appendChild(e);}
+        exprEl.innerHTML='<span class="k">'+codeLine()+'</span>  →  <span class="r">['+picked.join(' ')+']</span>   (a column vector in MATLAB)';
+      } else {
+        // show the resulting matrix in the out area as 4-wide rows
+        outEl.style.display='grid'; outEl.style.gridTemplateColumns='repeat(4,46px)'; outEl.style.gap='.35rem';
+        M.forEach((x,i)=>{const r=document.createElement('div');r.className='li-cell'+(passes(M0[i])?' pass':'');r.textContent=x;outEl.appendChild(r);});
+        exprEl.innerHTML='<span class="k">'+codeLine()+'</span>   modifies only the marked elements; the rest keep their values.';
+      }
+    }
+    if(timer){clearInterval(timer);timer=null;}
+    if(animate){ let i=0; outEl.innerHTML='';
+      timer=setInterval(()=>{ if(i>0)cells[i-1].classList.remove('active');
+        if(i>=M.length){clearInterval(timer);timer=null;finish();return;}
+        cells[i].classList.add('active'); apply(i); i++; },300);
+    } else { for(let i=0;i<M.length;i++) apply(i); finish(); }
+  }
+  document.getElementById('lbAnimate').onclick=()=>render(true);
+  document.getElementById('lbReset').onclick=()=>render(false);
+  [opSel,thr].forEach(el=>el.addEventListener('input',()=>render(false)));
+  render(false);
 })();
 
 /* ---------- Quiz ---------- */

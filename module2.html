@@ -34,13 +34,16 @@
       <ul class="toc">
         <li><a href="#intro">Root finding: the problem</a></li>
         <li><a href="#fixed">2.1 Fixed-point iteration</a></li>
+        <li><a href="#fixed-demo" class="sub">🎛 Demo: cobweb</a></li>
         <li><a href="#bisect">2.2 Bisection</a></li>
-        <li><a href="#bisect-demo">🎛 Demo: bisection</a></li>
+        <li><a href="#bisect-demo" class="sub">🎛 Demo: bisection</a></li>
         <li><a href="#newton">2.3 Newton's method</a></li>
-        <li><a href="#newton-demo">🎛 Demo: Newton</a></li>
+        <li><a href="#newton-demo" class="sub">🎛 Demo: Newton</a></li>
         <li><a href="#secant">2.4 Secant method</a></li>
+        <li><a href="#secant-demo" class="sub">🎛 Demo: secant</a></li>
         <li><a href="#compare">2.5 Comparison & polynomials</a></li>
         <li><a href="#gauss">2.6 Gaussian elimination</a></li>
+        <li><a href="#gauss-demo" class="sub">🎛 Demo: elimination</a></li>
         <li><a href="#lu">2.7 LU factorization</a></li>
         <li><a href="#chol">2.8 Cholesky factorization</a></li>
         <li><a href="#quiz">✅ Self-check quiz</a></li>
@@ -158,6 +161,39 @@ Iteration 33: x = 0.739086, g(x) = 0.739085
 Approximate root: 0.739085</pre></div>
 
         <p class="note-src">Source: Root Finding lecture &amp; <code>Fixed_pont_iteration.m</code>.</p>
+      </div>
+    </section>
+
+    <!-- FIXED-POINT COBWEB DEMO -->
+    <section class="section" id="fixed-demo">
+      <div class="panel">
+        <h2>🎛 Demo: the cobweb diagram</h2>
+        <p>Fixed-point iteration has a beautiful picture. Plot \(y=g(x)\) and the line \(y=x\). From \(x_k\) go <b>vertically</b> to the curve (that height is \(g(x_k)=x_{k+1}\)), then <b>horizontally</b> to the line \(y=x\) (carrying \(x_{k+1}\) back to the axis), and repeat. The path spirals — or &ldquo;cobwebs&rdquo; — toward the fixed point where the curve meets the line.</p>
+        <div class="demo">
+          <div class="demo-head"><span class="pill">Live</span> Fixed-point cobweb</div>
+          <canvas id="cwCanvas" height="340"></canvas>
+          <div class="controls">
+            <div class="control" style="min-width:250px">
+              <label>Rearrangement g(x)</label>
+              <select id="cwFn">
+                <option value="0">g(x) = (x+1)^(1/3)   [x³−x−1=0 ✓ converges]</option>
+                <option value="1">g(x) = cos(x)   [✓ converges]</option>
+                <option value="2">g(x) = x² − 1   [✗ diverges — |g′|&gt;1]</option>
+              </select>
+            </div>
+            <div class="control" style="min-width:230px">
+              <label>Start x₀ = <span class="val" id="cwX0val">0.6</span></label>
+              <input id="cwX0" type="range" min="-1.5" max="2" step="0.1" value="0.6">
+            </div>
+          </div>
+          <div class="btnrow">
+            <button class="btn" id="cwStep">Step ▸</button>
+            <button class="btn accent" id="cwAuto">Auto ▶</button>
+            <button class="btn ghost" id="cwReset">Reset</button>
+          </div>
+          <div class="readout" id="cwOut"></div>
+        </div>
+        <div class="callout idea"><div class="h">💡 What to notice</div>When \(|g'(x^{*})|<1\) the cobweb closes in on the intersection (convergence); with \(g(x)=x^2-1\) it flies outward, showing why a bad rearrangement diverges even though the equation is the same.</div>
       </div>
     </section>
 
@@ -376,6 +412,28 @@ Iter 4: x0=1.4146 x1=1.4142 x2=1.4142
 Iter 5: x0=1.4142 x1=1.4142 x2=1.4142
 Approximate root: 1.4142</pre></div>
 
+        <h2 id="secant-demo" style="margin-top:1.6rem">🎛 Demo: the secant sweep</h2>
+        <p>The secant method draws a straight line through the two most recent points on the curve and takes its \(x\)-intercept as the next guess. Watch each secant line (orange) pivot toward the root — no derivative required.</p>
+        <div class="demo">
+          <div class="demo-head"><span class="pill">Live</span> Secant method</div>
+          <canvas id="scCanvas" height="320"></canvas>
+          <div class="controls">
+            <div class="control" style="min-width:230px">
+              <label>Function</label>
+              <select id="scFn">
+                <option value="0">f(x) = x² − 2   (root √2)</option>
+                <option value="1">f(x) = x³ − 2x − 1   (root ≈1.618)</option>
+                <option value="2">f(x) = cos(x) − x   (root ≈0.739)</option>
+              </select>
+            </div>
+          </div>
+          <div class="btnrow">
+            <button class="btn" id="scStep">Step ▸</button>
+            <button class="btn accent" id="scAuto">Auto ▶</button>
+            <button class="btn ghost" id="scReset">Reset</button>
+          </div>
+          <div class="readout" id="scOut"></div>
+        </div>
       </div>
     </section>
 
@@ -468,6 +526,27 @@ X_builtin = A \ B;</textarea>
 
         <div class="callout warn"><div class="h">⚠️ Numerical limitation</div>If a pivot is zero (or tiny), the multiplier blows up. <b>Partial pivoting</b> — swapping in the row with the largest pivot — keeps elimination stable. MATLAB's <code>\</code> does this automatically.</div>
         <p class="note-src">Source: Gaussian Elimination lecture &amp; <code>Gausssian_Elimination.m</code>.</p>
+
+        <h2 id="gauss-demo" style="margin-top:1.6rem">🎛 Demo: forward elimination, row by row</h2>
+        <p>Follow the augmented matrix \([A\,|\,\mathbf b]\) as it is driven to upper-triangular form. Each step picks a pivot, computes the multiplier \(m = a_{ik}/a_{kk}\) for a row below it, and subtracts \(m\times(\text{pivot row})\) to plant a zero under the pivot. Press <b>Step</b> to do one row operation.</p>
+        <div class="demo">
+          <div class="demo-head"><span class="pill">Live</span> Gaussian elimination</div>
+          <div style="background:#fff;border:1px solid var(--line);border-radius:11px;padding:1rem 1.1rem;margin-top:.4rem;overflow-x:auto">
+            <div class="li-matrix" id="geMat" style="grid-template-columns:repeat(4,60px)"></div>
+          </div>
+          <div class="li-legend">
+            <span><span class="li-swatch" style="background:#e6f4f5;border-color:#0e7c86"></span> pivot row</span>
+            <span><span class="li-swatch" style="background:#fff1dd;border-color:#f0913a"></span> row being changed</span>
+            <span><span class="li-swatch" style="background:#e7f7ee;border-color:#1f9d57"></span> new zero</span>
+          </div>
+          <div class="btnrow">
+            <button class="btn" id="geStep">Step ▸</button>
+            <button class="btn accent" id="geAuto">Auto ▶</button>
+            <button class="btn ghost" id="geReset">Reset</button>
+          </div>
+          <div class="readout" id="geOut"></div>
+        </div>
+        <div class="callout idea"><div class="h">💡 After elimination</div>Once the matrix is upper-triangular, <b>back-substitution</b> reads off the unknowns from the bottom row up — here giving \(x=1,\ y=2,\ z=3\).</div>
       </div>
     </section>
 
@@ -656,6 +735,142 @@ const FNS = [
   document.getElementById('nwAuto').onclick=function(){ if(timer){stop();} else { this.textContent='Pause ⏸'; timer=setInterval(()=>{ step(); if(st.n>12)stop(); },650);} };
   sel.onchange=reset; x0s.oninput=reset; window.addEventListener('resize',render);
   setTimeout(reset,80);
+})();
+
+/* ===== Fixed-point cobweb demo ===== */
+(function(){
+  const cv=document.getElementById('cwCanvas'); const ctx=cv.getContext('2d');
+  const sel=document.getElementById('cwFn'); const x0s=document.getElementById('cwX0');
+  const x0v=document.getElementById('cwX0val'); const out=document.getElementById('cwOut');
+  const GS=[
+    {g:x=>Math.cbrt(x+1), root:1.324718, label:'(x+1)^{1/3}'},
+    {g:x=>Math.cos(x),    root:0.739085, label:'cos(x)'},
+    {g:x=>x*x-1,          root:1.618034, label:'x^2 - 1'}
+  ];
+  const XMIN=-1.6, XMAX=2.3;
+  let st, timer=null;
+  function reset(){ st={x:parseFloat(x0s.value), n:0, segs:[], log:[]}; x0v.textContent=parseFloat(x0s.value).toFixed(1); stop(); render(); }
+  function step(){ const G=GS[+sel.value]; const x=st.x; const y=G.g(x);
+    st.segs.push([[x,x],[x,y]]);      // vertical to curve
+    st.segs.push([[x,y],[y,y]]);      // horizontal to line y=x
+    st.log.unshift(`x${st.n} = ${x.toFixed(5)}  →  g(x) = ${y.toFixed(5)}`);
+    st.x=y; st.n++;
+    if(Math.abs(y-x)<1e-6 || Math.abs(y)>1e4) stop();
+    render();
+  }
+  function render(){ const G=GS[+sel.value];
+    const dpr=devicePixelRatio||1; cv.width=cv.clientWidth*dpr; cv.height=340*dpr; ctx.setTransform(dpr,0,0,dpr,0,0);
+    const W=cv.clientWidth,H=340,pad=38;
+    let ymin=XMIN,ymax=XMAX;
+    for(let i=0;i<=200;i++){const x=XMIN+(XMAX-XMIN)*i/200;const y=G.g(x); if(isFinite(y)){ymin=Math.min(ymin,y);ymax=Math.max(ymax,y);}}
+    ymin=Math.max(ymin,-4); ymax=Math.min(ymax,5);
+    const sx=x=>pad+(x-XMIN)/(XMAX-XMIN)*(W-2*pad);
+    const sy=y=>H-pad-(y-ymin)/(ymax-ymin)*(H-2*pad);
+    ctx.clearRect(0,0,W,H);
+    ctx.strokeStyle='#e3e9f2';ctx.lineWidth=1;
+    if(ymin<0&&ymax>0){ctx.beginPath();ctx.moveTo(pad,sy(0));ctx.lineTo(W-pad,sy(0));ctx.stroke();}
+    // line y = x
+    ctx.strokeStyle='#9bb0c9';ctx.lineWidth=1.6;ctx.setLineDash([5,4]);ctx.beginPath();
+    ctx.moveTo(sx(Math.max(XMIN,ymin)),sy(Math.max(XMIN,ymin)));ctx.lineTo(sx(Math.min(XMAX,ymax)),sy(Math.min(XMAX,ymax)));ctx.stroke();ctx.setLineDash([]);
+    // curve g(x)
+    ctx.strokeStyle='#2563a8';ctx.lineWidth=2.4;ctx.beginPath();let started=false;
+    for(let i=0;i<=300;i++){const x=XMIN+(XMAX-XMIN)*i/300;const y=G.g(x);if(!isFinite(y))continue;const X=sx(x),Y=sy(y);started?ctx.lineTo(X,Y):ctx.moveTo(X,Y);started=true;}ctx.stroke();
+    // cobweb
+    ctx.strokeStyle='#f0913a';ctx.lineWidth=1.8;
+    st.segs.forEach(s=>{ctx.beginPath();ctx.moveTo(sx(s[0][0]),sy(s[0][1]));ctx.lineTo(sx(s[1][0]),sy(s[1][1]));ctx.stroke();});
+    // fixed point marker
+    ctx.fillStyle='#1f9d57';ctx.beginPath();ctx.arc(sx(G.root),sy(G.root),4,0,7);ctx.fill();
+    // current x on axis
+    ctx.fillStyle='#0e7c86';ctx.beginPath();ctx.arc(sx(st.x),sy(st.x),4.5,0,7);ctx.fill();
+    out.textContent=(st.log.slice(0,5).join('\n')||'Press Step to begin. Blue = g(x), dashed = line y=x.')+
+      `\n\ng(x) = ${G.label}   ·   current x = ${st.x.toFixed(6)}   (fixed point ≈ ${G.root.toFixed(6)})`+
+      (Math.abs(st.x)>1e4?'   ← DIVERGING! |g′| > 1 here.':'');
+  }
+  function stop(){ if(timer){clearInterval(timer);timer=null;} document.getElementById('cwAuto').textContent='Auto ▶'; }
+  document.getElementById('cwStep').onclick=step;
+  document.getElementById('cwReset').onclick=reset;
+  document.getElementById('cwAuto').onclick=function(){ if(timer){stop();} else { this.textContent='Pause ⏸'; timer=setInterval(()=>{ step(); if(st.n>18)stop(); },520);} };
+  sel.onchange=()=>{ x0s.value = (+sel.value===2) ? 1.7 : 0.6; reset(); };
+  x0s.oninput=reset; window.addEventListener('resize',render);
+  setTimeout(reset,80);
+})();
+
+/* ===== Secant demo ===== */
+(function(){
+  const cv=document.getElementById('scCanvas'); const plot=makePlotter(cv);
+  const sel=document.getElementById('scFn'); const out=document.getElementById('scOut');
+  let st, timer=null;
+  function ext(F){ return {xmin:Math.min(F.xmin,-0.5), xmax:Math.max(F.xmax,3.2)}; }
+  function reset(){ const F=FNS[+sel.value]; st={x0:F.br[0],x1:F.br[1],n:0,log:[],seg:null}; stop(); render(); }
+  function step(){ const F=FNS[+sel.value]; const f0=F.f(st.x0), f1=F.f(st.x1);
+    if(Math.abs(f1-f0)<1e-12){stop();return;}
+    const x2=st.x1 - f1*(st.x1-st.x0)/(f1-f0);
+    st.log.unshift(`iter ${st.n}:  x0=${st.x0.toFixed(5)}  x1=${st.x1.toFixed(5)}  →  x2=${x2.toFixed(5)}`);
+    st.seg={x0:st.x0,f0:f0,x1:st.x1,f1:f1,x2:x2};
+    st.x0=st.x1; st.x1=x2; st.n++;
+    if(Math.abs(F.f(x2))<1e-9) stop();
+    render();
+  }
+  function render(){ const F=FNS[+sel.value]; const e=ext(F);
+    const g=plot({f:F.f,xmin:e.xmin,xmax:e.xmax});
+    if(st.seg){ const s=st.seg;
+      // extended secant line
+      const m=(s.f1-s.f0)/(s.x1-s.x0);
+      const xa=e.xmin, xb=e.xmax;
+      g.ctx.strokeStyle='#f0913a';g.ctx.lineWidth=2;g.ctx.setLineDash([6,4]);
+      g.ctx.beginPath();g.ctx.moveTo(g.sx(xa),g.sy(s.f1+m*(xa-s.x1)));g.ctx.lineTo(g.sx(xb),g.sy(s.f1+m*(xb-s.x1)));g.ctx.stroke();g.ctx.setLineDash([]);
+      // the two points
+      [[s.x0,s.f0],[s.x1,s.f1]].forEach(p=>{g.ctx.fillStyle='#2563a8';g.ctx.beginPath();g.ctx.arc(g.sx(p[0]),g.sy(p[1]),4,0,7);g.ctx.fill();});
+      // new x-intercept
+      g.ctx.fillStyle='#d8553b';g.ctx.beginPath();g.ctx.arc(g.sx(s.x2),g.sy(0),4.5,0,7);g.ctx.fill();
+    }
+    out.textContent=(st.log.slice(0,6).join('\n')||'Press Step to begin.')+
+      `\n\ncurrent estimate = ${st.x1.toFixed(8)}   (true root ≈ ${F.root.toFixed(6)})`;
+  }
+  function stop(){ if(timer){clearInterval(timer);timer=null;} document.getElementById('scAuto').textContent='Auto ▶'; }
+  document.getElementById('scStep').onclick=step;
+  document.getElementById('scReset').onclick=reset;
+  document.getElementById('scAuto').onclick=function(){ if(timer){stop();} else { this.textContent='Pause ⏸'; timer=setInterval(()=>{ step(); if(st.n>10)stop(); },620);} };
+  sel.onchange=reset; window.addEventListener('resize',render);
+  setTimeout(reset,80);
+})();
+
+/* ===== Gaussian elimination demo ===== */
+(function(){
+  const matEl=document.getElementById('geMat'), out=document.getElementById('geOut');
+  const S0=[2,3,-1,5, 4,4,-3,3, -2,3,-1,1];
+  const STEPS=[
+    {state:[2,3,-1,5, 0,-2,-1,-7, -2,3,-1,1], pivot:0, change:1, zero:4,  desc:'m = 4/2 = 2   →   R2 ← R2 − 2·R1'},
+    {state:[2,3,-1,5, 0,-2,-1,-7, 0,6,-2,6],  pivot:0, change:2, zero:8,  desc:'m = −2/2 = −1  →   R3 ← R3 − (−1)·R1'},
+    {state:[2,3,-1,5, 0,-2,-1,-7, 0,0,-5,-15],pivot:1, change:2, zero:9,  desc:'m = 6/(−2) = −3 →  R3 ← R3 − (−3)·R2'}
+  ];
+  let k=0, timer=null;
+  function fmt(x){ return Number.isInteger(x)?x:x.toFixed(1); }
+  function render(){
+    const cur = k===0 ? {state:S0} : STEPS[k-1];
+    matEl.innerHTML='';
+    cur.state.forEach((x,i)=>{
+      const c=document.createElement('div'); c.className='li-cell'; c.textContent=fmt(x);
+      const col=i%4, row=Math.floor(i/4);
+      if(col===3){ c.style.borderLeft='3px solid #b9c6d6'; }   // augmentation bar
+      if(k>0){
+        if(row===cur.pivot) c.classList.add('pass');           // pivot row (teal-ish via pass)
+        if(row===cur.change) c.classList.add('flash');         // changed row
+        if(i===cur.zero){ c.classList.remove('flash'); c.style.background='#e7f7ee'; c.style.borderColor='#1f9d57'; c.style.color='#0e7a44'; }
+      }
+      matEl.appendChild(c);
+    });
+    let msg;
+    if(k===0) msg='Initial augmented matrix [A | b].  Press Step to eliminate below the first pivot.';
+    else if(k<STEPS.length) msg=`Step ${k}:  ${STEPS[k-1].desc}`;
+    else msg=`Step ${k}:  ${STEPS[k-1].desc}\n\nUpper-triangular! Back-substitution gives  z=3,  y=2,  x=1.`;
+    out.textContent=msg;
+  }
+  function stop(){ if(timer){clearInterval(timer);timer=null;} document.getElementById('geAuto').textContent='Auto ▶'; }
+  document.getElementById('geStep').onclick=()=>{ if(k<STEPS.length){k++;render();} };
+  document.getElementById('geReset').onclick=()=>{ stop(); k=0; render(); };
+  document.getElementById('geAuto').onclick=function(){ if(timer){stop();} else if(k<STEPS.length){ this.textContent='Pause ⏸'; timer=setInterval(()=>{ if(k>=STEPS.length){stop();return;} k++; render(); },900);} };
+  render();
 })();
 
 /* ===== Quiz ===== */
