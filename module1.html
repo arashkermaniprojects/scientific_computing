@@ -543,6 +543,75 @@ v =
           <div class="li-expr" id="lbExpr"></div>
         </div>
 
+        <h4>2-D logical indexing — and the shape trick everyone trips on</h4>
+        <p>Here is the question that confuses almost everyone the first time. If <code>A</code> is a \(3\times3\) matrix and the mask <code>A&gt;15</code> is also \(3\times3\), what shape does <code>A(A&gt;15)</code> return — a matrix, or a vector?</p>
+        <div class="callout warn"><div class="h">⚠️ The answer: always a column vector</div>Selecting from a matrix with a logical mask <b>always flattens the result to a column vector</b> — never a matrix. MATLAB walks the matrix in <b>column-major order</b> (down column 1, then column 2, …) and stacks every element that passed into one tall \(k\times1\) column. It <em>cannot</em> stay rectangular, because in general a different number of elements pass in each row.</div>
+        <div class="codewrap editable has-output">
+          <div class="codehead"><span class="lang"><span class="dot"></span>MATLAB · editable · selecting from a matrix</span><button class="copybtn">Copy</button></div>
+          <textarea spellcheck="false" rows="9">A = [ 4 17  9;
+     22  3 11;
+      8 14 25];
+
+big = A(A > 15)        % SELECT -> a 3x1 COLUMN vector, column-major order
+
+[row, col] = find(A > 15)   % want positions instead? find gives subscripts</textarea>
+        </div>
+<div class="mout"><div class="mout-head">Command Window output</div><pre>big =
+
+   22
+   17
+   25
+
+row =
+
+   2
+   1
+   3
+
+col =
+
+   1
+   2
+   3</pre></div>
+        <p>Read the order carefully: <code>22</code> (row 2, col 1) comes before <code>17</code> (row 1, col 2), because MATLAB finishes column 1 before starting column 2. The three positions are therefore \((2,1),(1,2),(3,3)\).</p>
+
+        <div class="callout idea"><div class="h">💡 Writing keeps the shape — reading does not</div>The flattening only happens when you <em>read</em>. When you <em>assign</em> with a mask, the matrix keeps its \(m\times n\) shape — only the marked cells change:
+        <br><code>A(A &gt; 15) = 15;</code> leaves <code>A</code> as a \(3\times3\) matrix with the three large entries clamped to 15.</div>
+
+        <h4>The most useful 2-D trick: select whole rows or columns</h4>
+        <p>Often you don't want scattered elements — you want the <b>rows</b> (records) that satisfy a condition. Build a logical vector as long as there are rows, then index the first dimension and use <code>:</code> for the second. This is the everyday pattern for filtering a data table.</p>
+        <div class="codewrap editable has-output">
+          <div class="codehead"><span class="lang"><span class="dot"></span>MATLAB · editable · keep whole rows</span><button class="copybtn">Copy</button></div>
+          <textarea spellcheck="false" rows="8">scores = [55 70;      % each row = one student, columns = two exams
+          40 90;
+          88 30;
+          62 75];
+
+passMask = scores(:,1) >= 60      % logical column, one entry per row
+passed   = scores(passMask, :)    % keep the ROWS where the mask is true</textarea>
+        </div>
+<div class="mout"><div class="mout-head">Command Window output</div><pre>passMask =
+
+  4×1 <b>logical</b> array
+
+   0
+   0
+   1
+   1
+
+passed =
+
+   88   30
+   62   75</pre></div>
+        <p>Because the second index is <code>:</code> (all columns), each selected row stays intact — so the result <em>is</em> a matrix. The mirror image, <code>A(:, colMask)</code>, keeps whole columns. This &ldquo;mask one dimension, colon the other&rdquo; idea is how you filter records without a single loop.</p>
+        <div class="callout tip"><div class="h">🛠 Quick summary of shapes</div>
+          <code>A(A&gt;5)</code> → column vector (flattened, column-major).<br>
+          <code>A(A&gt;5) = 0</code> → same matrix shape, marked cells changed.<br>
+          <code>A(rowMask, :)</code> → whole rows kept (still a matrix).<br>
+          <code>A(:, colMask)</code> → whole columns kept.<br>
+          <code>find(A&gt;5)</code> → linear indices; <code>[r,c] = find(A&gt;5)</code> → row/column subscripts.
+        </div>
+
         <h4>Combining conditions: <code>&amp;</code> and <code>|</code></h4>
         <p>Real filters usually need more than one test. Join masks element-wise with <code>&amp;</code> (<b>and</b> — both must pass) or <code>|</code> (<b>or</b> — either passes). You can build a two-sided band this way. (Try the "add 2nd condition" box in the demo above.)</p>
         <div class="codewrap editable has-output">
