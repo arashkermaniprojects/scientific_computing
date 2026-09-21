@@ -34,7 +34,8 @@
       <ul class="toc">
         <li><a href="#intro">Root finding: the problem</a></li>
         <li><a href="#fixed">2.1 Fixed-point iteration</a></li>
-        <li><a href="#fixed-demo" class="sub">🎛 Demo: cobweb</a></li>
+        <li><a href="#fixed-demo" class="sub">🎛 Demo: two views</a></li>
+        <li><a href="#fixed-theory" class="sub">↳ Convergence &amp; basins</a></li>
         <li><a href="#bisect">2.2 Bisection</a></li>
         <li><a href="#bisect-demo" class="sub">🎛 Demo: bisection</a></li>
         <li><a href="#newton">2.3 Newton's method</a></li>
@@ -46,7 +47,7 @@
         <li><a href="#gauss-demo" class="sub">🎛 Demo: elimination</a></li>
         <li><a href="#lu">2.7 LU factorization</a></li>
         <li><a href="#chol">2.8 Cholesky factorization</a></li>
-        <li><a href="#quiz">✅ Self-check quiz</a></li>
+        <li><a href="#quiz">✏️ Practice examples</a></li>
       </ul>
     </div>
     <div id="progressWidget" class="progress-card"></div>
@@ -68,6 +69,7 @@
     <section class="section" id="intro">
       <div class="panel">
         <h2>Root finding: the problem</h2>
+        <div class="voicebar"><span class="vlabel">🔊 Listen to this section</span><audio controls preload="metadata" src="assets/audio/m2_intro.mp3"></audio></div>
         <p>A great many problems reduce to finding the <b>root</b> of an equation: a value \(x\) for which</p>
         <div class="eqn">\[ f(x) = 0. \]</div>
         <p>Graphically, a root is where the curve \(y=f(x)\) crosses the \(x\)-axis. For linear or simple quadratic \(f\) we can solve by hand. But for most non-linear equations — \(\cos x = x\), \(x^3 - 2x - 1 = 0\) — there is <b>no closed-form solution</b>, so we approximate the root with an <b>iterative method</b>: start from a guess, improve it repeatedly, and stop when the change is below a tolerance \(\varepsilon\).</p>
@@ -79,112 +81,208 @@
     <section class="section" id="fixed">
       <div class="panel">
         <h2>2.1 Fixed-point iteration</h2>
-        <p>The idea: algebraically rearrange \(f(x)=0\) into the form \(x = g(x)\). A solution of this is a <b>fixed point</b> — a value the function maps to itself, \(g(x^{*})=x^{*}\). We then iterate</p>
+        <div class="voicebar"><span class="vlabel">🔊 Listen to this section</span><audio controls preload="metadata" src="assets/audio/m2_fixed.mp3"></audio></div>
+        <p>First, where does <b>\(x=g(x)\)</b> come from? Take the equation you want to solve and <b>rearrange it so a single \(x\) sits alone on the left</b>. The right-hand side then becomes a rule \(g\). Feeding a guess through \(g\) again and again drives it to the answer:</p>
+        <figure class="figblock">
+          <svg viewBox="0 0 760 430" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Rearrange x squared minus x minus 2 equals 0 into x equals square root of x plus 2 (x equals g of x); iterate from a guess and it settles on the root x equals 2">
+          <rect x="0" y="0" width="760" height="430" fill="#ffffff"/>
+          <text x="30" y="34" font-family="sans-serif" font-weight="800" font-size="15" fill="#0e7c86">① REARRANGE THE EQUATION SO x SITS BY ITSELF</text>
+          <text x="70" y="82" font-family="sans-serif" font-weight="700" font-size="21" fill="#1f2d3d">x² − x − 2 = 0</text>
+          <text x="430" y="82" font-family="sans-serif" font-size="14" fill="#7a8794">the equation to solve  (root: x = 2)</text>
+          <text x="70" y="122" font-family="sans-serif" font-weight="700" font-size="21" fill="#1f2d3d">x² = x + 2</text>
+          <text x="430" y="122" font-family="sans-serif" font-size="14" fill="#7a8794">move the other terms across</text>
+          <text x="70" y="170" font-family="sans-serif" font-weight="700" font-size="21" fill="#1f2d3d">x  =</text>
+          <rect x="150" y="148" width="168" height="34" rx="9" fill="#eaf2fb" stroke="#2563a8" stroke-width="1.8"/>
+          <text x="234" y="171" text-anchor="middle" font-family="sans-serif" font-weight="700" font-size="20" fill="#2563a8">√(x + 2)</text>
+          <text x="430" y="166" font-family="sans-serif" font-size="14" fill="#7a8794">take the square root — now x is</text>
+          <text x="430" y="184" font-family="sans-serif" font-size="14" fill="#7a8794">written using x itself</text>
+          <text x="234" y="204" text-anchor="middle" font-family="sans-serif" font-weight="700" font-size="13.5" fill="#2563a8">call this g(x)</text>
+          <rect x="64" y="222" width="470" height="30" rx="8" fill="#f4fbfc" stroke="#cfe3e6"/>
+          <text x="78" y="242" font-family="sans-serif" font-size="15" fill="#0e5a63">x is on <tspan font-weight="700">both sides</tspan>  →  this is  <tspan font-weight="800" fill="#2563a8">x = g(x)</tspan></text>
+          <line x1="30" y1="272" x2="730" y2="272" stroke="#e8edf3" stroke-width="1.5"/>
+          <text x="30" y="306" font-family="sans-serif" font-weight="800" font-size="15" fill="#0e7c86">② START FROM A GUESS, FEED IT THROUGH g = √(x + 2), REPEAT</text>
+          <rect x="30.0" y="336.0" width="84" height="48" rx="24.0" fill="#ffffff" stroke="#c3d0de" stroke-width="1.6"/><text x="72.0" y="365.6" text-anchor="middle" font-family="sans-serif" font-weight="700" font-size="16" fill="#1f2d3d">1</text>
+          <rect x="132.7" y="336.0" width="84" height="48" rx="24.0" fill="#ffffff" stroke="#c3d0de" stroke-width="1.6"/><text x="174.7" y="365.6" text-anchor="middle" font-family="sans-serif" font-weight="700" font-size="16" fill="#1f2d3d">1.732</text>
+          <rect x="235.3" y="336.0" width="84" height="48" rx="24.0" fill="#ffffff" stroke="#c3d0de" stroke-width="1.6"/><text x="277.3" y="365.6" text-anchor="middle" font-family="sans-serif" font-weight="700" font-size="16" fill="#1f2d3d">1.932</text>
+          <rect x="338.0" y="336.0" width="84" height="48" rx="24.0" fill="#ffffff" stroke="#c3d0de" stroke-width="1.6"/><text x="380.0" y="365.6" text-anchor="middle" font-family="sans-serif" font-weight="700" font-size="16" fill="#1f2d3d">1.983</text>
+          <rect x="440.7" y="336.0" width="84" height="48" rx="24.0" fill="#ffffff" stroke="#c3d0de" stroke-width="1.6"/><text x="482.7" y="365.6" text-anchor="middle" font-family="sans-serif" font-weight="700" font-size="16" fill="#1f2d3d">1.996</text>
+          <text x="585.3" y="368.0" text-anchor="middle" font-family="sans-serif" font-weight="700" font-size="22" fill="#8a97a4">…</text>
+          <rect x="646.0" y="336.0" width="84" height="48" rx="24.0" fill="#e7f6ee" stroke="#1f9d55" stroke-width="1.6"/><text x="688.0" y="366.6" text-anchor="middle" font-family="sans-serif" font-weight="700" font-size="19" fill="#1f7a44">2</text>
+          <line x1="114.0" y1="360.0" x2="124.7" y2="360.0" stroke="#45566a" stroke-width="2"/><path d="M 132.7,360.0 l -10,-5 l 0,10 Z" fill="#45566a"/>
+          <text x="123.3" y="328.0" text-anchor="middle" font-family="sans-serif" font-weight="700" font-size="12.5" fill="#2563a8">g</text>
+          <line x1="216.7" y1="360.0" x2="227.3" y2="360.0" stroke="#45566a" stroke-width="2"/><path d="M 235.3,360.0 l -10,-5 l 0,10 Z" fill="#45566a"/>
+          <text x="226.0" y="328.0" text-anchor="middle" font-family="sans-serif" font-weight="700" font-size="12.5" fill="#2563a8">g</text>
+          <line x1="319.3" y1="360.0" x2="330.0" y2="360.0" stroke="#45566a" stroke-width="2"/><path d="M 338.0,360.0 l -10,-5 l 0,10 Z" fill="#45566a"/>
+          <text x="328.7" y="328.0" text-anchor="middle" font-family="sans-serif" font-weight="700" font-size="12.5" fill="#2563a8">g</text>
+          <line x1="422.0" y1="360.0" x2="432.7" y2="360.0" stroke="#45566a" stroke-width="2"/><path d="M 440.7,360.0 l -10,-5 l 0,10 Z" fill="#45566a"/>
+          <text x="431.3" y="328.0" text-anchor="middle" font-family="sans-serif" font-weight="700" font-size="12.5" fill="#2563a8">g</text>
+          <line x1="524.7" y1="360.0" x2="535.3" y2="360.0" stroke="#45566a" stroke-width="2"/><path d="M 543.3,360.0 l -10,-5 l 0,10 Z" fill="#45566a"/>
+          <text x="534.0" y="328.0" text-anchor="middle" font-family="sans-serif" font-weight="700" font-size="12.5" fill="#2563a8">g</text>
+          <line x1="627.3" y1="360.0" x2="638.0" y2="360.0" stroke="#45566a" stroke-width="2"/><path d="M 646.0,360.0 l -10,-5 l 0,10 Z" fill="#45566a"/>
+          <text x="636.7" y="328.0" text-anchor="middle" font-family="sans-serif" font-weight="700" font-size="12.5" fill="#2563a8">g</text>
+          <text x="688.0" y="408.0" text-anchor="middle" font-family="sans-serif" font-weight="700" font-size="13" fill="#1f7a44">√(2+2) = 2 ✓</text>
+          <text x="688.0" y="426.0" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#1f7a44">the root</text>
+          </svg>
+          <figcaption>Because \(x\) ends up on <b>both sides</b>, the equation now reads \(x=g(x)\). The number that satisfies it is the <b>fixed point</b> — and it is also the <b>root</b> of the original \(x^{2}-x-2=0\). Starting from a guess and repeating \(g(x)=\sqrt{x+2}\) lands on \(x=2\) without ever solving the equation directly. <b>That rearrangement is the whole idea behind \(x=g(x)\).</b></figcaption>
+        </figure>
+        <p>Start with the picture. Rewrite \(f(x)=0\) as \(x=g(x)\). Then read the diagram below <b>from top to bottom, along one vertical line</b>:</p>
+        <figure style="margin:1rem 0;background:#fff;border:1px solid var(--line);border-radius:12px;padding:1rem 1rem .6rem">
+          <svg viewBox="0 0 760 480" style="width:100%;height:auto" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The fixed point of g and the root of f equal g minus x sit at the same x value">
+            <!-- panels -->
+            <rect x="55" y="42" width="660" height="186" rx="10" fill="#fbfdff" stroke="#e3e9f2"/>
+            <rect x="55" y="258" width="660" height="192" rx="10" fill="#fbfdff" stroke="#e3e9f2"/>
+            <!-- shared vertical connector at x* -->
+            <line x1="430" y1="120" x2="430" y2="372" stroke="#1f9d57" stroke-width="2" stroke-dasharray="5 4"/>
+            <line x1="430" y1="42" x2="430" y2="120" stroke="#d7e3ec" stroke-width="1.5" stroke-dasharray="3 4"/>
+            <line x1="430" y1="372" x2="430" y2="450" stroke="#d7e3ec" stroke-width="1.5" stroke-dasharray="3 4"/>
+            <!-- TOP: fixed-point view -->
+            <text x="70" y="66" fill="#0e7c86" font-family="sans-serif" font-weight="800" font-size="13">FIXED-POINT VIEW</text>
+            <line x1="88" y1="212" x2="694" y2="60" stroke="#9bb0c9" stroke-width="2" stroke-dasharray="6 4"/>
+            <path d="M88,192 C 220,158 330,116 430,120 C 545,124 630,104 694,92" fill="none" stroke="#2563a8" stroke-width="3"/>
+            <circle cx="430" cy="120" r="6.5" fill="#1f9d57"/>
+            <text x="628" y="84" fill="#2563a8" font-family="sans-serif" font-weight="700" font-size="16">y = g(x)</text>
+            <text x="205" y="176" fill="#7b8aa0" font-family="sans-serif" font-weight="700" font-size="15" transform="rotate(-14 205 176)">y = x</text>
+            <text x="452" y="101" fill="#0a5f67" font-family="sans-serif" font-weight="700" font-size="14">g(x*) = x*  (curve meets the line)</text>
+            <!-- BOTTOM: root view -->
+            <text x="70" y="282" fill="#0e7c86" font-family="sans-serif" font-weight="800" font-size="13">ROOT VIEW</text>
+            <line x1="72" y1="372" x2="698" y2="372" stroke="#c4d2e3" stroke-width="2"/>
+            <text x="66" y="376" fill="#7b8aa0" font-family="sans-serif" font-size="13" text-anchor="end">0</text>
+            <path d="M88,312 C 220,334 330,358 430,372 C 545,387 615,410 694,430" fill="none" stroke="#2563a8" stroke-width="3"/>
+            <polygon points="430,362.5 432.4,368.9 439.1,369.2 433.8,373.3 435.6,379.7 430,375.9 424.4,379.7 426.2,373.3 420.9,369.2 427.6,368.9" fill="#1f9d57"/>
+            <text x="250" y="306" fill="#2563a8" font-family="sans-serif" font-weight="700" font-size="16">y = f(x) = g(x) − x</text>
+            <text x="446" y="366" fill="#0a5f67" font-family="sans-serif" font-weight="700" font-size="14">f(x*) = 0  — curve meets zero</text>
+            <!-- x* label -->
+            <rect x="410" y="238" width="40" height="22" rx="5" fill="#1f9d57"/>
+            <text x="430" y="254" fill="#ffffff" font-family="sans-serif" font-weight="800" font-size="15" text-anchor="middle">x*</text>
+            <text x="430" y="470" fill="#1d2b3a" font-family="sans-serif" font-weight="800" font-size="15" text-anchor="middle">same x</text>
+          </svg>
+          <figcaption style="font-size:.9rem;color:#555;text-align:center;margin-top:.4rem">The value where \(y=g(x)\) meets the line \(y=x\) (top) sits at exactly the same \(x\) as where \(y=f(x)=g(x)-x\) meets zero (bottom). <b>The fixed point and the root are the same number</b> — one seen on \(g\), the other on \(f=g-x\). That is why finding a fixed point solves \(f(x)=0\).</figcaption>
+        </figure>
+        <p>So a solution is a <b>fixed point</b> — a value the map returns to itself, \(g(x^{*})=x^{*}\). We reach it by iterating</p>
         <div class="eqn">\[ x_{k+1} = g(x_k), \qquad k = 0,1,2,\dots \]</div>
         <p>and stop when \(|x_{k+1}-x_k| < \varepsilon\). The link to the original problem is \(f(x) = g(x) - x\): where \(g(x)=x\), we have \(f(x)=0\).</p>
-        <div class="callout def"><div class="h">📐 Convergence condition</div>The iteration converges to a fixed point \(x^{*}\) only if \(|g'(x^{*})| < 1\) near the root. Choosing a good rearrangement \(g\) is the whole art of the method — a poor choice diverges.</div>
+        <div class="callout def"><div class="h">📐 Convergence condition</div>The iteration converges to a fixed point \(x^{*}\) only if \(|g'(x^{*})| < 1\) near the root. Choosing a good rearrangement \(g\) is the whole art of the method — a poor choice diverges. We make this precise (and find <em>which</em> starting points work) in §2.1.1 below.</div>
+
+        <p>The <b>cobweb</b> traces the iteration in the top picture: from \(x_k\) go <b>up</b> to the curve (its height is \(g(x_k)=x_{k+1}\)), then <b>across</b> to the line \(y=x\), and repeat. The stacked demo below animates this while keeping the shared vertical line, so you watch the cobweb close on the crossing and the dots close on the root <em>at the same \(x\)</em>.</p>
 
         <h3>Worked example</h3>
         <p>Solve \(2x^3 - 2x - 5 = 0\). Rearrange to isolate \(x\):</p>
         <div class="eqn">\[ x = \left(\frac{2x+5}{2}\right)^{1/3} \;=\; g(x), \quad\text{which satisfies } |g'(x)|<1 \text{ near } x=1.5. \]</div>
+        <p>Iterate \(x_{n+1}=g(x_n)\) from \(x_0=1.5\); stop when the error \(E_n=|x_{n+1}-x_n|<\varepsilon=10^{-4}\):</p>
         <div class="tablewrap">
           <table class="data">
-            <thead><tr><th>n</th><th>\(x_n\)</th><th>\(x_{n+1}=g(x_n)\)</th></tr></thead>
+            <thead><tr><th>n</th><th>\(x_n\)</th><th>\(x_{n+1}=g(x_n)\)</th><th>\(E_n=|x_{n+1}-x_n|\)</th></tr></thead>
             <tbody>
-              <tr><td>0</td><td>1.5</td><td>1.5874</td></tr>
-              <tr><td>1</td><td>1.5874</td><td>1.5989</td></tr>
-              <tr><td>2</td><td>1.5989</td><td>1.60037</td></tr>
-              <tr><td>3</td><td>1.60037</td><td>1.60057</td></tr>
-              <tr><td>4</td><td>1.60057</td><td>1.60059</td></tr>
-              <tr class="converged"><td>5</td><td>1.60059</td><td>1.6006 ✓</td></tr>
+              <tr><td>0</td><td>1.5000</td><td>1.5874</td><td>0.0874</td></tr>
+              <tr><td>1</td><td>1.5874</td><td>1.5989</td><td>0.0115</td></tr>
+              <tr><td>2</td><td>1.5989</td><td>1.6004</td><td>0.0015</td></tr>
+              <tr><td>3</td><td>1.6004</td><td>1.6006</td><td>0.0002</td></tr>
+              <tr class="converged"><td>4</td><td>1.6006</td><td>1.6006</td><td>0.00003 &lt; ε ✓</td></tr>
             </tbody>
           </table>
         </div>
-        <p>The approximate root is \(x \approx 1.6006\). A second classic example, \(\cos x = 3x-1\) rearranged to \(g(x)=\tfrac{\cos x + 1}{3}\), converges from \(x_0=0\) to \(x \approx 0.6071\).</p>
+        <p>The error shrinks by ≈ \(|g'(x^{*})|\approx0.13\) each step and drops below \(\varepsilon\) at \(n=4\): root \(x \approx 1.6006\).</p>
 
         <div class="codewrap editable has-output">
           <div class="codehead"><span class="lang"><span class="dot"></span>MATLAB · editable · Fixed_point_iteration.m</span><button class="copybtn">Copy</button></div>
-          <textarea spellcheck="false" rows="20">g = @(x) cos(x);            % rearranged equation g(x)
+          <textarea spellcheck="false" rows="21">% Solve the SAME equation as the table:  2x^3 - 2x - 5 = 0
+% Rearranged as  x = g(x) = (x + 2.5)^(1/3)
+g   = @(x) (x + 2.5).^(1/3);
+x   = 1.5;                 % starting guess x0
+tol = 1e-4;
 
-function root = fixed_point_iteration(x0, tol, max_iter, g)
-    iteration = 0;
-    while iteration < max_iter
-        x1 = g(x0);
-        fprintf('Iteration %d: x = %.6f, g(x) = %.6f\n', iteration, x0, x1);
-        if abs(x1 - x0) < tol
-            break;
-        end
-        x0 = x1;
-        iteration = iteration + 1;
-    end
-    root = x1;
-    fprintf('Approximate root: %.6f\n', root);
+for n = 0:20
+    xnew = g(x);
+    err  = abs(xnew - x);                              % E_n
+    fprintf('n=%d  x=%.5f  g(x)=%.5f  err=%.5f\n', n, x, xnew, err);
+    if err < tol,  break;  end                         % stop at tolerance
+    x = xnew;
 end
+fprintf('self-written fixed point = %.6f\n', xnew);
 
-% Call it
-root = fixed_point_iteration(0.5, 1e-6, 100, g);</textarea>
+% MATLAB built-in for comparison (solves f(x)=0 directly)
+f = @(x) 2*x.^3 - 2*x - 5;
+fprintf('MATLAB fzero             = %.6f\n', fzero(f, 1.5));</textarea>
         </div>
-<div class="mout"><div class="mout-head">Command Window output</div><pre>Iteration 0: x = 0.500000, g(x) = 0.877583
-Iteration 1: x = 0.877583, g(x) = 0.639012
-Iteration 2: x = 0.639012, g(x) = 0.802685
-Iteration 3: x = 0.802685, g(x) = 0.694778
-Iteration 4: x = 0.694778, g(x) = 0.768196
-Iteration 5: x = 0.768196, g(x) = 0.719165
-Iteration 6: x = 0.719165, g(x) = 0.752356
-Iteration 7: x = 0.752356, g(x) = 0.730081
-Iteration 8: x = 0.730081, g(x) = 0.745120
-Iteration 9: x = 0.745120, g(x) = 0.735006
-Iteration 10: x = 0.735006, g(x) = 0.741827
-Iteration 11: x = 0.741827, g(x) = 0.737236
-Iteration 12: x = 0.737236, g(x) = 0.740330
-Iteration 13: x = 0.740330, g(x) = 0.738246
-Iteration 14: x = 0.738246, g(x) = 0.739650
-Iteration 15: x = 0.739650, g(x) = 0.738705
-Iteration 16: x = 0.738705, g(x) = 0.739341
-Iteration 17: x = 0.739341, g(x) = 0.738912
-Iteration 18: x = 0.738912, g(x) = 0.739201
-Iteration 19: x = 0.739201, g(x) = 0.739007
-Iteration 20: x = 0.739007, g(x) = 0.739138
-Iteration 21: x = 0.739138, g(x) = 0.739050
-Iteration 22: x = 0.739050, g(x) = 0.739109
-Iteration 23: x = 0.739109, g(x) = 0.739069
-Iteration 24: x = 0.739069, g(x) = 0.739096
-Iteration 25: x = 0.739096, g(x) = 0.739078
-Iteration 26: x = 0.739078, g(x) = 0.739090
-Iteration 27: x = 0.739090, g(x) = 0.739082
-Iteration 28: x = 0.739082, g(x) = 0.739087
-Iteration 29: x = 0.739087, g(x) = 0.739084
-Iteration 30: x = 0.739084, g(x) = 0.739086
-Iteration 31: x = 0.739086, g(x) = 0.739084
-Iteration 32: x = 0.739084, g(x) = 0.739086
-Iteration 33: x = 0.739086, g(x) = 0.739085
-Approximate root: 0.739085</pre></div>
+<div class="mout"><div class="mout-head">Command Window output</div><pre>n=0  x=1.50000  g(x)=1.58740  err=0.08740
+n=1  x=1.58740  g(x)=1.59888  err=0.01148
+n=2  x=1.59888  g(x)=1.60037  err=0.00150
+n=3  x=1.60037  g(x)=1.60057  err=0.00019
+n=4  x=1.60057  g(x)=1.60059  err=0.00003
+self-written fixed point = 1.600595
+MATLAB fzero             = 1.600599</pre></div>
+        <div class="callout tip"><div class="h">🔬 Three ways, one root</div>
+          <b>By hand</b> (3 dp): 1.601 &nbsp;·&nbsp; <b>self-written program</b>: 1.600595 &nbsp;·&nbsp; <b>MATLAB </b><code>fzero</code>: 1.600599.
+          They agree to four decimals. The tiny gap is only the stopping rule: hand-work and the loop halt when \(E_n&lt;10^{-4}\), whereas <code>fzero</code> drives \(f\) to machine precision.
+        </div>
 
         <p class="note-src">Source: Root Finding lecture &amp; <code>Fixed_pont_iteration.m</code>.</p>
       </div>
     </section>
 
-    <!-- FIXED-POINT COBWEB DEMO -->
+    <!-- FIXED-POINT DUAL DEMO -->
     <section class="section" id="fixed-demo">
       <div class="panel">
-        <h2>🎛 Demo: the cobweb diagram</h2>
-        <p>Fixed-point iteration has a beautiful picture. Plot \(y=g(x)\) and the line \(y=x\). From \(x_k\) go <b>vertically</b> to the curve (that height is \(g(x_k)=x_{k+1}\)), then <b>horizontally</b> to the line \(y=x\) (carrying \(x_{k+1}\) back to the axis), and repeat. The path spirals — or &ldquo;cobwebs&rdquo; — toward the fixed point where the curve meets the line.</p>
+        <h2>🎛 Demo: one iteration, two stacked views</h2>
+        <p>Before pressing play, see <b>what each move computes</b>. One step of the cobweb is exactly two operations from the formula \(x_{k+1}=g(x_k)\):</p>
+        <figure style="margin:1rem 0;background:#fff;border:1px solid var(--line);border-radius:12px;padding:1rem 1rem .6rem">
+          <svg viewBox="0 0 760 400" style="width:100%;height:auto" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Anatomy of one cobweb step: go up to the curve to evaluate g, then across to the line y=x to feed the result back">
+            <defs><marker id="arw" markerWidth="9" markerHeight="9" refX="6.5" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#e07b1a"/></marker></defs>
+            <rect x="55" y="34" width="660" height="316" rx="10" fill="#fbfdff" stroke="#e6ecf4"/>
+            <!-- x-axis -->
+            <line x1="70" y1="330" x2="705" y2="330" stroke="#c4d2e3" stroke-width="1.5"/>
+            <!-- y = x line -->
+            <line x1="90" y1="300" x2="680" y2="79" stroke="#9bb0c9" stroke-width="2" stroke-dasharray="6 4"/>
+            <text x="150" y="270" fill="#7b8aa0" font-family="sans-serif" font-weight="700" font-size="14" transform="rotate(-20.6 150 270)">y = x</text>
+            <!-- curve y = g(x) -->
+            <path d="M90,188 C 170,176 250,171 330,160 C 430,149 505,132 560,124 C 615,116 655,110 680,107" fill="none" stroke="#2563a8" stroke-width="3"/>
+            <text x="612" y="100" fill="#2563a8" font-family="sans-serif" font-weight="700" font-size="15">y = g(x)</text>
+            <!-- droplines to the x-axis -->
+            <line x1="230" y1="247.6" x2="230" y2="330" stroke="#c9d4e0" stroke-width="1.4" stroke-dasharray="2 3"/>
+            <line x1="430" y1="172.6" x2="430" y2="330" stroke="#1f9d57" stroke-width="1.4" stroke-dasharray="3 3"/>
+            <!-- STEP: vertical (evaluate g) then horizontal (feed back) -->
+            <line x1="230" y1="247.6" x2="230" y2="178" stroke="#f0913a" stroke-width="3" marker-end="url(#arw)"/>
+            <line x1="230" y1="172.6" x2="424" y2="172.6" stroke="#f0913a" stroke-width="3" marker-end="url(#arw)"/>
+            <!-- points -->
+            <circle cx="230" cy="247.6" r="4.5" fill="#0e7c86"/>
+            <circle cx="230" cy="172.6" r="4.5" fill="#2563a8"/>
+            <circle cx="430" cy="172.6" r="4.5" fill="#0e7c86"/>
+            <!-- operation labels -->
+            <text x="94" y="214" fill="#b56a1d" font-family="sans-serif" font-weight="800" font-size="14">① UP to the curve</text>
+            <text x="94" y="233" fill="#b56a1d" font-family="sans-serif" font-size="13">= compute g(xₖ)</text>
+            <text x="250" y="140" fill="#b56a1d" font-family="sans-serif" font-weight="800" font-size="14">② ACROSS to y = x</text>
+            <text x="250" y="159" fill="#b56a1d" font-family="sans-serif" font-size="13">= xₖ₊₁ becomes the next x</text>
+            <!-- axis tick labels -->
+            <text x="230" y="349" fill="#0a5f67" font-family="sans-serif" font-weight="700" font-size="14" text-anchor="middle">xₖ</text>
+            <text x="430" y="349" fill="#1f9d57" font-family="sans-serif" font-weight="700" font-size="14" text-anchor="middle">xₖ₊₁</text>
+            <text x="560" y="349" fill="#7b8aa0" font-family="sans-serif" font-weight="700" font-size="14" text-anchor="middle">x*</text>
+            <circle cx="560" cy="123.9" r="5.5" fill="#1f9d57"/>
+          </svg>
+          <figcaption style="font-size:.9rem;color:#555;text-align:center;margin-top:.4rem"><b>One step = two operations.</b> ① The <span style="color:#b56a1d;font-weight:700">vertical</span> move plugs \(x_k\) into \(g\) — its height is \(x_{k+1}=g(x_k)\). ② The <span style="color:#b56a1d;font-weight:700">horizontal</span> move to \(y=x\) copies that height onto the \(x\)-axis, so it becomes the next input. Repeat, and \(x_k\) walks toward \(x^{*}\). The length of the vertical move is \(g(x_k)-x_k=f(x_k)\) — the very quantity the root view drives to zero.</figcaption>
+        </figure>
+        <p>Now play it. The two views share a <b>single horizontal axis</b>: the cobweb on \(y=g(x)\) sits directly above the root view \(y=f(x)=g(x)-x\), and a dashed green line links the crossing (top) to the zero (bottom) at the same \(x\). A teal line follows the current \(x_k\) through both; the arrowheads on each cobweb step show the ① up, ② across order. The green band is the convergence zone \(|g'(x)|<1\); the bottom strip colours every starting point \(x_0\) as converging (green) or diverging (red).</p>
         <div class="demo">
-          <div class="demo-head"><span class="pill">Live</span> Fixed-point cobweb</div>
-          <canvas id="cwCanvas" height="340"></canvas>
+          <div class="demo-head"><span class="pill">Live</span> Fixed-point iteration — cobweb &amp; root views</div>
           <div class="controls">
-            <div class="control" style="min-width:250px">
-              <label>Rearrangement g(x)</label>
+            <div class="control" style="min-width:330px">
+              <label>Rearrangement g(x)  →  solving f(x) = g(x) − x = 0</label>
               <select id="cwFn">
-                <option value="0">g(x) = (x+1)^(1/3)   [x³−x−1=0 ✓ converges]</option>
-                <option value="1">g(x) = cos(x)   [✓ converges]</option>
-                <option value="2">g(x) = x² − 1   [✗ diverges — |g′|&gt;1]</option>
+                <option value="0">g(x) = (x+1)^(1/3)   ·   root ≈ 1.3247</option>
+                <option value="1">g(x) = cos(x)   ·   root ≈ 0.7391</option>
+                <option value="2">g(x) = x²   ·   x²−x=0, roots 0 &amp; 1   ·   reaches 0</option>
+                <option value="3">g(x) = sqrt(x)   ·   same roots 0 &amp; 1   ·   reaches 1</option>
+                <option value="4">g(x) = x² − 1   ·   both fixed points repel  →  diverges</option>
               </select>
             </div>
-            <div class="control" style="min-width:230px">
-              <label>Start x₀ = <span class="val" id="cwX0val">0.6</span></label>
-              <input id="cwX0" type="range" min="-1.5" max="2" step="0.1" value="0.6">
+            <div class="control" style="min-width:240px">
+              <label>Start x₀ = <span class="val" id="cwX0val">1.00</span></label>
+              <input id="cwX0" type="range" min="-2" max="3" step="0.05" value="1">
             </div>
+          </div>
+          <figure style="margin:0"><canvas id="fpCanvas" class="demo-canvas" height="480"></canvas></figure>
+          <div style="margin-top:.8rem">
+            <div style="font-size:.82rem;font-weight:700;color:var(--ink);margin-bottom:.28rem">Basin of attraction — which starting point x₀ converges (green) or diverges (red)</div>
+            <canvas id="bsCanvas" class="basinbar" height="48"></canvas>
           </div>
           <div class="btnrow">
             <button class="btn" id="cwStep">Step ▸</button>
@@ -193,7 +291,202 @@ Approximate root: 0.739085</pre></div>
           </div>
           <div class="readout" id="cwOut"></div>
         </div>
-        <div class="callout idea"><div class="h">💡 What to notice</div>When \(|g'(x^{*})|<1\) the cobweb closes in on the intersection (convergence); with \(g(x)=x^2-1\) it flies outward, showing why a bad rearrangement diverges even though the equation is the same.</div>
+        <div class="callout tip"><div class="h">🔎 Try this</div>Switch between <code>g(x)=x²</code> and <code>g(x)=√x</code> — the <em>same</em> equation \(x^2-x=0\), yet the green basin (and which root you land on) flips. Then, with <code>g(x)=x²</code>, drag \(x_0\) just past the edge of the green band and watch the iteration escape to infinity.</div>
+      </div>
+    </section>
+
+    <!-- FIXED-POINT THEORY -->
+    <section class="section" id="fixed-theory">
+      <div class="panel">
+        <details class="section-collapse">
+          <summary class="sec-toggle"><h2>2.1.1 Why it converges — and from where</h2><span class="sec-hint">click to expand</span></summary>
+        <div class="voicebar"><span class="vlabel">🔊 Listen to this section</span><audio controls preload="metadata" src="assets/audio/m2_fixed_theory.mp3"></audio></div>
+
+        <h3>The slope test (local convergence)</h3>
+        <p>Let \(x^{*}\) be a fixed point, so \(g(x^{*})=x^{*}\), and write the error after step \(k\) as \(e_k = x_k - x^{*}\). Expanding \(g\) about \(x^{*}\) with Taylor's theorem,</p>
+        <div class="eqn">\[ x_{k+1} = g(x_k) = g(x^{*}) + g'(x^{*})\,(x_k - x^{*}) + \cdots \;\;\Longrightarrow\;\; e_{k+1} \approx g'(x^{*})\,e_k. \]</div>
+        <p>Each step multiplies the error by roughly \(g'(x^{*})\). Three consequences follow:</p>
+        <ul>
+          <li>If \(|g'(x^{*})| < 1\), the error shrinks — the fixed point is <b>attracting</b> and the iteration converges <b>linearly</b> with rate \(|g'(x^{*})|\).</li>
+          <li>If \(|g'(x^{*})| > 1\), the error grows — the fixed point is <b>repelling</b>, and no starting guess (short of landing exactly on it) will converge to it.</li>
+          <li>The <b>sign</b> of \(g'\) sets the shape: \(0 < g' < 1\) gives a monotone staircase; \(-1 < g' < 0\) gives the alternating in-spiral you see in the cobweb.</li>
+        </ul>
+        <figure class="figblock">
+          <svg viewBox="0 0 516 488" xmlns="http://www.w3.org/2000/svg" class="mini-svg" role="img" aria-label="Four cobweb regimes: the slope of g at the fixed point decides whether fixed-point iteration converges">
+          <g transform="translate(0,0)">
+          <rect x="0" y="0" width="250" height="236" rx="10" fill="#ffffff" stroke="#e3e9f2"/>
+          <text x="125.0" y="19" text-anchor="middle" font-size="14" font-weight="700" fill="#1f2d3d">0 &lt; g′ &lt; 1</text>
+          <text x="125.0" y="228" text-anchor="middle" font-size="10.5" fill="#5a6b7b">attracting · monotone staircase</text>
+          <rect x="30.0" y="34.0" width="206.0" height="176.0" fill="none" stroke="#eef2f7"/>
+          <line x1="30.0" y1="122.0" x2="236.0" y2="122.0" stroke="#dbe3ec"/>
+          <line x1="133.0" y1="210.0" x2="133.0" y2="34.0" stroke="#dbe3ec"/>
+          <line x1="30.0" y1="210.0" x2="236.0" y2="34.0" stroke="#9aa7b4" stroke-dasharray="5 4" stroke-width="1.6"/>
+          <text x="232.0" y="47.0" text-anchor="end" font-size="10.5" fill="#8a97a4">y = x</text>
+          <clipPath id="clip00"><rect x="30.0" y="34.0" width="206.0" height="176.0"/></clipPath>
+          <g clip-path="url(#clip00)">
+          <line x1="30.0" y1="170.4" x2="236.0" y2="73.6" stroke="#2563a8" stroke-width="2.6"/>
+          <path d="M 217.6,49.7 L 217.6,82.2 L 179.5,82.2 L 179.5,100.1 L 158.6,100.1 L 158.6,110.0 L 147.1,110.0 L 147.1,115.4 L 140.7,115.4 L 140.7,118.4 L 137.3,118.4 L 137.3,120.0 L 135.3,120.0" fill="none" stroke="#0e7c86" stroke-width="1.8" opacity="0.9"/>
+          <path d="M 135.3,120.0 L 142.7,116.9 L 142.7,123.1 Z" fill="#0e7c86"/>
+          </g>
+          <text x="63.1" y="148.8" font-size="10.5" fill="#2563a8" paint-order="stroke" stroke="#ffffff" stroke-width="3">y = g(x)</text>
+          <circle cx="217.6" cy="49.7" r="3" fill="#0e7c86"/>
+          <text x="222.6" y="62.7" font-size="10" fill="#0e7c86" paint-order="stroke" stroke="#fff" stroke-width="3">x₀</text>
+          <circle cx="133.0" cy="122.0" r="4.5" fill="#1f9d55" stroke="#fff" stroke-width="1.4"/>
+          <text x="140.0" y="138.0" font-size="10.5" font-weight="700" fill="#1f9d55" paint-order="stroke" stroke="#fff" stroke-width="3">x*</text>
+          <rect x="158" y="26" width="80" height="19" rx="9.5" fill="#e7f6f3" stroke="#0e7c86" opacity="0.95"/>
+          <text x="198" y="39" text-anchor="middle" font-size="10.5" font-weight="700" fill="#0e7c86">converges</text>
+          </g>
+          <g transform="translate(266,0)">
+          <rect x="0" y="0" width="250" height="236" rx="10" fill="#ffffff" stroke="#e3e9f2"/>
+          <text x="125.0" y="19" text-anchor="middle" font-size="14" font-weight="700" fill="#1f2d3d">−1 &lt; g′ &lt; 0</text>
+          <text x="125.0" y="228" text-anchor="middle" font-size="10.5" fill="#5a6b7b">attracting · inward spiral</text>
+          <rect x="30.0" y="34.0" width="206.0" height="176.0" fill="none" stroke="#eef2f7"/>
+          <line x1="30.0" y1="122.0" x2="236.0" y2="122.0" stroke="#dbe3ec"/>
+          <line x1="133.0" y1="210.0" x2="133.0" y2="34.0" stroke="#dbe3ec"/>
+          <line x1="30.0" y1="210.0" x2="236.0" y2="34.0" stroke="#9aa7b4" stroke-dasharray="5 4" stroke-width="1.6"/>
+          <text x="232.0" y="47.0" text-anchor="end" font-size="10.5" fill="#8a97a4">y = x</text>
+          <clipPath id="clip2660"><rect x="30.0" y="34.0" width="206.0" height="176.0"/></clipPath>
+          <g clip-path="url(#clip2660)">
+          <line x1="30.0" y1="73.6" x2="236.0" y2="170.4" stroke="#2563a8" stroke-width="2.6"/>
+          <path d="M 217.6,49.7 L 217.6,161.8 L 86.5,161.8 L 86.5,100.1 L 158.6,100.1 L 158.6,134.0 L 118.9,134.0 L 118.9,115.4 L 140.7,115.4 L 140.7,125.6 L 128.7,125.6 L 128.7,120.0 L 135.3,120.0" fill="none" stroke="#0e7c86" stroke-width="1.8" opacity="0.9"/>
+          <path d="M 135.3,120.0 L 128.0,123.1 L 128.0,116.9 Z" fill="#0e7c86"/>
+          </g>
+          <text x="55.7" y="99.7" font-size="10.5" fill="#2563a8" paint-order="stroke" stroke="#ffffff" stroke-width="3">y = g(x)</text>
+          <circle cx="217.6" cy="49.7" r="3" fill="#0e7c86"/>
+          <text x="222.6" y="62.7" font-size="10" fill="#0e7c86" paint-order="stroke" stroke="#fff" stroke-width="3">x₀</text>
+          <circle cx="133.0" cy="122.0" r="4.5" fill="#1f9d55" stroke="#fff" stroke-width="1.4"/>
+          <text x="140.0" y="138.0" font-size="10.5" font-weight="700" fill="#1f9d55" paint-order="stroke" stroke="#fff" stroke-width="3">x*</text>
+          <rect x="158" y="26" width="80" height="19" rx="9.5" fill="#e7f6f3" stroke="#0e7c86" opacity="0.95"/>
+          <text x="198" y="39" text-anchor="middle" font-size="10.5" font-weight="700" fill="#0e7c86">converges</text>
+          </g>
+          <g transform="translate(0,252)">
+          <rect x="0" y="0" width="250" height="236" rx="10" fill="#ffffff" stroke="#e3e9f2"/>
+          <text x="125.0" y="19" text-anchor="middle" font-size="14" font-weight="700" fill="#1f2d3d">g′ &gt; 1</text>
+          <text x="125.0" y="228" text-anchor="middle" font-size="10.5" fill="#5a6b7b">repelling · outward staircase</text>
+          <rect x="30.0" y="34.0" width="206.0" height="176.0" fill="none" stroke="#eef2f7"/>
+          <line x1="30.0" y1="122.0" x2="236.0" y2="122.0" stroke="#dbe3ec"/>
+          <line x1="133.0" y1="210.0" x2="133.0" y2="34.0" stroke="#dbe3ec"/>
+          <line x1="30.0" y1="210.0" x2="236.0" y2="34.0" stroke="#9aa7b4" stroke-dasharray="5 4" stroke-width="1.6"/>
+          <text x="232.0" y="47.0" text-anchor="end" font-size="10.5" fill="#8a97a4">y = x</text>
+          <clipPath id="clip0252"><rect x="30.0" y="34.0" width="206.0" height="176.0"/></clipPath>
+          <g clip-path="url(#clip0252)">
+          <line x1="30.0" y1="240.8" x2="236.0" y2="3.2" stroke="#2563a8" stroke-width="2.6"/>
+          <path d="M 144.8,111.9 L 144.8,108.4 L 148.9,108.4 L 148.9,103.7 L 154.5,103.7 L 154.5,97.3 L 162.0,97.3 L 162.0,88.6 L 172.1,88.6" fill="none" stroke="#c0392b" stroke-width="1.8" opacity="0.9"/>
+          <path d="M 172.1,88.6 L 164.7,91.7 L 164.7,85.5 Z" fill="#c0392b"/>
+          </g>
+          <text x="92.5" y="162.7" font-size="10.5" fill="#2563a8" paint-order="stroke" stroke="#ffffff" stroke-width="3">y = g(x)</text>
+          <circle cx="144.8" cy="111.9" r="3" fill="#c0392b"/>
+          <text x="149.8" y="124.9" font-size="10" fill="#c0392b" paint-order="stroke" stroke="#fff" stroke-width="3">x₀</text>
+          <circle cx="133.0" cy="122.0" r="4.5" fill="#1f9d55" stroke="#fff" stroke-width="1.4"/>
+          <text x="140.0" y="138.0" font-size="10.5" font-weight="700" fill="#1f9d55" paint-order="stroke" stroke="#fff" stroke-width="3">x*</text>
+          <rect x="158" y="26" width="80" height="19" rx="9.5" fill="#fdecea" stroke="#c0392b" opacity="0.95"/>
+          <text x="198" y="39" text-anchor="middle" font-size="10.5" font-weight="700" fill="#c0392b">diverges</text>
+          </g>
+          <g transform="translate(266,252)">
+          <rect x="0" y="0" width="250" height="236" rx="10" fill="#ffffff" stroke="#e3e9f2"/>
+          <text x="125.0" y="19" text-anchor="middle" font-size="14" font-weight="700" fill="#1f2d3d">g′ &lt; −1</text>
+          <text x="125.0" y="228" text-anchor="middle" font-size="10.5" fill="#5a6b7b">repelling · outward spiral</text>
+          <rect x="30.0" y="34.0" width="206.0" height="176.0" fill="none" stroke="#eef2f7"/>
+          <line x1="30.0" y1="122.0" x2="236.0" y2="122.0" stroke="#dbe3ec"/>
+          <line x1="133.0" y1="210.0" x2="133.0" y2="34.0" stroke="#dbe3ec"/>
+          <line x1="30.0" y1="210.0" x2="236.0" y2="34.0" stroke="#9aa7b4" stroke-dasharray="5 4" stroke-width="1.6"/>
+          <text x="232.0" y="47.0" text-anchor="end" font-size="10.5" fill="#8a97a4">y = x</text>
+          <clipPath id="clip266252"><rect x="30.0" y="34.0" width="206.0" height="176.0"/></clipPath>
+          <g clip-path="url(#clip266252)">
+          <line x1="30.0" y1="3.2" x2="236.0" y2="240.8" stroke="#2563a8" stroke-width="2.6"/>
+          <path d="M 144.8,111.9 L 144.8,135.6 L 117.1,135.6 L 117.1,103.7 L 154.5,103.7 L 154.5,146.7 L 104.0,146.7 L 104.0,88.6 L 172.1,88.6" fill="none" stroke="#c0392b" stroke-width="1.8" opacity="0.9"/>
+          <path d="M 172.1,88.6 L 164.7,91.7 L 164.7,85.5 Z" fill="#c0392b"/>
+          </g>
+          <text x="92.5" y="89.3" font-size="10.5" fill="#2563a8" paint-order="stroke" stroke="#ffffff" stroke-width="3">y = g(x)</text>
+          <circle cx="144.8" cy="111.9" r="3" fill="#c0392b"/>
+          <text x="149.8" y="124.9" font-size="10" fill="#c0392b" paint-order="stroke" stroke="#fff" stroke-width="3">x₀</text>
+          <circle cx="133.0" cy="122.0" r="4.5" fill="#1f9d55" stroke="#fff" stroke-width="1.4"/>
+          <text x="140.0" y="138.0" font-size="10.5" font-weight="700" fill="#1f9d55" paint-order="stroke" stroke="#fff" stroke-width="3">x*</text>
+          <rect x="158" y="26" width="80" height="19" rx="9.5" fill="#fdecea" stroke="#c0392b" opacity="0.95"/>
+          <text x="198" y="39" text-anchor="middle" font-size="10.5" font-weight="700" fill="#c0392b">diverges</text>
+          </g>
+          </svg>
+          <figcaption>The single number \(g'(x^{*})\) decides everything. The blue line is \(y=g(x)\), the dashed line is \(y=x\), and their crossing is the fixed point \(x^{*}\) (green). Starting at \(x_0\), each step goes <b>up to the curve</b> then <b>across to the diagonal</b> — the cobweb. When the curve is <b>flatter than the diagonal</b> (\(|g'|<1\), top row) the cobweb is pulled <b>into</b> \(x^{*}\); when it is <b>steeper</b> (\(|g'|>1\), bottom row) the cobweb is pushed <b>away</b>. A positive slope steps monotonically; a negative slope spirals, alternating sides.</figcaption>
+        </figure>
+        <div class="callout tip"><div class="h">🧭 Rate of convergence</div>Smaller \(|g'(x^{*})|\) means faster convergence. In the demo, \(g(x)=(x+1)^{1/3}\) has \(|g'(x^{*})|\approx 0.19\) (fast — a handful of steps), while \(g(x)=\cos x\) has \(|g'(x^{*})|\approx 0.67\) (slow — it needs about 34 steps to reach six decimals, exactly as the output above shows).</div>
+
+        <h3>From where? The interval (contraction) condition</h3>
+        <p>The slope test is <em>local</em>: it only promises convergence <em>once you are near</em> \(x^{*}\). To know <b>which starting values \(x_0\) are guaranteed to work</b>, use the stronger interval condition.</p>
+        <div class="callout def"><div class="h">📐 Contraction-mapping theorem</div>Suppose that on a closed interval \([a,b]\):
+          <b>(1)</b> \(g\) maps the interval into itself — \(g(x)\in[a,b]\) for every \(x\in[a,b]\); and
+          <b>(2)</b> \(|g'(x)| \le k < 1\) for every \(x\in[a,b]\).
+          Then \([a,b]\) contains <b>exactly one</b> fixed point, and the iteration converges to it for <b>every</b> starting point \(x_0\in[a,b]\).</div>
+        <p>The full set of starting points that eventually reach a given fixed point is its <b>basin of attraction</b> (the green region in the demo's bottom strip). The interval above is a guaranteed slice of that basin; the true basin is usually larger, and its <em>edges are the repelling fixed points</em>.</p>
+
+        <h3>Worked analysis — the safe range for \(x_0\)</h3>
+        <p>Take \(x^3 - x - 1 = 0\) with \(g(x)=(x+1)^{1/3}\) (root \(x^{*}\approx 1.3247\)). Differentiate and impose the slope test:</p>
+        <div class="eqn">\[ g'(x) = \tfrac{1}{3}\,(x+1)^{-2/3}, \qquad |g'(x)| < 1 \iff |x+1| > \left(\tfrac{1}{3}\right)^{3/2} \approx 0.192. \]</div>
+        <p>So \(|g'|<1\) everywhere except the thin band \(-1.19 < x < -0.81\). Because the cube root contracts so strongly, the basin is in fact the <b>entire real line</b> — any \(x_0\) converges to \(1.3247\). Starting from \(x_0=1\):</p>
+        <div class="tablewrap">
+          <table class="data">
+            <thead><tr><th>\(k\)</th><th>\(x_k\)</th><th>\(g(x_k)\)</th><th>error \(|x_{k+1}-x_k|\)</th></tr></thead>
+            <tbody>
+              <tr><td>0</td><td>1.000000</td><td>1.259921</td><td>0.259921</td></tr>
+              <tr><td>1</td><td>1.259921</td><td>1.312294</td><td>0.052373</td></tr>
+              <tr><td>2</td><td>1.312294</td><td>1.322354</td><td>0.010060</td></tr>
+              <tr><td>3</td><td>1.322354</td><td>1.324269</td><td>0.001915</td></tr>
+              <tr><td>4</td><td>1.324269</td><td>1.324633</td><td>0.000364</td></tr>
+              <tr class="converged"><td>5</td><td>1.324633</td><td>1.324702</td><td>0.000069 ✓</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>Notice the error falls by a factor of roughly \(0.19\) each step — exactly \(|g'(x^{*})|\), as predicted.</p>
+
+        <h3>Which root do you get? Basins and the choice of \(g\)</h3>
+        <p>A rearrangement makes some roots attracting and others repelling, so <b>the choice of \(g\) decides which root you can reach — and from which starting points.</b> Consider \(x^2 - x = 0\), with roots \(0\) and \(1\), and two natural rearrangements:</p>
+        <div class="tablewrap">
+          <table class="data">
+            <thead><tr><th class="l">Rearrangement</th><th>\(g'(0)\)</th><th>\(g'(1)\)</th><th>Attracting root</th><th>Safe range of \(x_0\)</th></tr></thead>
+            <tbody>
+              <tr><td class="l">\(x = x^2\) &nbsp;→&nbsp; \(g(x)=x^2\)</td><td>0</td><td>2</td><td>\(x^{*}=0\)</td><td>\(-1 < x_0 < 1\)</td></tr>
+              <tr><td class="l">\(x = \sqrt{x}\) &nbsp;→&nbsp; \(g(x)=\sqrt{x}\)</td><td>\(\infty\)</td><td>0.5</td><td>\(x^{*}=1\)</td><td>\(x_0 > 0\)</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout idea"><div class="h">💡 The punchline</div>To reach <b>\(x=0\)</b>, use \(g(x)=x^2\) and start in \(-1 < x_0 < 1\). To reach <b>\(x=1\)</b>, use \(g(x)=\sqrt{x}\) and start in \(x_0 > 0\). No single rearrangement makes <em>both</em> roots attracting — you pick \(g\) for the root you want. Select each option in the demo and watch the green basin strip flip.</div>
+
+        <h3>The art of choosing \(g\)</h3>
+        <p>One equation can be rearranged many ways; only those with \(|g'(x^{*})|<1\) at the target root will converge. For \(2x^3 - 2x - 5 = 0\) (real root \(x^{*}\approx 1.6006\)):</p>
+        <div class="tablewrap">
+          <table class="data">
+            <thead><tr><th class="l">Rearrangement \(x=g(x)\)</th><th>\(|g'(x^{*})|\)</th><th>Verdict</th></tr></thead>
+            <tbody>
+              <tr class="converged"><td class="l">\(x = \bigl(x + \tfrac{5}{2}\bigr)^{1/3}\)</td><td>≈ 0.13</td><td>✓ converges (fast)</td></tr>
+              <tr><td class="l">\(x = x^3 - \tfrac{5}{2}\)</td><td>≈ 7.69</td><td>✗ diverges</td></tr>
+              <tr><td class="l">\(x = \dfrac{5}{\,2x^2 - 2\,}\)</td><td>≈ 3.28</td><td>✗ diverges</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout warn"><div class="h">⚠️ Rule of thumb</div>To build a convergent \(g\), isolate \(x\) through the operation that <em>flattens</em> the map near the root — roots and reciprocals shrink slopes, high powers steepen them. If every rearrangement fails the slope test, switch to a method that does not depend on the choice of \(g\), such as bisection or Newton's method (next).</div>
+
+        <div class="practice">
+          <span class="ptag">✏️ Practice on paper</span>
+          <ul>
+            <li>Solve \(x^3-x-1=0\) by fixed-point iteration with \(g(x)=(x+1)^{1/3}\), \(x_0=1\).</li>
+            <li>Max <b>5 iterations</b>; <b>3 decimals</b>; stop when \(E_n=|x_{n+1}-x_n| &lt; \varepsilon = 0.005\).</li>
+          </ul>
+          <div class="given">g(x) = (x + 1)^(1/3),   xₖ₊₁ = g(xₖ),   x₀ = 1,   ε = 0.005</div>
+          <details class="reveal"><summary>Reveal answer</summary>
+            <div class="answer">
+              <div class="tablewrap"><table class="data">
+                <thead><tr><th>n</th><th>\(x_n\)</th><th>\(x_{n+1}=g(x_n)\)</th><th>\(E_n\)</th><th>\(E_n&lt;\varepsilon?\)</th></tr></thead>
+                <tbody>
+                  <tr><td>0</td><td>1.000</td><td>1.260</td><td>0.260</td><td>no</td></tr>
+                  <tr><td>1</td><td>1.260</td><td>1.312</td><td>0.052</td><td>no</td></tr>
+                  <tr><td>2</td><td>1.312</td><td>1.322</td><td>0.010</td><td>no</td></tr>
+                  <tr class="converged"><td>3</td><td>1.322</td><td>1.324</td><td>0.002</td><td>✓ stop</td></tr>
+                </tbody>
+              </table></div>
+              <span class="final">E₃ = 0.002 &lt; 0.005 → stop at n = 3,   x ≈ 1.324   (true root 1.3247)</span>
+            </div>
+          </details>
+        </div>
+        </details>
       </div>
     </section>
 
@@ -201,64 +494,101 @@ Approximate root: 0.739085</pre></div>
     <section class="section" id="bisect">
       <div class="panel">
         <h2>2.2 Bisection — the reliable bracket method</h2>
-        <p>Bisection needs two starting guesses \(a\) and \(b\) that <b>bracket</b> the root: \(f(a)\) and \(f(b)\) must have opposite signs, so by the Intermediate Value Theorem a continuous \(f\) must cross zero between them.</p>
-        <ol>
-          <li>Compute the midpoint \(c = \dfrac{a+b}{2}\).</li>
-          <li>Check the sign of \(f(c)\). Keep whichever half still contains the sign change: if \(f(a)\,f(c) < 0\) set \(b=c\), otherwise set \(a=c\).</li>
-          <li>Repeat. The bracket halves every step, so the error is at most \(\dfrac{b-a}{2^{n}}\).</li>
-        </ol>
-        <div class="callout idea"><div class="h">💡 Guaranteed but slow</div>Bisection <b>always</b> converges for a sign-changing continuous function, but only <b>linearly</b> — it gains roughly one bit of accuracy per step. It is the dependable fallback when faster methods misbehave.</div>
+        <div class="voicebar"><span class="vlabel">🔊 Listen to this section</span><audio controls preload="metadata" src="assets/audio/m2_bisect.mp3"></audio></div>
+        <img class="mini-svg" src="assets/figs/m_bisection.png" alt="A bracket [a,b] with f(a)<0 and f(b)>0; the midpoint c splits it and the half containing the sign change is kept.">
+
+        <ul>
+          <li>Need a <b>bracket</b>: \(f(a)\,f(b) < 0\)  (opposite signs ⇒ a root lies between).</li>
+          <li>Cut at the midpoint, keep the half that still changes sign, repeat.</li>
+          <li>Error after \(n\) cuts \(\le \dfrac{b-a}{2^{n}}\)  (one binary digit per step).</li>
+        </ul>
+
+        <div class="fcard">
+          <div class="flabel">Formula</div>
+          \[ c=\frac{a+b}{2}, \qquad \begin{cases} b\leftarrow c & \text{if } f(a)\,f(c)<0\\[2pt] a\leftarrow c & \text{otherwise}\end{cases} \qquad\text{stop when } \tfrac{b-a}{2}<\varepsilon. \]
+        </div>
+        <div class="callout idea"><div class="h">💡 Guaranteed but slow</div>Always converges for a sign-changing continuous \(f\), but only <b>linearly</b> (≈ one bit/step). The dependable fallback when faster methods misbehave.</div>
+
+        <h3>Worked example</h3>
+        <p>Bracket the root of \(f(x)=x^2-2\) in \([1,2]\); halve until the error bound \(E_n=\tfrac{b-a}{2}<\varepsilon=0.01\):</p>
+        <div class="tablewrap">
+          <table class="data">
+            <thead><tr><th>n</th><th>\(a\)</th><th>\(b\)</th><th>\(c=\tfrac{a+b}{2}\)</th><th>\(f(c)\)</th><th>keep</th><th>\(E_n=\tfrac{b-a}{2}\)</th></tr></thead>
+            <tbody>
+              <tr><td>1</td><td>1.000</td><td>2.000</td><td>1.500</td><td>+0.250</td><td>[a, c]</td><td>0.500</td></tr>
+              <tr><td>2</td><td>1.000</td><td>1.500</td><td>1.250</td><td>−0.438</td><td>[c, b]</td><td>0.250</td></tr>
+              <tr><td>3</td><td>1.250</td><td>1.500</td><td>1.375</td><td>−0.109</td><td>[c, b]</td><td>0.125</td></tr>
+              <tr><td>4</td><td>1.375</td><td>1.500</td><td>1.438</td><td>+0.066</td><td>[a, c]</td><td>0.063</td></tr>
+              <tr><td>5</td><td>1.375</td><td>1.438</td><td>1.406</td><td>−0.022</td><td>[c, b]</td><td>0.031</td></tr>
+              <tr><td>6</td><td>1.406</td><td>1.438</td><td>1.422</td><td>+0.022</td><td>[a, c]</td><td>0.016</td></tr>
+              <tr class="converged"><td>7</td><td>1.406</td><td>1.422</td><td>1.414</td><td>−0.000</td><td>[c, b]</td><td>0.008 &lt; ε ✓</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>The bracket halves each step. After 7 halvings the error bound is 0.008 and \(x \approx 1.414\) (true \(\sqrt2 = 1.41421\)) — slower than fixed-point, but it can never fail.</p>
+
         <div class="codewrap editable has-output">
           <div class="codehead"><span class="lang"><span class="dot"></span>MATLAB · editable · Bisection.m</span><button class="copybtn">Copy</button></div>
-          <textarea spellcheck="false" rows="20">f = @(x) x^2 - 4;
-
-function root = bisection_method(a, b, tol, max_iter, f)
-    iteration = 0;
-    while iteration < max_iter
-        c = (a + b) / 2;
-        fprintf('Iter %d: a=%.6f b=%.6f c=%.6f f(c)=%.6f\n', iteration, a, b, c, f(c));
-        if abs(f(c)) == 0 || abs(b - a) < tol
-            break;
-        end
-        if f(a) * f(c) < 0        % sign change is in [a, c]
-            b = c;
-        else                      % sign change is in [c, b]
-            a = c;
-        end
-        iteration = iteration + 1;
-    end
-    root = c;
-    fprintf('Approximate root: %.6f\n', root);
+          <textarea spellcheck="false" rows="16">% Solve the SAME equation as the table:  x^2 - 2 = 0  on [1, 2]
+f   = @(x) x.^2 - 2;
+a = 1;  b = 2;  tol = 1e-4;
+n = 0;
+while (b - a)/2 >= tol
+    c = (a + b)/2;
+    fprintf('n=%d  a=%.4f  b=%.4f  c=%.4f  f(c)=%+.4f  err=%.4f\n', n, a, b, c, f(c), (b-a)/2);
+    if f(a)*f(c) < 0,  b = c;  else  a = c;  end     % keep the half with the sign change
+    n = n + 1;
 end
+fprintf('self-written bisection = %.6f\n', (a + b)/2);
 
-root = bisection_method(0, 3, 1e-6, 100, f);</textarea>
+% MATLAB built-in for comparison
+fprintf('MATLAB fzero           = %.6f\n', fzero(f, [1 2]));</textarea>
         </div>
-<div class="mout"><div class="mout-head">Command Window output</div><pre>Iter 0: a=0.000000 b=3.000000 c=1.500000 f(c)=-1.750000
-Iter 1: a=1.500000 b=3.000000 c=2.250000 f(c)=1.062500
-Iter 2: a=1.500000 b=2.250000 c=1.875000 f(c)=-0.484375
-Iter 3: a=1.875000 b=2.250000 c=2.062500 f(c)=0.253906
-Iter 4: a=1.875000 b=2.062500 c=1.968750 f(c)=-0.124023
-Iter 5: a=1.968750 b=2.062500 c=2.015625 f(c)=0.062744
-Iter 6: a=1.968750 b=2.015625 c=1.992188 f(c)=-0.031189
-Iter 7: a=1.992188 b=2.015625 c=2.003906 f(c)=0.015640
-Iter 8: a=1.992188 b=2.003906 c=1.998047 f(c)=-0.007809
-Iter 9: a=1.998047 b=2.003906 c=2.000977 f(c)=0.003907
-Iter 10: a=1.998047 b=2.000977 c=1.999512 f(c)=-0.001953
-Iter 11: a=1.999512 b=2.000977 c=2.000244 f(c)=0.000977
-Iter 12: a=1.999512 b=2.000244 c=1.999878 f(c)=-0.000488
-Iter 13: a=1.999878 b=2.000244 c=2.000061 f(c)=0.000244
-Iter 14: a=1.999878 b=2.000061 c=1.999969 f(c)=-0.000122
-Iter 15: a=1.999969 b=2.000061 c=2.000015 f(c)=0.000061
-Iter 16: a=1.999969 b=2.000015 c=1.999992 f(c)=-0.000031
-Iter 17: a=1.999992 b=2.000015 c=2.000004 f(c)=0.000015
-Iter 18: a=1.999992 b=2.000004 c=1.999998 f(c)=-0.000008
-Iter 19: a=1.999998 b=2.000004 c=2.000001 f(c)=0.000004
-Iter 20: a=1.999998 b=2.000001 c=2.000000 f(c)=-0.000002
-Iter 21: a=2.000000 b=2.000001 c=2.000000 f(c)=0.000001
-Iter 22: a=2.000000 b=2.000000 c=2.000000 f(c)=-0.000000
-Approximate root: 2.000000</pre></div>
+<div class="mout"><div class="mout-head">Command Window output</div><pre>n=0  a=1.0000  b=2.0000  c=1.5000  f(c)=+0.2500  err=0.5000
+n=1  a=1.0000  b=1.5000  c=1.2500  f(c)=-0.4375  err=0.2500
+n=2  a=1.2500  b=1.5000  c=1.3750  f(c)=-0.1094  err=0.1250
+n=3  a=1.3750  b=1.5000  c=1.4375  f(c)=+0.0664  err=0.0625
+n=4  a=1.3750  b=1.4375  c=1.4062  f(c)=-0.0225  err=0.0312
+n=5  a=1.4062  b=1.4375  c=1.4219  f(c)=+0.0217  err=0.0156
+n=6  a=1.4062  b=1.4219  c=1.4141  f(c)=-0.0004  err=0.0078
+n=7  a=1.4141  b=1.4219  c=1.4180  f(c)=+0.0106  err=0.0039
+n=8  a=1.4141  b=1.4180  c=1.4160  f(c)=+0.0051  err=0.0020
+n=9  a=1.4141  b=1.4160  c=1.4150  f(c)=+0.0023  err=0.0010
+n=10 a=1.4141  b=1.4150  c=1.4146  f(c)=+0.0010  err=0.0005
+n=11 a=1.4141  b=1.4146  c=1.4143  f(c)=+0.0003  err=0.0002
+n=12 a=1.4141  b=1.4143  c=1.4142  f(c)=-0.0001  err=0.0001
+self-written bisection = 1.414246
+MATLAB fzero           = 1.414214</pre></div>
+        <div class="callout tip"><div class="h">🔬 Three ways, one root</div>
+          <b>By hand</b> (7 iterations, ε=0.01): 1.414 &nbsp;·&nbsp; <b>self-written program</b> (ε=10⁻⁴): 1.414246 &nbsp;·&nbsp; <b>MATLAB </b><code>fzero</code>: 1.414214.
+          All bracket \(\sqrt2=1.41421\). Bisection is <b>slow</b> — the hand-work stops after 7 halvings (error ≤ 0.008), the program needs 13, and only the digits guaranteed by the error bound are trustworthy.
+        </div>
 
         <p class="note-src">Source: <code>Bisection.m</code> (Lab 4 solutions).</p>
+
+        <div class="practice">
+          <span class="ptag">✏️ Practice on paper</span>
+          <ul>
+            <li>Solve \(f(x)=x^2-2=0\) on \([1,2]\) by bisection.</li>
+            <li>Max <b>5 iterations</b>; <b>3 decimals</b>; error bound \(E_n=\tfrac{b-a}{2}\); stop when \(E_n &lt; \varepsilon = 0.05\).</li>
+          </ul>
+          <div class="given">f(x) = x² − 2,   a = 1,   b = 2,   c = (a+b)/2,   ε = 0.05</div>
+          <details class="reveal"><summary>Reveal answer</summary>
+            <div class="answer">
+              <div class="tablewrap"><table class="data">
+                <thead><tr><th>n</th><th>\(a\)</th><th>\(b\)</th><th>\(c=\frac{a+b}{2}\)</th><th>\(f(c)\)</th><th>keep</th><th>\(E_n=\frac{b-a}{2}\)</th></tr></thead>
+                <tbody>
+                  <tr><td>1</td><td>1.000</td><td>2.000</td><td>1.500</td><td>+0.250</td><td>[a, c]</td><td>0.500</td></tr>
+                  <tr><td>2</td><td>1.000</td><td>1.500</td><td>1.250</td><td>−0.438</td><td>[c, b]</td><td>0.250</td></tr>
+                  <tr><td>3</td><td>1.250</td><td>1.500</td><td>1.375</td><td>−0.109</td><td>[c, b]</td><td>0.125</td></tr>
+                  <tr><td>4</td><td>1.375</td><td>1.500</td><td>1.438</td><td>+0.066</td><td>[a, c]</td><td>0.063</td></tr>
+                  <tr class="converged"><td>5</td><td>1.375</td><td>1.438</td><td>1.406</td><td>−0.022</td><td>[c, b]</td><td>0.031 ✓</td></tr>
+                </tbody>
+              </table></div>
+              <span class="final">E₅ = 0.031 &lt; 0.05 → stop,   x ≈ 1.406,   root ∈ [1.406, 1.438]   (√2 = 1.414)</span>
+            </div>
+          </details>
+        </div>
       </div>
     </section>
 
@@ -294,52 +624,83 @@ Approximate root: 2.000000</pre></div>
     <section class="section" id="newton">
       <div class="panel">
         <h2>2.3 Newton's method</h2>
-        <p>Newton's (Newton–Raphson) method uses the slope of \(f\) to leap toward the root. From a guess \(x_n\), draw the tangent line to \(y=f(x)\); where that tangent crosses the \(x\)-axis is the next guess:</p>
-        <div class="eqn">\[ x_{n+1} = x_n - \frac{f(x_n)}{f'(x_n)}. \]</div>
-        <p>It requires the derivative \(f'\) and a reasonable starting guess, but when those are available it converges <b>quadratically</b> — the number of correct digits roughly <em>doubles</em> each step.</p>
+        <div class="voicebar"><span class="vlabel">🔊 Listen to this section</span><audio controls preload="metadata" src="assets/audio/m2_newton.mp3"></audio></div>
+        <img class="mini-svg" src="assets/figs/m_newton.png" alt="From x_k, the tangent line to the curve meets the x-axis at x_{k+1}, closer to the root.">
+
+        <ul>
+          <li>At \(x_k\), follow the <b>tangent</b> of \(y=f(x)\) down to the \(x\)-axis → that landing point is \(x_{k+1}\).</li>
+          <li>Needs the derivative \(f'\) and a decent start, but converges <b>quadratically</b> (correct digits ≈ double each step).</li>
+        </ul>
+
+        <div class="fcard">
+          <div class="flabel">Formula</div>
+          \[ x_{k+1} = x_k - \frac{f(x_k)}{f'(x_k)}. \]
+        </div>
 
         <h3>Worked example</h3>
         <p>Solve \(\cos x - x = 0\) from \(x_0 = \pi/4 \approx 0.785398\), with \(f'(x) = -\sin x - 1\):</p>
         <div class="tablewrap">
           <table class="data">
-            <thead><tr><th>n</th><th>\(x_n\)</th><th>\(f(x_n)\)</th><th>\(f'(x_n)\)</th><th>\(x_{n+1}\)</th></tr></thead>
+            <thead><tr><th>n</th><th>\(x_n\)</th><th>\(f(x_n)\)</th><th>\(f'(x_n)\)</th><th>\(x_{n+1}\)</th><th>\(E_n=|x_{n+1}-x_n|\)</th></tr></thead>
             <tbody>
-              <tr><td>0</td><td>0.785398</td><td>−0.078291</td><td>−1.707107</td><td>0.739536</td></tr>
-              <tr><td>1</td><td>0.739536</td><td>−0.000755</td><td>−1.673012</td><td>0.739085</td></tr>
-              <tr class="converged"><td>2</td><td>0.739085</td><td>−0.0000001</td><td>−1.673033</td><td>0.739085 ✓</td></tr>
+              <tr><td>0</td><td>0.785398</td><td>−0.078291</td><td>−1.707107</td><td>0.739536</td><td>0.045862</td></tr>
+              <tr><td>1</td><td>0.739536</td><td>−0.000755</td><td>−1.673945</td><td>0.739085</td><td>0.000451</td></tr>
+              <tr class="converged"><td>2</td><td>0.739085</td><td>−0.000000</td><td>−1.673612</td><td>0.739085</td><td>0.0000002 &lt; ε ✓</td></tr>
             </tbody>
           </table>
         </div>
-        <p>Three steps reach the true root \(x \approx 0.739085\) to six decimals — far faster than bisection.</p>
+        <p>The error is <b>squared</b> each step (quadratic convergence): \(0.046 \to 0.00045 \to 10^{-7}\). Three steps reach \(x \approx 0.739085\) — far faster than bisection.</p>
         <div class="codewrap editable has-output">
           <div class="codehead"><span class="lang"><span class="dot"></span>MATLAB · editable · Newton.m</span><button class="copybtn">Copy</button></div>
-          <textarea spellcheck="false" rows="19">f       = @(x) x^3 - 2*x + 1;
-f_prime = @(x) 3*x^2 - 2;
+          <textarea spellcheck="false" rows="19">% Solve the SAME equation as the table:  cos(x) - x = 0
+f  = @(x) cos(x) - x;
+fp = @(x) -sin(x) - 1;
+x   = pi/4;               % starting guess x0
+tol = 1e-6;
 
-function root = newton_method(x0, tol, max_iter, f, f_prime)
-    iteration = 0;
-    while iteration < max_iter
-        x1 = x0 - f(x0) / f_prime(x0);
-        fprintf('Iter %d: x = %.6f, f(x) = %.6f\n', iteration, x0, f(x0));
-        if abs(x1 - x0) < tol
-            break;
-        end
-        x0 = x1;
-        iteration = iteration + 1;
-    end
-    root = x1;
-    fprintf('Approximate root: %.6f\n', root);
+for n = 0:20
+    xnew = x - f(x)/fp(x);
+    err  = abs(xnew - x);                             % E_n
+    fprintf('n=%d  x=%.6f  f=%.6f  err=%.6f\n', n, x, f(x), err);
+    if err < tol,  break;  end
+    x = xnew;
 end
+fprintf('self-written Newton = %.6f\n', xnew);
 
-root = newton_method(0.5, 1e-6, 100, f, f_prime);</textarea>
+% MATLAB built-in for comparison
+fprintf('MATLAB fzero        = %.6f\n', fzero(f, 0.75));</textarea>
         </div>
-<div class="mout"><div class="mout-head">Command Window output</div><pre>Iter 0: x = 0.500000, f(x) = 0.125000
-Iter 1: x = 0.600000, f(x) = 0.016000
-Iter 2: x = 0.617391, f(x) = 0.000550
-Iter 3: x = 0.618033, f(x) = 0.000001
-Approximate root: 0.618034</pre></div>
+<div class="mout"><div class="mout-head">Command Window output</div><pre>n=0  x=0.785398  f=-0.078291  err=0.045862
+n=1  x=0.739536  f=-0.000755  err=0.000451
+n=2  x=0.739085  f=-0.000000  err=0.000000
+self-written Newton = 0.739085
+MATLAB fzero        = 0.739085</pre></div>
+        <div class="callout tip"><div class="h">🔬 Three ways, one root</div><b>By hand</b>, <b>self-written program</b>, and <b>MATLAB </b><code>fzero</code> all give \(x \approx 0.739085\) — here they match to six decimals, because Newton reaches machine precision in just three steps.</div>
 
         <div class="callout warn"><div class="h">⚠️ When Newton fails</div>If \(f'(x_n)\) is near zero the step explodes; a poor starting guess can send the iteration to a different root or diverge. That is why robust solvers combine Newton with a bracket (a hybrid method).</div>
+
+        <div class="practice">
+          <span class="ptag">✏️ Practice on paper</span>
+          <ul>
+            <li>Solve \(f(x)=x^2-2=0\) by Newton from \(x_0=2\).</li>
+            <li>Max <b>5 iterations</b>; <b>3 decimals</b>; stop when \(E_n=|x_{n+1}-x_n| &lt; \varepsilon = 0.001\).</li>
+          </ul>
+          <div class="given">f(x) = x² − 2,   f′(x) = 2x,   xₖ₊₁ = xₖ − (xₖ²−2)/(2xₖ),   x₀ = 2,   ε = 0.001</div>
+          <details class="reveal"><summary>Reveal answer</summary>
+            <div class="answer">
+              <div class="tablewrap"><table class="data">
+                <thead><tr><th>n</th><th>\(x_n\)</th><th>\(f(x_n)\)</th><th>\(f'(x_n)\)</th><th>\(x_{n+1}\)</th><th>\(E_n\)</th></tr></thead>
+                <tbody>
+                  <tr><td>0</td><td>2.000</td><td>2.000</td><td>4.000</td><td>1.500</td><td>0.500</td></tr>
+                  <tr><td>1</td><td>1.500</td><td>0.250</td><td>3.000</td><td>1.417</td><td>0.083</td></tr>
+                  <tr><td>2</td><td>1.417</td><td>0.007</td><td>2.833</td><td>1.414</td><td>0.003</td></tr>
+                  <tr class="converged"><td>3</td><td>1.414</td><td>0.000</td><td>2.828</td><td>1.414</td><td>0.000 ✓</td></tr>
+                </tbody>
+              </table></div>
+              <span class="final">E₃ ≈ 0.0002 &lt; 0.001 → stop at n = 3,   x ≈ 1.414   (√2 = 1.414)</span>
+            </div>
+          </details>
+        </div>
       </div>
     </section>
 
@@ -379,38 +740,84 @@ Approximate root: 0.618034</pre></div>
     <section class="section" id="secant">
       <div class="panel">
         <h2>2.4 The secant method</h2>
-        <p>The secant method is Newton's method with the derivative <b>replaced by a finite-difference estimate</b> from the two most recent points. No derivative needed:</p>
-        <div class="eqn">\[ x_{n+1} = x_n - f(x_n)\,\frac{x_n - x_{n-1}}{f(x_n) - f(x_{n-1})}. \]</div>
-        <p>It needs two starting points but no \(f'\), and converges <b>superlinearly</b> (order \(\approx 1.618\)) — slower than Newton, faster than bisection. A practical compromise when the derivative is awkward to compute.</p>
+        <div class="voicebar"><span class="vlabel">🔊 Listen to this section</span><audio controls preload="metadata" src="assets/audio/m2_secant.mp3"></audio></div>
+        <img class="mini-svg" src="assets/figs/m_secant.png" alt="A line through the two latest points on the curve meets the x-axis at the next guess.">
+
+        <ul>
+          <li>Newton's tangent, but the slope comes from the <b>two latest points</b> — <b>no derivative</b> needed.</li>
+          <li>Needs two starting guesses; converges <b>superlinearly</b> (order ≈ 1.618) — between bisection and Newton.</li>
+        </ul>
+
+        <div class="fcard">
+          <div class="flabel">Formula</div>
+          \[ x_{k+1} = x_k - f(x_k)\,\frac{x_k - x_{k-1}}{f(x_k) - f(x_{k-1})}. \]
+        </div>
+
+        <h3>Worked example</h3>
+        <p>Solve \(f(x)=x^2-2\) from \(x_0=1,\ x_1=2\); each step uses the two latest points. Stop when \(E_k=|x_k-x_{k-1}|<\varepsilon=10^{-3}\):</p>
+        <div class="tablewrap">
+          <table class="data">
+            <thead><tr><th>k</th><th>\(x_k\)</th><th>\(f(x_k)\)</th><th>\(E_k=|x_k-x_{k-1}|\)</th></tr></thead>
+            <tbody>
+              <tr><td>0</td><td>1.000</td><td>−1.000</td><td>—</td></tr>
+              <tr><td>1</td><td>2.000</td><td>+2.000</td><td>—</td></tr>
+              <tr><td>2</td><td>1.333</td><td>−0.222</td><td>0.6667</td></tr>
+              <tr><td>3</td><td>1.400</td><td>−0.040</td><td>0.0667</td></tr>
+              <tr><td>4</td><td>1.415</td><td>+0.001</td><td>0.0146</td></tr>
+              <tr class="converged"><td>5</td><td>1.414</td><td>−0.000</td><td>0.0004 &lt; ε ✓</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>Superlinear: fewer steps than bisection, and no derivative needed. Root \(x \approx 1.414\).</p>
+
         <div class="codewrap editable has-output">
           <div class="codehead"><span class="lang"><span class="dot"></span>MATLAB · editable · Secant.m</span><button class="copybtn">Copy</button></div>
-          <textarea spellcheck="false" rows="18">f = @(x) x^2 - 2;
+          <textarea spellcheck="false" rows="15">% Solve the SAME equation as the table:  x^2 - 2 = 0
+f  = @(x) x.^2 - 2;
+x0 = 1;  x1 = 2;  tol = 1e-3;
 
-function root = secant_method(x0, x1, tol, max_iter, f)
-    iteration = 0;
-    while iteration < max_iter
-        x2 = x1 - f(x1) * (x1 - x0) / (f(x1) - f(x0));   % secant update
-        fprintf('Iter %d: x0=%.4f x1=%.4f x2=%.4f\n', iteration, x0, x1, x2);
-        if abs(x2 - x1) < tol
-            break;
-        end
-        x0 = x1;
-        x1 = x2;
-        iteration = iteration + 1;
-    end
-    root = x2;
-    fprintf('Approximate root: %.4f\n', root);
+for k = 2:20
+    x2  = x1 - f(x1)*(x1 - x0)/(f(x1) - f(x0));       % secant update
+    err = abs(x2 - x1);
+    fprintf('x%d = %.4f  f = %+.4f  err = %.4f\n', k, x2, f(x2), err);
+    if err < tol,  break;  end
+    x0 = x1;  x1 = x2;
 end
-
-root = secant_method(1, 2, 1e-6, 100, f);</textarea>
+fprintf('self-written secant = %.6f\n', x2);
+fprintf('MATLAB fzero        = %.6f\n', fzero(f, 1.5));</textarea>
         </div>
-<div class="mout"><div class="mout-head">Command Window output</div><pre>Iter 0: x0=1.0000 x1=2.0000 x2=1.3333
-Iter 1: x0=2.0000 x1=1.3333 x2=1.4000
-Iter 2: x0=1.3333 x1=1.4000 x2=1.4146
-Iter 3: x0=1.4000 x1=1.4146 x2=1.4142
-Iter 4: x0=1.4146 x1=1.4142 x2=1.4142
-Iter 5: x0=1.4142 x1=1.4142 x2=1.4142
-Approximate root: 1.4142</pre></div>
+<div class="mout"><div class="mout-head">Command Window output</div><pre>x2 = 1.3333  f = -0.2222  err = 0.6667
+x3 = 1.4000  f = -0.0400  err = 0.0667
+x4 = 1.4146  f = +0.0012  err = 0.0146
+x5 = 1.4142  f = -0.0000  err = 0.0004
+self-written secant = 1.414211
+MATLAB fzero        = 1.414214</pre></div>
+        <div class="callout tip"><div class="h">🔬 Three ways, one root</div><b>By hand</b>, <b>self-written program</b> (1.414211), and <b>MATLAB </b><code>fzero</code> (1.414214) agree to five decimals — the secant method reaches four correct digits in four steps, with no derivative.</div>
+
+        <div class="practice">
+          <span class="ptag">✏️ Practice on paper</span>
+          <ul>
+            <li>Solve \(f(x)=x^2-2=0\) by the secant method with \(x_0=1,\ x_1=2\).</li>
+            <li>Max <b>5 iterations</b>; <b>3 decimals</b>; stop when \(E_n=|x_n-x_{n-1}| &lt; \varepsilon = 0.001\).</li>
+          </ul>
+          <div class="given">f(x) = x² − 2,   xₖ₊₁ = xₖ − f(xₖ)·(xₖ − xₖ₋₁)/(f(xₖ) − f(xₖ₋₁)),   ε = 0.001</div>
+          <details class="reveal"><summary>Reveal answer</summary>
+            <div class="answer">
+              <div class="tablewrap"><table class="data">
+                <thead><tr><th>n</th><th>\(x_n\)</th><th>\(f(x_n)\)</th><th>\(E_n=|x_n-x_{n-1}|\)</th></tr></thead>
+                <tbody>
+                  <tr><td>0</td><td>1.000</td><td>−1.000</td><td>—</td></tr>
+                  <tr><td>1</td><td>2.000</td><td>+2.000</td><td>—</td></tr>
+                  <tr><td>2</td><td>1.333</td><td>−0.222</td><td>0.667</td></tr>
+                  <tr><td>3</td><td>1.400</td><td>−0.040</td><td>0.067</td></tr>
+                  <tr><td>4</td><td>1.415</td><td>+0.001</td><td>0.015</td></tr>
+                  <tr class="converged"><td>5</td><td>1.414</td><td>−0.000</td><td>0.000 ✓</td></tr>
+                </tbody>
+              </table></div>
+              <span class="final">E₅ ≈ 0.0004 &lt; 0.001 → stop at n = 5,   x ≈ 1.414   (√2 = 1.414)</span>
+            </div>
+          </details>
+        </div>
 
         <h2 id="secant-demo" style="margin-top:1.6rem">🎛 Demo: the secant sweep</h2>
         <p>The secant method draws a straight line through the two most recent points on the curve and takes its \(x\)-intercept as the next guess. Watch each secant line (orange) pivot toward the root — no derivative required.</p>
@@ -441,6 +848,7 @@ Approximate root: 1.4142</pre></div>
     <section class="section" id="compare">
       <div class="panel">
         <h2>2.5 Choosing a method · polynomial roots</h2>
+        <div class="voicebar"><span class="vlabel">🔊 Listen to this section</span><audio controls preload="metadata" src="assets/audio/m2_compare.mp3"></audio></div>
         <div class="tablewrap">
           <table class="data">
             <thead><tr><th class="l">Method</th><th>Needs</th><th>Convergence</th><th>Guaranteed?</th></tr></thead>
@@ -480,6 +888,7 @@ x =
     <section class="section" id="gauss">
       <div class="panel">
         <h2>2.6 Solving linear systems: Gaussian elimination</h2>
+        <div class="voicebar"><span class="vlabel">🔊 Listen to this section</span><audio controls preload="metadata" src="assets/audio/m2_gauss.mp3"></audio></div>
         <p>Now we turn from one equation to <b>systems</b> \(A\mathbf{x} = \mathbf{b}\). Gaussian elimination is the workhorse direct method. It uses three <b>elementary row operations</b> — swapping rows, scaling a row by a nonzero constant, and adding a multiple of one row to another — to transform the augmented matrix \([A\,|\,\mathbf{b}]\) into <b>row-echelon (upper-triangular) form</b>.</p>
         <ol>
           <li><b>Forward elimination:</b> introduce zeros below each pivot, column by column, until the system is upper triangular.</li>
@@ -554,6 +963,7 @@ X_builtin = A \ B;</textarea>
     <section class="section" id="lu">
       <div class="panel">
         <h2>2.7 LU factorization</h2>
+        <div class="voicebar"><span class="vlabel">🔊 Listen to this section</span><audio controls preload="metadata" src="assets/audio/m2_lu.mp3"></audio></div>
         <p>LU decomposition factors a square matrix into a <b>lower</b>-triangular \(L\) (ones on the diagonal) times an <b>upper</b>-triangular \(U\):</p>
         <div class="eqn">\[ A = L\,U. \]</div>
         <p>This is Gaussian elimination's bookkeeping made reusable. Once you have \(L\) and \(U\), solving \(A\mathbf{x}=\mathbf{b}\) is two cheap triangular solves:</p>
@@ -585,6 +995,7 @@ disp('Solution x ='); disp(x)</textarea>
     <section class="section" id="chol">
       <div class="panel">
         <h2>2.8 Cholesky factorization</h2>
+        <div class="voicebar"><span class="vlabel">🔊 Listen to this section</span><audio controls preload="metadata" src="assets/audio/m2_chol.mp3"></audio></div>
         <p>When \(A\) is <b>symmetric and positive definite</b> (all eigenvalues positive), it has a special, cheaper factorization into a lower-triangular matrix times its own transpose:</p>
         <div class="eqn">\[ A = L\,L^{\mathsf{T}}. \]</div>
         <p>Cholesky is about <b>twice as fast</b> as LU and numerically very stable — the method of choice for the symmetric positive-definite systems that arise in least-squares (Module 3) and many engineering problems. Solving uses the same two-step idea:</p>
@@ -618,10 +1029,82 @@ disp('Solution x ='); disp(x)</textarea>
 
     <!-- QUIZ -->
     <section class="section" id="quiz">
-      <div class="quiz">
-        <div class="qhead"><span class="pill">Quiz</span><h2 style="margin:0">Self-check · CLO-2</h2></div>
-        <p class="section-sub" style="margin-top:.4rem">Six questions across root finding and linear systems.</p>
-        <div id="quizRoot"></div>
+      <div class="panel">
+        <h2>More practice examples</h2>
+        <p class="section-sub">One quick example per topic (2.1–2.8). The root-finding methods also have a fuller worked "Practice on paper" table inside their own sections above.</p>
+
+        <div class="practice"><span class="ptag">✏️ 2.1 Fixed-point iteration</span>
+          <div class="given">To solve \(x^{2}-3=0\) (root \(\sqrt3\approx1.732\)), does \(g(x)=3/x\) converge? What about \(g(x)=\tfrac12\!\left(x+3/x\right)\)?</div>
+          <details class="reveal"><summary>Reveal answer</summary><div class="answer">
+            \(g(x)=3/x:\ g'(x)=-3/x^{2},\ |g'(\sqrt3)|=3/3=1\) → borderline, it <b>oscillates and does not converge</b>.<br>
+            \(g(x)=\tfrac12(x+3/x):\ g'(x)=\tfrac12(1-3/x^{2}),\ g'(\sqrt3)=0\) → \(|g'|<1\), <b>converges fast</b>.
+            <span class="final">the convergence test is \(|g'(x^{*})|<1\)</span>
+          </div></details>
+        </div>
+
+        <div class="practice"><span class="ptag">✏️ 2.2 Bisection</span>
+          <div class="given">\(f(x)=x^{2}-2\) on \([1,2]\). Do one bisection step: what is the new bracket, and its width?</div>
+          <details class="reveal"><summary>Reveal answer</summary><div class="answer">
+            midpoint \(c=1.5,\ f(1.5)=0.25>0\); since \(f(1)=-1<0\), the sign change is on the left half →<br>
+            new bracket <b>[1, 1.5]</b>, width <b>0.5</b> (halved from 1).
+            <span class="final">each step halves the bracket — one binary digit gained per step</span>
+          </div></details>
+        </div>
+
+        <div class="practice"><span class="ptag">✏️ 2.3 Newton's method</span>
+          <div class="given">\(f(x)=x^{2}-2,\ x_0=1\). Compute \(x_1\) and \(x_2\) (3 decimals).</div>
+          <details class="reveal"><summary>Reveal answer</summary><div class="answer">
+            \(x_1=x_0-\dfrac{f(x_0)}{f'(x_0)}=1-\dfrac{-1}{2}=\mathbf{1.500}\)<br>
+            \(x_2=1.5-\dfrac{0.25}{3}=\mathbf{1.417}\) (true \(\sqrt2\approx1.41421\))
+            <span class="final">digits roughly double each step — quadratic convergence</span>
+          </div></details>
+        </div>
+
+        <div class="practice"><span class="ptag">✏️ 2.4 The secant method</span>
+          <div class="given">\(f(x)=x^{2}-2,\ x_0=1,\ x_1=2\). Compute \(x_2\) (3 decimals).</div>
+          <details class="reveal"><summary>Reveal answer</summary><div class="answer">
+            \(x_2=x_1-\dfrac{f(x_1)(x_1-x_0)}{f(x_1)-f(x_0)}=2-\dfrac{2\,(1)}{2-(-1)}=2-\dfrac{2}{3}=\mathbf{1.333}\)
+            <span class="final">no derivative needed — the slope comes from the last two points</span>
+          </div></details>
+        </div>
+
+        <div class="practice"><span class="ptag">✏️ 2.5 Choosing a method</span>
+          <div class="given">You need a root faster than bisection, but the derivative is expensive to evaluate. Which method fits, and how do the four methods rank by speed?</div>
+          <details class="reveal"><summary>Reveal answer</summary><div class="answer">
+            Use the <b>secant method</b> (superlinear, order ≈ 1.618, no derivative).<br>
+            Convergence order: bisection 1 (linear) · fixed-point ≤ 1 (conditional) · secant ≈ 1.618 · Newton 2 (fastest, but needs \(f'\) and a good start).
+            <span class="final">robust solvers bracket with bisection, then finish with Newton/secant — as MATLAB's <code>fzero</code> does</span>
+          </div></details>
+        </div>
+
+        <div class="practice"><span class="ptag">✏️ 2.6 Gaussian elimination</span>
+          <div class="given">Solve:   2x + 3y − z = 5,   4x + 4y − 3z = 3,   −2x + 3y − z = 1.</div>
+          <details class="reveal"><summary>Reveal answer</summary><div class="answer">
+            \(R_2\leftarrow R_2-2R_1:\ (0,-2,-1\,|\,-7)\)<br>
+            \(R_3\leftarrow R_3+R_1:\ (0,\ 6,-2\,|\ 6)\)<br>
+            \(R_3\leftarrow R_3+3R_2:\ (0,0,-5\,|\,-15)\ \Rightarrow\ z=3\)<br>
+            back-substitute: \(-2y-3=-7\Rightarrow y=2;\quad 2x+6-3=5\Rightarrow x=1\)
+            <span class="final">(x, y, z) = (1, 2, 3)   — check with MATLAB: A\b gives the same</span>
+          </div></details>
+        </div>
+
+        <div class="practice"><span class="ptag">✏️ 2.7 LU factorization</span>
+          <div class="given">Once A = LU is known, how do you solve A x = b for many different b?</div>
+          <details class="reveal"><summary>Reveal answer</summary><div class="answer">
+            Two cheap triangular solves per right-hand side:<br>
+            \(L\mathbf{y}=\mathbf{b}\) (forward), then \(U\mathbf{x}=\mathbf{y}\) (backward).
+            <span class="final">the expensive factorization is done once; only the two solves repeat</span>
+          </div></details>
+        </div>
+
+        <div class="practice"><span class="ptag">✏️ 2.8 Cholesky</span>
+          <div class="given">When can you use A = L·Lᵀ instead of LU, and what do you gain?</div>
+          <details class="reveal"><summary>Reveal answer</summary><div class="answer">
+            When A is <b>symmetric and positive definite</b> (every pivot real and positive).<br>
+            It is ≈ <b>twice as fast</b> as LU and very stable. If <code>chol</code> errors, A is not positive definite → fall back to LU.
+            <span class="final">symmetric + positive definite ⇒ Cholesky</span>
+          </div></details>
+        </div>
       </div>
 
       <div class="complete-bar" id="completeBar"><span class="txt"></span><button class="btn"></button></div>
@@ -737,60 +1220,142 @@ const FNS = [
   setTimeout(reset,80);
 })();
 
-/* ===== Fixed-point cobweb demo ===== */
+/* ===== Fixed-point STACKED demo (shared x-axis: cobweb over root view + basin) ===== */
 (function(){
-  const cv=document.getElementById('cwCanvas'); const ctx=cv.getContext('2d');
-  const sel=document.getElementById('cwFn'); const x0s=document.getElementById('cwX0');
-  const x0v=document.getElementById('cwX0val'); const out=document.getElementById('cwOut');
+  const fp=document.getElementById('fpCanvas'), bs=document.getElementById('bsCanvas');
+  const ctx=fp.getContext('2d'), ctxB=bs.getContext('2d');
+  const sel=document.getElementById('cwFn'), x0s=document.getElementById('cwX0'), x0v=document.getElementById('cwX0val'), out=document.getElementById('cwOut');
+  const SQ = x => x>=0 ? Math.sqrt(x) : NaN;
   const GS=[
-    {g:x=>Math.cbrt(x+1), root:1.324718, label:'(x+1)^{1/3}'},
-    {g:x=>Math.cos(x),    root:0.739085, label:'cos(x)'},
-    {g:x=>x*x-1,          root:1.618034, label:'x^2 - 1'}
+    {g:x=>Math.cbrt(x+1), label:'(x+1)^(1/3)', fps:[1.324718], xr:[-2,2.8], def:1.0},
+    {g:x=>Math.cos(x),    label:'cos(x)',      fps:[0.739085], xr:[-2,2.8], def:0.6},
+    {g:x=>x*x,            label:'x^2',         fps:[0,1],      xr:[-1.6,1.9], def:0.6},
+    {g:SQ,                label:'sqrt(x)',     fps:[0,1],      xr:[-0.4,3],  def:2.0},
+    {g:x=>x*x-1,          label:'x^2 - 1',     fps:[1.618034,-0.618034], xr:[-2,2.6], def:1.7}
   ];
-  const XMIN=-1.6, XMAX=2.3;
-  let st, timer=null;
-  function reset(){ st={x:parseFloat(x0s.value), n:0, segs:[], log:[]}; x0v.textContent=parseFloat(x0s.value).toFixed(1); stop(); render(); }
-  function step(){ const G=GS[+sel.value]; const x=st.x; const y=G.g(x);
-    st.segs.push([[x,x],[x,y]]);      // vertical to curve
-    st.segs.push([[x,y],[y,y]]);      // horizontal to line y=x
-    st.log.unshift(`x${st.n} = ${x.toFixed(5)}  →  g(x) = ${y.toFixed(5)}`);
-    st.x=y; st.n++;
-    if(Math.abs(y-x)<1e-6 || Math.abs(y)>1e4) stop();
+  const gp=(G,x)=>{const h=1e-5,a=G.g(x+h),b=G.g(x-h);return (isFinite(a)&&isFinite(b))?(a-b)/(2*h):NaN;};
+  const H=480, PADX=40;
+  // vertical layout of the two stacked panels (share the SAME x mapping)
+  const TA0=44, TA1=214;      // top panel (y=g(x)) drawing band
+  const BA0=286, BA1=452;     // bottom panel (y=f(x)) drawing band
+  let st, timer=null, LAY=null;
+
+  function reset(){ st={x:parseFloat(x0s.value), n:0, segs:[], path:[parseFloat(x0s.value)], done:false, diverged:false};
+    x0v.textContent=parseFloat(x0s.value).toFixed(2); stop(); render(); }
+  function step(){ if(st.done) return; const G=GS[+sel.value]; const x=st.x; const y=G.g(x);
+    if(!isFinite(y)||Math.abs(y)>1e6){ st.diverged=true; st.done=true; stop(); render(); return; }
+    st.segs.push([[x,x],[x,y]]); st.segs.push([[x,y],[y,y]]);
+    st.path.push(y); st.x=y; st.n++;
+    if(Math.abs(y-x)<1e-6){ st.done=true; stop(); }
     render();
   }
-  function render(){ const G=GS[+sel.value];
-    const dpr=devicePixelRatio||1; cv.width=cv.clientWidth*dpr; cv.height=340*dpr; ctx.setTransform(dpr,0,0,dpr,0,0);
-    const W=cv.clientWidth,H=340,pad=38;
-    let ymin=XMIN,ymax=XMAX;
-    for(let i=0;i<=200;i++){const x=XMIN+(XMAX-XMIN)*i/200;const y=G.g(x); if(isFinite(y)){ymin=Math.min(ymin,y);ymax=Math.max(ymax,y);}}
-    ymin=Math.max(ymin,-4); ymax=Math.min(ymax,5);
-    const sx=x=>pad+(x-XMIN)/(XMAX-XMIN)*(W-2*pad);
-    const sy=y=>H-pad-(y-ymin)/(ymax-ymin)*(H-2*pad);
+  function outcome(G,x0){ let x=x0; if(!isFinite(x)) return -2;
+    for(let k=0;k<80;k++){ let y=G.g(x); if(!isFinite(y)) return -2; if(Math.abs(y)>1e6) return -1;
+      if(Math.abs(y-x)<1e-7){ x=y; break;} x=y; }
+    let best=-1,bd=1e-3; G.fps.forEach((f,i)=>{ if(Math.abs(x-f)<bd){bd=Math.abs(x-f);best=i;} }); return best; }
+  function topRange(G){ let lo=Infinity,hi=-Infinity; const [a,b]=G.xr;
+    for(let i=0;i<=240;i++){const x=a+(b-a)*i/240,y=G.g(x); if(isFinite(y)){lo=Math.min(lo,y);hi=Math.max(hi,y);}}
+    G.fps.forEach(f=>{lo=Math.min(lo,f);hi=Math.max(hi,f);}); lo=Math.min(lo,a);hi=Math.max(hi,b);
+    lo=Math.max(lo,-4);hi=Math.min(hi,5); const p=0.12*(hi-lo||1); return [lo-p,hi+p]; }
+  function botRange(G){ const f=x=>G.g(x)-x; let lo=Infinity,hi=-Infinity; const [a,b]=G.xr;
+    for(let i=0;i<=240;i++){const x=a+(b-a)*i/240,y=f(x);if(isFinite(y)){lo=Math.min(lo,y);hi=Math.max(hi,y);}}
+    lo=Math.max(lo,-3.5);hi=Math.min(hi,3.5); const p=0.16*(hi-lo||1); lo-=p;hi+=p;
+    if(lo>=0)lo=-0.35*hi; if(hi<=0)hi=-0.35*lo; return [lo,hi]; }
+
+  function drawFP(G){
+    const W=fp.clientWidth, dpr=devicePixelRatio||1; fp.width=W*dpr;fp.height=H*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);
+    const [a,b]=G.xr; const sx=x=>PADX+(x-a)/(b-a)*(W-2*PADX);
+    const [tlo,thi]=topRange(G), syT=y=>TA1-(y-tlo)/(thi-tlo)*(TA1-TA0);
+    const [blo,bhi]=botRange(G), syB=y=>BA1-(y-blo)/(bhi-blo)*(BA1-BA0);
+    const f=x=>G.g(x)-x;
+    LAY={a,b,sx};
     ctx.clearRect(0,0,W,H);
-    ctx.strokeStyle='#e3e9f2';ctx.lineWidth=1;
-    if(ymin<0&&ymax>0){ctx.beginPath();ctx.moveTo(pad,sy(0));ctx.lineTo(W-pad,sy(0));ctx.stroke();}
-    // line y = x
+    // panel backgrounds
+    ctx.fillStyle='#fbfdff'; ctx.strokeStyle='#e6ecf4'; ctx.lineWidth=1;
+    ctx.fillRect(PADX-8,TA0-8,W-2*PADX+16,TA1-TA0+16); ctx.strokeRect(PADX-8,TA0-8,W-2*PADX+16,TA1-TA0+16);
+    ctx.fillRect(PADX-8,BA0-8,W-2*PADX+16,BA1-BA0+16); ctx.strokeRect(PADX-8,BA0-8,W-2*PADX+16,BA1-BA0+16);
+    // convergence zone (|g'|<1) — shaded across BOTH panels for the same x
+    ctx.fillStyle='rgba(31,157,87,.09)'; let inZ=false,zx=0;
+    for(let i=0;i<=320;i++){const x=a+(b-a)*i/320,ok=Math.abs(gp(G,x))<1;
+      if(ok&&!inZ){inZ=true;zx=x;} if((!ok||i===320)&&inZ){inZ=false;ctx.fillRect(sx(zx),TA0-8,sx(x)-sx(zx),BA1-TA0+16);}}
+    // ---- TOP: y=g(x), y=x, cobweb ----
+    if(tlo<0&&thi>0){ctx.strokeStyle='#eef2f7';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(sx(a),syT(0));ctx.lineTo(sx(b),syT(0));ctx.stroke();}
     ctx.strokeStyle='#9bb0c9';ctx.lineWidth=1.6;ctx.setLineDash([5,4]);ctx.beginPath();
-    ctx.moveTo(sx(Math.max(XMIN,ymin)),sy(Math.max(XMIN,ymin)));ctx.lineTo(sx(Math.min(XMAX,ymax)),sy(Math.min(XMAX,ymax)));ctx.stroke();ctx.setLineDash([]);
-    // curve g(x)
-    ctx.strokeStyle='#2563a8';ctx.lineWidth=2.4;ctx.beginPath();let started=false;
-    for(let i=0;i<=300;i++){const x=XMIN+(XMAX-XMIN)*i/300;const y=G.g(x);if(!isFinite(y))continue;const X=sx(x),Y=sy(y);started?ctx.lineTo(X,Y):ctx.moveTo(X,Y);started=true;}ctx.stroke();
-    // cobweb
+    const d0=Math.max(a,tlo),d1=Math.min(b,thi);ctx.moveTo(sx(d0),syT(d0));ctx.lineTo(sx(d1),syT(d1));ctx.stroke();ctx.setLineDash([]);
+    ctx.strokeStyle='#2563a8';ctx.lineWidth=2.4;ctx.beginPath();let s=false;
+    for(let i=0;i<=320;i++){const x=a+(b-a)*i/320,y=G.g(x);if(!isFinite(y)){s=false;continue;}const X=sx(x),Y=syT(y);s?ctx.lineTo(X,Y):ctx.moveTo(X,Y);s=true;}ctx.stroke();
     ctx.strokeStyle='#f0913a';ctx.lineWidth=1.8;
-    st.segs.forEach(s=>{ctx.beginPath();ctx.moveTo(sx(s[0][0]),sy(s[0][1]));ctx.lineTo(sx(s[1][0]),sy(s[1][1]));ctx.stroke();});
-    // fixed point marker
-    ctx.fillStyle='#1f9d57';ctx.beginPath();ctx.arc(sx(G.root),sy(G.root),4,0,7);ctx.fill();
-    // current x on axis
-    ctx.fillStyle='#0e7c86';ctx.beginPath();ctx.arc(sx(st.x),sy(st.x),4.5,0,7);ctx.fill();
-    out.textContent=(st.log.slice(0,5).join('\n')||'Press Step to begin. Blue = g(x), dashed = line y=x.')+
-      `\n\ng(x) = ${G.label}   ·   current x = ${st.x.toFixed(6)}   (fixed point ≈ ${G.root.toFixed(6)})`+
-      (Math.abs(st.x)>1e4?'   ← DIVERGING! |g′| > 1 here.':'');
+    st.segs.forEach((seg,si)=>{ const x0=sx(seg[0][0]),y0=syT(seg[0][1]),x1=sx(seg[1][0]),y1=syT(seg[1][1]);
+      ctx.beginPath();ctx.moveTo(x0,y0);ctx.lineTo(x1,y1);ctx.stroke();
+      // direction arrowhead (① vertical = up-to-curve, ② horizontal = across-to-line)
+      const mx=x0+(x1-x0)*0.6, my=y0+(y1-y0)*0.6; arrowAt(mx,my,x0,y0);
+      if(si>=st.segs.length-2){ ctx.fillStyle='#b56a1d';ctx.font='700 11px sans-serif';ctx.textAlign='center';
+        const lbl=(si%2===0)?'①':'②'; ctx.fillText(lbl, (x0+x1)/2 + (si%2===0? -12:0), (y0+y1)/2 + (si%2===0? 4:-8)); } });
+    // ---- BOTTOM: y=f(x), zero axis, iterates ----
+    ctx.strokeStyle='#c4d2e3';ctx.lineWidth=1.4;ctx.beginPath();ctx.moveTo(sx(a),syB(0));ctx.lineTo(sx(b),syB(0));ctx.stroke();
+    ctx.strokeStyle='#2563a8';ctx.lineWidth=2.4;ctx.beginPath();s=false;
+    for(let i=0;i<=320;i++){const x=a+(b-a)*i/320,y=f(x);if(!isFinite(y)){s=false;continue;}const X=sx(x),Y=syB(y);s?ctx.lineTo(X,Y):ctx.moveTo(X,Y);s=true;}ctx.stroke();
+    st.path.forEach((x,i)=>{ const last=i===st.path.length-1, recent=i>=st.path.length-6;
+      ctx.fillStyle= last?'#0e7c86':(recent?'rgba(240,145,58,.9)':'rgba(240,145,58,.35)');
+      ctx.beginPath();ctx.arc(sx(x),syB(0),last?4.5:3,0,7);ctx.fill(); });
+    // ---- connectors: each fixed point links the crossing (top) to the zero (bottom) ----
+    G.fps.forEach(r=>{ const att=Math.abs(gp(G,r))<1;
+      ctx.strokeStyle=att?'rgba(31,157,87,.85)':'rgba(216,85,59,.7)';ctx.lineWidth=att?2:1.5;ctx.setLineDash([5,4]);
+      ctx.beginPath();ctx.moveTo(sx(r),syT(r));ctx.lineTo(sx(r),syB(0));ctx.stroke();ctx.setLineDash([]);
+      // markers
+      if(att){ctx.fillStyle='#1f9d57';ctx.beginPath();ctx.arc(sx(r),syT(r),5.5,0,7);ctx.fill(); star(ctx,sx(r),syB(0),'#1f9d57');}
+      else{ctx.strokeStyle='#d8553b';ctx.lineWidth=2;ctx.beginPath();ctx.arc(sx(r),syT(r),5.5,0,7);ctx.stroke(); star(ctx,sx(r),syB(0),'#d8553b');}
+      ctx.fillStyle=att?'#0a5f67':'#a23a28';ctx.font='700 11px sans-serif';ctx.textAlign='center';ctx.fillText('x*',sx(r),(TA1+BA0)/2+4);
+    });
+    // current-x connector (teal) through both panels
+    const cx=st.x, cy=f(cx);
+    ctx.strokeStyle='rgba(14,124,134,.55)';ctx.lineWidth=1.5;ctx.setLineDash([3,3]);
+    ctx.beginPath();ctx.moveTo(sx(cx),TA0-8);ctx.lineTo(sx(cx),BA1+8);ctx.stroke();ctx.setLineDash([]);
+    ctx.fillStyle='#0e7c86';ctx.beginPath();ctx.arc(sx(cx),syT(cx),4,0,7);ctx.fill();  // current x on the line y=x (top)
+    if(isFinite(cy)){ctx.beginPath();ctx.arc(sx(cx),syB(cy),3.5,0,7);ctx.fill();}
+    // labels
+    ctx.textAlign='left';ctx.font='700 12px sans-serif';
+    ctx.fillStyle='#0e7c86';ctx.fillText('y = g(x)   &   y = x',PADX,TA0+6);
+    ctx.fillStyle='#0e7c86';ctx.fillText('y = f(x) = g(x) − x',PADX,BA0+6);
+    ctx.textAlign='right';ctx.fillStyle='#9bb0c9';ctx.font='11px sans-serif';ctx.fillText('0',PADX-12,syB(0)+4);
+  }
+  function arrowAt(px,py,fromx,fromy){ const ang=Math.atan2(py-fromy,px-fromx),s=5.5; ctx.save();ctx.translate(px,py);ctx.rotate(ang);
+    ctx.fillStyle='#e07b1a';ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(-s,-s*0.62);ctx.lineTo(-s,s*0.62);ctx.closePath();ctx.fill();ctx.restore(); }
+  function star(c,X,Y,col){ c.fillStyle=col;c.beginPath();
+    for(let j=0;j<10;j++){const ang=-Math.PI/2+j*Math.PI/5,rad=j%2?2.5:5.6;const px=X+rad*Math.cos(ang),py=Y+rad*Math.sin(ang);j?c.lineTo(px,py):c.moveTo(px,py);}c.closePath();c.fill(); }
+
+  function drawBasin(G){ const W=bs.clientWidth, Hb=48, dpr=devicePixelRatio||1; bs.width=W*dpr;bs.height=Hb*dpr;ctxB.setTransform(dpr,0,0,dpr,0,0);
+    const a=-2, b=3; const cols=['#1f9d57','#0e7c86'];
+    ctxB.clearRect(0,0,W,Hb);
+    for(let px=0;px<W;px++){ const x0=a+(b-a)*px/W; const oc=outcome(G,x0);
+      ctxB.fillStyle = oc===-2 ? '#eef2f7' : oc===-1 ? '#f3c9c0' : cols[oc%2];
+      ctxB.fillRect(px,14,1,Hb-14); }
+    const sx=x=>(x-a)/(b-a)*W;
+    G.fps.forEach(f=>{ if(f<a||f>b)return; const att=Math.abs(gp(G,f))<1;
+      ctxB.strokeStyle=att?'#0a5f67':'#a23a28';ctxB.lineWidth=1.5;ctxB.beginPath();ctxB.moveTo(sx(f),12);ctxB.lineTo(sx(f),Hb);ctxB.stroke();
+      ctxB.fillStyle=att?'#0a5f67':'#a23a28';ctxB.font='10px sans-serif';ctxB.textAlign='center';ctxB.fillText('x*='+f.toFixed(3),sx(f),9); });
+    const cx=sx(parseFloat(x0s.value)); ctxB.fillStyle='#13203a';
+    ctxB.beginPath();ctxB.moveTo(cx,14);ctxB.lineTo(cx-5,4);ctxB.lineTo(cx+5,4);ctxB.closePath();ctxB.fill();
+  }
+
+  function render(){ const G=GS[+sel.value]; drawFP(G); drawBasin(G);
+    const gpx=gp(G,st.x); const tgt=G.fps.reduce((p,f)=>Math.abs(f-st.x)<Math.abs(p-st.x)?f:p,G.fps[0]); const gpt=gp(G,tgt);
+    let msg;
+    if(st.diverged) msg='DIVERGED — |g′| > 1 along the path, so the iterates fly off to infinity.';
+    else if(st.done) msg=`Converged: fixed point (top) = root (bottom) = x* ≈ ${st.x.toFixed(6)}   in ${st.n} steps.`;
+    else if(st.n===0) msg=`Ready at x₀ = ${st.x.toFixed(4)}.   Press Step:  ① go up to the curve (evaluate g),  ② go across to y = x (feed back).`;
+    else { const prev=st.path[st.path.length-2];
+      msg=`step ${st.n}:   ① x${st.n} = g(x${st.n-1}) = g(${prev.toFixed(4)}) = ${st.x.toFixed(4)}   ② carry ${st.x.toFixed(4)} back to the axis as the next x`; }
+    out.textContent = msg +
+      `\n\ng(x) = ${G.label}    |g′(x)| here = ${isFinite(gpx)?Math.abs(gpx).toFixed(3):'—'}` +
+      `    |g′(x*)| at target root = ${isFinite(gpt)?Math.abs(gpt).toFixed(3):'∞'}  → ${Math.abs(gpt)<1?'attracting':'repelling'}` +
+      `\nOrange ①/② arrows = the two operations of a step.  Dashed line = same x in both panels.  Green = convergence zone (|g′|<1).`;
   }
   function stop(){ if(timer){clearInterval(timer);timer=null;} document.getElementById('cwAuto').textContent='Auto ▶'; }
   document.getElementById('cwStep').onclick=step;
   document.getElementById('cwReset').onclick=reset;
-  document.getElementById('cwAuto').onclick=function(){ if(timer){stop();} else { this.textContent='Pause ⏸'; timer=setInterval(()=>{ step(); if(st.n>18)stop(); },520);} };
-  sel.onchange=()=>{ x0s.value = (+sel.value===2) ? 1.7 : 0.6; reset(); };
+  document.getElementById('cwAuto').onclick=function(){ if(timer){stop();} else if(!st.done){ this.textContent='Pause ⏸'; timer=setInterval(()=>{ step(); if(st.n>60||st.done)stop(); },480);} };
+  sel.onchange=()=>{ const G=GS[+sel.value]; x0s.value=G.def; reset(); };
   x0s.oninput=reset; window.addEventListener('resize',render);
   setTimeout(reset,80);
 })();
@@ -873,28 +1438,19 @@ const FNS = [
   render();
 })();
 
-/* ===== Quiz ===== */
-renderQuiz('quizRoot','m2',[
-  { q:'Bisection requires that, on the starting interval [a,b]:',
-    options:['f is differentiable','f(a) and f(b) have opposite signs','f(a) = f(b)','a and b are both positive'],
-    answer:1, explain:'A sign change f(a)·f(b) &lt; 0 guarantees a continuous f crosses zero in [a,b] (Intermediate Value Theorem). That bracket is what makes bisection foolproof.' },
-  { q:'Newton\'s method update formula is:',
-    options:['x_{n+1} = x_n + f(x_n)f\'(x_n)','x_{n+1} = x_n − f(x_n)/f\'(x_n)','x_{n+1} = (a+b)/2','x_{n+1} = g(x_n)'],
-    answer:1, explain:'Newton steps to where the tangent line at x_n meets the x-axis: x_{n+1} = x_n − f(x_n)/f\'(x_n).' },
-  { q:'The main advantage of the secant method over Newton\'s method is that it:',
-    options:['Always converges','Does not need the derivative f\'','Converges quadratically','Needs only one starting point'],
-    answer:1, explain:'Secant replaces f\' with a finite-difference estimate from the last two points, so no derivative is required. It converges superlinearly (~1.62), a bit slower than Newton.' },
-  { q:'In fixed-point iteration x = g(x), convergence near the root requires:',
-    options:['|g\'(x*)| &gt; 1','|g\'(x*)| &lt; 1','g(x*) = 0','g\'(x*) = 1'],
-    answer:1, explain:'The iteration is a contraction only when |g\'(x*)| &lt; 1 near the fixed point; otherwise it diverges.' },
-  { q:'After computing the LU factorization A = LU, you solve A x = b by:',
-    options:['Inverting L and U','Forward solve Ly=b, then backward solve Ux=y','One bisection step','Computing roots(A)'],
-    answer:1, explain:'Two cheap triangular solves: first Ly=b for y (forward substitution), then Ux=y for x (back substitution). The expensive factorization is done only once.' },
-  { q:'Cholesky factorization A = L·Lᵀ applies when A is:',
-    options:['Any square matrix','Symmetric and positive definite','Upper triangular','Singular'],
-    answer:1, explain:'Cholesky needs a symmetric positive-definite matrix; it is then about twice as fast as LU and very stable. If chol() errors, A is not positive definite.' }
-]);
 wireCompleteBar('m2');
+</script>
+
+<script>
+/* voice tracks: players stay hidden until their MP3 actually loads.
+   This avoids the "appears then disappears" flash when a file is missing. */
+document.querySelectorAll('.voicebar audio').forEach(a=>{
+  const bar = a.closest('.voicebar');
+  a.addEventListener('loadedmetadata', ()=>{ if(bar) bar.classList.add('vready'); });
+  a.addEventListener('error', ()=>{ if(bar) bar.classList.remove('vready'); });
+  // force the browser to attempt a load even with preload="metadata"
+  try { a.load(); } catch(e){}
+});
 </script>
 </body>
 </html>

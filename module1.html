@@ -43,7 +43,7 @@ window.MathJax = { tex: { inlineMath: [['\\(','\\)']], displayMath: [['\\[','\\]
         <li><a href="#logical" class="sub">↳ Logical indexing 🎛</a></li>
         <li><a href="#numbers">1.6 How numbers are stored</a></li>
         <li><a href="#demo-plot">🎛 Demo: sampling & plotting</a></li>
-        <li><a href="#quiz">✅ Self-check quiz</a></li>
+        <li><a href="#quiz">✏️ Practice examples</a></li>
       </ul>
     </div>
     <div id="progressWidget" class="progress-card"></div>
@@ -712,10 +712,66 @@ idx =
 
     <!-- QUIZ -->
     <section class="section" id="quiz">
-      <div class="quiz">
-        <div class="qhead"><span class="pill">Quiz</span><h2 style="margin:0">Self-check · CLO-1</h2></div>
-        <p class="section-sub" style="margin-top:.4rem">Five questions on the MATLAB essentials. Pick an answer to see the explanation.</p>
-        <div id="quizRoot"></div>
+      <div class="panel">
+        <h2>Practice examples</h2>
+        <p class="section-sub">One example per topic (1.1–1.6). Predict the result on paper, then reveal.</p>
+
+        <div class="practice"><span class="ptag">✏️ 1.1 The MATLAB environment</span>
+          <div class="given">List the elements of   a = 5:-1:1   and   b = 0:0.25:1 .   How many entries does each have?</div>
+          <details class="reveal"><summary>Reveal answer</summary><div class="answer">
+            <code>a = 5:-1:1</code> → <b>[5 4 3 2 1]</b> (step −1), <b>5</b> entries<br>
+            <code>b = 0:0.25:1</code> → <b>[0 0.25 0.50 0.75 1]</b>, <b>5</b> entries
+            <span class="final">the colon operator is <code>start:step:stop</code>; the step can be negative or fractional</span>
+          </div></details>
+        </div>
+
+        <div class="practice"><span class="ptag">✏️ 1.2 Matrices and vectors</span>
+          <div class="given">A = [10 20 30; 40 50 60; 70 80 90];   size(A) = ?   A(2,:) = ?   A(:,3) = ?   A(end,end) = ?</div>
+          <details class="reveal"><summary>Reveal answer</summary><div class="answer">
+            <code>size(A)</code> → <b>[3 3]</b> (3 rows, 3 columns)<br>
+            <code>A(2,:)</code> → the 2nd row = <b>[40 50 60]</b><br>
+            <code>A(:,3)</code> → the 3rd column = <b>[30; 60; 90]</b><br>
+            <code>A(end,end)</code> → bottom-right = <b>90</b>
+          </div></details>
+        </div>
+
+        <div class="practice"><span class="ptag">✏️ 1.3 Operations and indexing</span>
+          <div class="given">x = [2 4 6];  y = [1 2 3];   x.*y = ?   x.^2 = ?   Why does x*y give an error?</div>
+          <details class="reveal"><summary>Reveal answer</summary><div class="answer">
+            <code>x.*y</code> (element-by-element) → <b>[2 8 18]</b><br>
+            <code>x.^2</code> (each squared) → <b>[4 16 36]</b><br>
+            <code>x*y</code> errors: matrix product needs inner dimensions to agree (1×3 times 1×3). Use <code>x*y'</code> → <b>28</b> (a dot product).
+            <span class="final">the dot means element-wise; without it, <code>*</code> and <code>^</code> attempt matrix operations</span>
+          </div></details>
+        </div>
+
+        <div class="practice"><span class="ptag">✏️ 1.4 Scripts, functions &amp; flow control</span>
+          <div class="given">Write a function <code>average</code> (saved in <code>average.m</code>) that returns the mean of a vector <b>without</b> using <code>mean()</code>.</div>
+          <details class="reveal"><summary>Reveal answer</summary><div class="answer">
+<pre><code>function m = average(v)
+    m = sum(v) / length(v);
+end</code></pre>
+            The file name must match the function name (<code>average.m</code>), and the file is created as a <b>script in the Editor</b>, not typed in the Command Window.
+            <span class="final">call it from another file/script: <code>average([2 4 6])</code> → 4</span>
+          </div></details>
+        </div>
+
+        <div class="practice"><span class="ptag">✏️ 1.5 Vectorization</span>
+          <div class="given">Rewrite without a loop, then find the sum of the first 100 squares.<br>for i = 1:length(x),  y(i) = 2*x(i) + 3;  end</div>
+          <details class="reveal"><summary>Reveal answer</summary><div class="answer">
+            <code>y = 2*x + 3;</code> — one array expression replaces the whole loop.<br>
+            Sum of first 100 squares: <code>sum((1:100).^2)</code> → <b>338350</b>
+            <span class="final">build the vector, then operate on it all at once</span>
+          </div></details>
+        </div>
+
+        <div class="practice"><span class="ptag">✏️ 1.6 How computers store numbers</span>
+          <div class="given">Does  0.1 + 0.2 == 0.3  return true or false in MATLAB?</div>
+          <details class="reveal"><summary>Reveal answer</summary><div class="answer">
+            <b>false</b> — in binary floating point <code>0.1+0.2 = 0.30000000000000004…</code>, so it differs from <code>0.3</code> by ≈ 5.6e−17.
+            <span class="final">never test floats with <code>==</code>; compare against a tolerance <code>abs(a-b) &lt; 1e-9</code></span>
+          </div></details>
+        </div>
       </div>
 
       <div class="complete-bar" id="completeBar">
@@ -940,24 +996,6 @@ idx =
   render(false);
 })();
 
-/* ---------- Quiz ---------- */
-renderQuiz('quizRoot','m1',[
-  { q:'Which expression squares <em>each element</em> of a vector <code>x</code>?',
-    options:['<code>x ^ 2</code>','<code>x .^ 2</code>','<code>x * 2</code>','<code>pow(x,2)</code>'],
-    answer:1, explain:'The dot makes the operator element-wise. <code>x.^2</code> squares each element; <code>x^2</code> would attempt a matrix power and error for a non-square array.' },
-  { q:'What does a trailing semicolon do at the end of a MATLAB line?',
-    options:['Comments out the line','Suppresses the output echo','Ends the program','Starts a new function'],
-    answer:1, explain:'A semicolon suppresses the automatic echo of the result. Without it, MATLAB prints the value of the expression.' },
-  { q:'You want to solve the system <code>A x = b</code>. The recommended command is:',
-    options:['<code>x = inv(A)*b</code>','<code>x = A/b</code>','<code>x = A\\b</code>','<code>x = b\\A</code>'],
-    answer:2, explain:'The backslash (left-division) operator <code>A\\b</code> solves the system directly and is both faster and more accurate than forming <code>inv(A)</code>.' },
-  { q:'<code>v(v &gt; 0)</code> for a vector <code>v</code> returns:',
-    options:['A logical mask of 0s and 1s','The number of positive entries','Only the positive entries of v','The first positive entry'],
-    answer:2, explain:'<code>v &gt; 0</code> is the logical mask; using it as an index, <code>v(v&gt;0)</code>, extracts the elements where the mask is true — the positive entries.' },
-  { q:'Why should you compare floating-point results with a tolerance instead of <code>==</code>?',
-    options:['Because <code>==</code> is slower','Because round-off makes exact equality unreliable','Because MATLAB forbids <code>==</code> on doubles','Because tolerances use less memory'],
-    answer:1, explain:'Finite precision means values like 0.1+0.2 are not stored exactly, so two “equal” quantities can differ by ~1e-16. Numerical methods stop when the change is below a small tolerance ε.' }
-]);
 wireCompleteBar('m1');
 </script>
 </body>

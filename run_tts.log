@@ -1,0 +1,50 @@
+=== Sun Sep 20 23:30:37 +04 2026 ===
+python: /Users/arashkermanikolankeh/Documents/AudioBooks/WhyTeamsDontWork/.venv/bin/python
+--- running Gemini-TTS (English, Charon) ---
+[1/10] intro (726 chars)
+   ok -> 238080 bytes
+[2/10] fixed (888 chars)
+   ok -> 305088 bytes
+[3/10] fixed_theory (868 chars)
+   ok -> 268320 bytes
+[4/10] bisect (655 chars)
+   ok -> 223008 bytes
+[5/10] newton (627 chars)
+   ok -> 213120 bytes
+[6/10] secant (501 chars)
+   ok -> 154560 bytes
+[7/10] compare (513 chars)
+   ok -> 174240 bytes
+[8/10] gauss (653 chars)
+   ok -> 234528 bytes
+[9/10] lu (499 chars)
+   ok -> 178560 bytes
+[10/10] chol (528 chars)
+   ok -> 189120 bytes
+DONE 10/10
+--- copying MP3s into the site ---
+/tmp/m2tts/out/m2_bisect.mp3 -> /Users/arashkermanikolankeh/Documents/Work/Teaching/CUD/FA_2026/Scientific Computing/BCS311_Course_Website/assets/audio/m2_bisect.mp3
+/tmp/m2tts/out/m2_chol.mp3 -> /Users/arashkermanikolankeh/Documents/Work/Teaching/CUD/FA_2026/Scientific Computing/BCS311_Course_Website/assets/audio/m2_chol.mp3
+/tmp/m2tts/out/m2_compare.mp3 -> /Users/arashkermanikolankeh/Documents/Work/Teaching/CUD/FA_2026/Scientific Computing/BCS311_Course_Website/assets/audio/m2_compare.mp3
+/tmp/m2tts/out/m2_fixed.mp3 -> /Users/arashkermanikolankeh/Documents/Work/Teaching/CUD/FA_2026/Scientific Computing/BCS311_Course_Website/assets/audio/m2_fixed.mp3
+/tmp/m2tts/out/m2_fixed_theory.mp3 -> /Users/arashkermanikolankeh/Documents/Work/Teaching/CUD/FA_2026/Scientific Computing/BCS311_Course_Website/assets/audio/m2_fixed_theory.mp3
+/tmp/m2tts/out/m2_gauss.mp3 -> /Users/arashkermanikolankeh/Documents/Work/Teaching/CUD/FA_2026/Scientific Computing/BCS311_Course_Website/assets/audio/m2_gauss.mp3
+/tmp/m2tts/out/m2_intro.mp3 -> /Users/arashkermanikolankeh/Documents/Work/Teaching/CUD/FA_2026/Scientific Computing/BCS311_Course_Website/assets/audio/m2_intro.mp3
+/tmp/m2tts/out/m2_lu.mp3 -> /Users/arashkermanikolankeh/Documents/Work/Teaching/CUD/FA_2026/Scientific Computing/BCS311_Course_Website/assets/audio/m2_lu.mp3
+/tmp/m2tts/out/m2_newton.mp3 -> /Users/arashkermanikolankeh/Documents/Work/Teaching/CUD/FA_2026/Scientific Computing/BCS311_Course_Website/assets/audio/m2_newton.mp3
+/tmp/m2tts/out/m2_secant.mp3 -> /Users/arashkermanikolankeh/Documents/Work/Teaching/CUD/FA_2026/Scientific Computing/BCS311_Course_Website/assets/audio/m2_secant.mp3
+--- site audio dir now ---
+total 4304
+drwxr-xr-x@ 12 arashkermanikolankeh  staff     384 Sep 20 23:34 .
+drwxr-xr-x@  6 arashkermanikolankeh  staff     192 Sep 20 23:27 ..
+-rw-r--r--@  1 arashkermanikolankeh  staff  223008 Sep 20 23:34 m2_bisect.mp3
+-rw-r--r--@  1 arashkermanikolankeh  staff  189120 Sep 20 23:34 m2_chol.mp3
+-rw-r--r--@  1 arashkermanikolankeh  staff  174240 Sep 20 23:34 m2_compare.mp3
+-rw-r--r--@  1 arashkermanikolankeh  staff  305088 Sep 20 23:34 m2_fixed.mp3
+-rw-r--r--@  1 arashkermanikolankeh  staff  268320 Sep 20 23:34 m2_fixed_theory.mp3
+-rw-r--r--@  1 arashkermanikolankeh  staff  234528 Sep 20 23:34 m2_gauss.mp3
+-rw-r--r--@  1 arashkermanikolankeh  staff  238080 Sep 20 23:34 m2_intro.mp3
+-rw-r--r--@  1 arashkermanikolankeh  staff  178560 Sep 20 23:34 m2_lu.mp3
+-rw-r--r--@  1 arashkermanikolankeh  staff  213120 Sep 20 23:34 m2_newton.mp3
+-rw-r--r--@  1 arashkermanikolankeh  staff  154560 Sep 20 23:34 m2_secant.mp3
+=== done ===

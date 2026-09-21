@@ -42,7 +42,7 @@
         <li><a href="#euler">5.6 Euler's method</a></li>
         <li><a href="#euler-demo">🎛 Demo: Euler vs RK4</a></li>
         <li><a href="#rk">5.7 Runge–Kutta &amp; beyond</a></li>
-        <li><a href="#quiz">✅ Self-check quiz</a></li>
+        <li><a href="#quiz">✏️ Practice examples</a></li>
       </ul>
     </div>
     <div id="progressWidget" class="progress-card"></div>
@@ -314,10 +314,75 @@ legend('ode45','exact e^x'); grid on;</textarea>
 
     <!-- QUIZ -->
     <section class="section" id="quiz">
-      <div class="quiz">
-        <div class="qhead"><span class="pill">Quiz</span><h2 style="margin:0">Self-check · CLO-5</h2></div>
-        <p class="section-sub" style="margin-top:.4rem">Six questions on integration and ODEs.</p>
-        <div id="quizRoot"></div>
+      <div class="panel">
+        <h2>Practice examples</h2>
+        <p class="section-sub">One example per topic (5.1–5.7). Work on paper, then reveal. The three quadrature rules use the same integral \(\int_0^4 (x^2+1)\,dx\) (exact = 25.333).</p>
+
+        <div class="practice"><span class="ptag">✏️ 5.1 Midpoint rule</span>
+          <div class="given">Estimate ∫₀⁴ (x² + 1) dx with n = 4 (h = 1; midpoints 0.5, 1.5, 2.5, 3.5).</div>
+          <details class="reveal"><summary>Reveal answer</summary><div class="answer">
+            f at midpoints = 1.25, 3.25, 7.25, 13.25<br>
+            \(M=h\sum f = 1\,(1.25+3.25+7.25+13.25)\)
+            <span class="final">M = 25.000   (exact = 25.333)</span>
+          </div></details>
+        </div>
+
+        <div class="practice"><span class="ptag">✏️ 5.2 Trapezoidal rule</span>
+          <div class="given">Same integral, n = 4 (nodes 0,1,2,3,4; f = 1,2,5,10,17).</div>
+          <details class="reveal"><summary>Reveal answer</summary><div class="answer">
+            \(T=\dfrac{h}{2}\big[f_0+f_4+2(f_1+f_2+f_3)\big]=\dfrac12[1+17+2(2+5+10)]=\dfrac12(52)\)
+            <span class="final">T = 26.000   (exact = 25.333)</span>
+          </div></details>
+        </div>
+
+        <div class="practice"><span class="ptag">✏️ 5.3 Simpson's 1/3 rule</span>
+          <div class="given">Same integral, n = 4.</div>
+          <details class="reveal"><summary>Reveal answer</summary><div class="answer">
+            \(S=\dfrac{h}{3}\big[f_0+f_4+4(f_1+f_3)+2f_2\big]=\dfrac13[1+17+4(2+10)+2(5)]=\dfrac13(76)\)
+            <span class="final">S = 25.333  — exact, because Simpson is exact for cubics</span>
+          </div></details>
+        </div>
+
+        <div class="practice"><span class="ptag">✏️ 5.4 Gaussian &amp; adaptive quadrature</span>
+          <div class="given">Use 2-point Gauss–Legendre (nodes \(\pm 1/\sqrt3\), weights 1, 1) to evaluate \(\int_{-1}^{1} x^{2}\,dx\).</div>
+          <details class="reveal"><summary>Reveal answer</summary><div class="answer">
+            \(\int_{-1}^{1} x^{2}\,dx \approx 1\!\cdot\!f(-1/\sqrt3)+1\!\cdot\!f(1/\sqrt3)=\tfrac13+\tfrac13=\mathbf{0.6667}\) — exact.<br>
+            An \(n\)-point Gauss rule is exact for polynomials up to degree \(2n-1\); <b>adaptive</b> quadrature adds points only where the curve bends, to hit a tolerance efficiently.
+            <span class="final">2 points, yet exact up to degree 3 — that is why Gauss is so efficient</span>
+          </div></details>
+        </div>
+
+        <div class="practice"><span class="ptag">✏️ 5.5 Ordinary differential equations</span>
+          <div class="given">What does the initial-value problem \(y'=f(x,y),\ y(x_0)=y_0\) ask for, and why not just integrate directly?</div>
+          <details class="reveal"><summary>Reveal answer</summary><div class="answer">
+            It asks for the function \(y(x)\) whose slope everywhere equals \(f(x,y)\) and that passes through \((x_0,y_0)\).<br>
+            When \(f\) depends on the unknown \(y\) itself, there is usually <b>no closed-form antiderivative</b>, so we march forward numerically: start at \((x_0,y_0)\) and take small slope-guided steps.
+            <span class="final">the ODE gives the slope field; a solution is a curve tangent to it</span>
+          </div></details>
+        </div>
+
+        <div class="practice"><span class="ptag">✏️ 5.6 Euler's method</span>
+          <div class="given">dy/dx = y,  y(0) = 1,  step h = 0.5.  Find y(1) in 2 steps.  (exact e = 2.718)</div>
+          <details class="reveal"><summary>Reveal answer</summary><div class="answer">
+            <div class="tablewrap"><table class="data">
+              <thead><tr><th>n</th><th>\(x_n\)</th><th>\(y_n\)</th><th>\(y_{n+1}=y_n+h\,y_n\)</th></tr></thead>
+              <tbody>
+                <tr><td>0</td><td>0.0</td><td>1.000</td><td>1.500</td></tr>
+                <tr class="converged"><td>1</td><td>0.5</td><td>1.500</td><td>2.250</td></tr>
+              </tbody>
+            </table></div>
+            <span class="final">y(1) ≈ 2.250   (Euler underestimates eˣ; smaller h → closer)</span>
+          </div></details>
+        </div>
+
+        <div class="practice"><span class="ptag">✏️ 5.7 Runge–Kutta &amp; higher-order methods</span>
+          <div class="given">Why is classical RK4 preferred over Euler at the same step size h? What is its error order?</div>
+          <details class="reveal"><summary>Reveal answer</summary><div class="answer">
+            RK4 samples the slope <b>four times per step</b> (start, two midpoints, end) and takes a weighted average, matching the Taylor series to 4th order.<br>
+            Global error is \(O(h^{4})\) versus Euler's \(O(h)\), so it reaches the same accuracy in far fewer steps. MATLAB's <code>ode45</code> is an adaptive Runge–Kutta method.
+            <span class="final">more slope samples per step ⇒ much smaller error for the same h</span>
+          </div></details>
+        </div>
       </div>
 
       <div class="complete-bar" id="completeBar"><span class="txt"></span><button class="btn"></button></div>
@@ -430,27 +495,6 @@ legend('ode45','exact e^x'); grid on;</textarea>
   setTimeout(draw,60);
 })();
 
-/* ===== Quiz ===== */
-renderQuiz('quizRoot','m5',[
-  { q:'In all the basic quadrature rules, the segment width is Δx =',
-    options:['(b−a)·n','(b−a)/n','n/(b−a)','b−a'],
-    answer:1, explain:'The interval [a,b] is split into n equal segments, so each has width Δx = (b−a)/n.' },
-  { q:'The trapezoidal-rule weighting of the interior points is:',
-    options:['all 1','1,4,2,4,…,1','1,2,2,…,2,1','all 2'],
-    answer:2, explain:'End points count once, interior points twice (each shared by two trapezoids): 1,2,2,…,2,1, with the whole sum scaled by Δx/2.' },
-  { q:'Simpson\'s 1/3 rule is more accurate than the trapezoidal rule because it fits each pair of strips with a:',
-    options:['rectangle','straight line','parabola','spline'],
-    answer:2, explain:'Simpson fits a parabola through three points, capturing curvature and making the rule exact for cubics — much better for smooth functions.' },
-  { q:'An initial-value problem dy/dx = f(x,y), y(x₀)=y₀ needs the initial condition in order to:',
-    options:['define the derivative','select one curve from the family of solutions','make f linear','compute Δx'],
-    answer:1, explain:'Integrating the slope alone gives a family of curves differing by a constant; the initial condition pins down the single curve we want.' },
-  { q:'Euler\'s method updates the solution with:',
-    options:['y_{i+1} = y_i + h·f(x_i, y_i)','y_{i+1} = y_i − f(x_i)/f\'(x_i)','y_{i+1} = (a+b)/2','y_{i+1} = h·f only'],
-    answer:0, explain:'Euler follows the slope f(x_i,y_i) for one step of width h: y_{i+1} = y_i + h·f(x_i,y_i). It is first-order accurate.' },
-  { q:'Compared with Euler\'s method, RK4 achieves much higher accuracy by:',
-    options:['using a larger step always','sampling the slope several times per step and averaging','ignoring the initial condition','solving a linear system'],
-    answer:1, explain:'RK4 evaluates the slope four times across each step and combines them (weights 1,2,2,1), capturing curvature Euler misses — it is fourth-order accurate.' }
-]);
 wireCompleteBar('m5');
 </script>
 </body>

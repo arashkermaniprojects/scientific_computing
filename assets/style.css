@@ -168,6 +168,31 @@ pre.plain{background:var(--code-bg);color:var(--code-ink);padding:1rem 1.1rem;bo
 /* tighten code block above its output so they read as one unit */
 .codewrap.has-output{margin-bottom:0}
 
+/* ---------- Logical indexing demos ---------- */
+.li-row{display:flex;align-items:center;gap:.55rem;margin:.5rem 0;flex-wrap:wrap}
+.li-rowlabel{font-family:var(--mono);font-size:.78rem;color:var(--ink-soft);min-width:96px;font-weight:700;text-align:right}
+.li-cells{display:flex;gap:.35rem;flex-wrap:wrap}
+.li-matrix{display:grid;grid-template-columns:repeat(4,46px);gap:.35rem}
+.li-cell{width:46px;height:46px;border-radius:9px;display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono);font-weight:700;font-size:.9rem;background:#fff;border:1.5px solid var(--line);
+  color:var(--ink);transition:transform .18s,background .25s,border-color .25s,opacity .25s}
+.li-cell.dim{opacity:.3}
+.li-cell.pass{background:#e7f7ee;border-color:var(--ok);color:#0e7a44}
+.li-cell.fail{background:#f4f6f9;border-color:#dde5ee;color:#9aa8ba}
+.li-cell.active{transform:translateY(-5px) scale(1.07);box-shadow:0 8px 16px rgba(14,124,134,.3);border-color:var(--brand);z-index:2}
+.li-cell.flash{animation:liflash .7s ease}
+@keyframes liflash{0%{background:#ffe9cc;border-color:var(--accent);transform:scale(1.15)}60%{background:#fff1dd}100%{}}
+.li-maskcell{width:46px;height:46px;border-radius:9px;display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono);font-weight:800;font-size:.95rem;border:1.5px dashed #cdd7e3;color:#b3bfce;background:#fbfdff;transition:.25s}
+.li-maskcell.one{background:var(--ok);border-style:solid;border-color:var(--ok);color:#fff}
+.li-maskcell.pending{color:transparent}
+.li-expr{font-family:var(--mono);font-size:.84rem;background:#0f1b2d;color:#cfe0ff;border-radius:9px;padding:.7rem .9rem;margin-top:.7rem;white-space:pre-wrap;line-height:1.55}
+.li-expr .k{color:#7fd3da}
+.li-expr .r{color:#ffcf8f}
+.li-legend{display:flex;gap:1rem;flex-wrap:wrap;font-size:.76rem;color:var(--muted);margin-top:.5rem}
+.li-legend span{display:inline-flex;align-items:center;gap:.35rem}
+.li-swatch{width:14px;height:14px;border-radius:4px;display:inline-block;border:1.5px solid}
+
 /* ---------- Tables ---------- */
 .tablewrap{overflow-x:auto;margin:1rem 0}
 table.data{border-collapse:collapse;width:100%;font-size:.88rem}
@@ -258,3 +283,54 @@ footer.site{max-width:var(--maxw);margin:0 auto;padding:2rem 1.2rem 3rem;color:v
   .two-col{grid-template-columns:1fr}
   .hero h1{font-size:1.9rem}
 }
+
+/* ---------- Fixed-point dual demo ---------- */
+.dualwrap{display:flex;gap:1rem;flex-wrap:wrap;margin-top:.4rem}
+.dualwrap > figure{flex:1 1 300px;min-width:270px;margin:0}
+.dualwrap figcaption{font-size:.82rem;font-weight:700;color:var(--brand-dark);text-align:center;margin-bottom:.35rem}
+canvas.demo-canvas{width:100%;background:#fff;border:1px solid var(--line);border-radius:10px;display:block}
+canvas.basinbar{width:100%;background:#fff;border:1px solid var(--line);border-radius:8px;display:block}
+
+/* ---------- Formula card (math-first) ---------- */
+.fcard{background:linear-gradient(180deg,#f7fbfc,#eef6f7);border:1px solid #cfe3e6;border-left:5px solid var(--brand);
+  border-radius:12px;padding:.8rem 1.2rem;margin:1rem 0}
+.fcard .flabel{font-size:.7rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--brand-dark);margin-bottom:.1rem}
+
+/* ---------- Practice + reveal-answer ---------- */
+.practice{background:#fff;border:1px solid var(--line);border-left:5px solid var(--accent);border-radius:12px;
+  padding:1rem 1.3rem 1.15rem;margin:1.3rem 0}
+.practice .ptag{display:inline-flex;align-items:center;gap:.4rem;font-size:.72rem;font-weight:800;letter-spacing:.08em;
+  text-transform:uppercase;color:#b56a1d;background:var(--accent-soft);border:1px solid #f6d6ad;border-radius:20px;padding:.2rem .7rem;margin-bottom:.5rem}
+.practice .given{font-family:var(--mono);font-size:.9rem;color:var(--ink);background:#f7f9fc;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;margin:.5rem 0}
+details.reveal{margin-top:.8rem}
+details.reveal>summary{list-style:none;cursor:pointer;display:inline-flex;align-items:center;gap:.5rem;
+  background:var(--brand);color:#fff;border-radius:9px;padding:.5rem 1rem;font-weight:700;font-size:.9rem;user-select:none;transition:.15s}
+details.reveal>summary::-webkit-details-marker{display:none}
+details.reveal>summary:hover{background:var(--brand-dark)}
+details.reveal>summary::before{content:"▸";display:inline-block;transition:transform .15s}
+details.reveal[open]>summary::before{transform:rotate(90deg)}
+details.reveal[open]>summary{background:var(--brand-dark);border-radius:9px 9px 0 0}
+details.reveal .answer{border:1px solid var(--brand);border-top:0;border-radius:0 0 10px 10px;padding:1rem 1.1rem;background:#fbfefe}
+details.reveal .answer .final{margin-top:.6rem;font-weight:800;color:var(--ok);background:#e7f7ee;border-radius:8px;padding:.5rem .8rem;display:inline-block}
+.mini-svg{width:100%;max-width:520px;height:auto;display:block;margin:.4rem auto .2rem}
+/* ---------- Collapsible section ---------- */
+details.section-collapse > summary.sec-toggle{list-style:none;cursor:pointer;display:flex;align-items:center;gap:.55rem;padding:.15rem 0;border-radius:8px}
+details.section-collapse > summary.sec-toggle::-webkit-details-marker{display:none}
+details.section-collapse > summary.sec-toggle::before{content:"▸";color:var(--brand,#2563a8);font-weight:700;font-size:1rem;transition:transform .15s ease;flex:none}
+details.section-collapse[open] > summary.sec-toggle::before{transform:rotate(90deg)}
+details.section-collapse > summary.sec-toggle h2{display:inline-block;margin:0}
+.sec-hint{margin-left:auto;font-size:.78rem;font-weight:600;color:#8a97a4;background:#eef3f8;border:1px solid #e0e8f0;border-radius:999px;padding:.12rem .6rem}
+details.section-collapse[open] > summary.sec-toggle .sec-hint{visibility:hidden}
+details.section-collapse[open] > summary.sec-toggle{margin-bottom:.6rem}
+
+.figblock{margin:1.1rem 0 1.3rem;padding:1rem 1rem .8rem;background:#f7fafc;border:1px solid #e3e9f2;border-radius:12px}
+.figblock figcaption{margin:.5rem auto 0;max-width:560px;font-size:.9rem;line-height:1.5;color:#45566a;text-align:left}
+
+/* ---------- Per-section voice track ---------- */
+.voicebar{display:flex;align-items:center;gap:.7rem;margin:.2rem 0 1rem;padding:.5rem .8rem;
+  background:linear-gradient(180deg,#f4fbfc,#e9f5f6);border:1px solid #cfe3e6;border-radius:11px}
+.voicebar .vlabel{display:inline-flex;align-items:center;gap:.4rem;font-size:.82rem;font-weight:700;color:var(--brand-dark);white-space:nowrap}
+.voicebar audio{height:34px;flex:1;min-width:180px;max-width:420px}
+.voicebar.vhidden{display:none}
+.voicebar{display:none}          /* hidden until its audio file is confirmed to load */
+.voicebar.vready{display:flex}   /* revealed by JS on loadedmetadata */

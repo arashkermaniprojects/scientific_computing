@@ -40,7 +40,7 @@
         <li><a href="#demo">🎛 Demo: interpolate</a></li>
         <li><a href="#spline">4.5 Piecewise &amp; splines</a></li>
         <li><a href="#matlab">4.6 MATLAB built-ins</a></li>
-        <li><a href="#quiz">✅ Self-check quiz</a></li>
+        <li><a href="#quiz">✏️ Practice examples</a></li>
       </ul>
     </div>
     <div id="progressWidget" class="progress-card"></div>
@@ -215,10 +215,65 @@ legend('data','linear','spline','polynomial'); grid on;</textarea>
 
     <!-- QUIZ -->
     <section class="section" id="quiz">
-      <div class="quiz">
-        <div class="qhead"><span class="pill">Quiz</span><h2 style="margin:0">Self-check · CLO-4</h2></div>
-        <p class="section-sub" style="margin-top:.4rem">Five questions on interpolation.</p>
-        <div id="quizRoot"></div>
+      <div class="panel">
+        <h2>Practice examples</h2>
+        <p class="section-sub">One example per topic (4.1–4.6). Work it on paper, then reveal.</p>
+
+        <div class="practice"><span class="ptag">✏️ 4.1 Polynomial interpolation</span>
+          <div class="given">Given (1, 3) and (2, 7), estimate y at x = 1.5. How many points fix a unique degree-≤ n polynomial?</div>
+          <details class="reveal"><summary>Reveal answer</summary><div class="answer">
+            Linear (degree-1) interpolation: \(y = y_0 + (y_1-y_0)\dfrac{x-x_0}{x_1-x_0} = 3 + (7-3)\dfrac{1.5-1}{2-1} = 3 + 4(0.5)=\mathbf{5}\).<br>
+            In general, \(n+1\) distinct points determine <b>exactly one</b> polynomial of degree ≤ \(n\).
+            <span class="final">2 points → a line; 3 points → a parabola; …</span>
+          </div></details>
+        </div>
+
+        <div class="practice"><span class="ptag">✏️ 4.2 Lagrange interpolating polynomial</span>
+          <div class="given">Find the polynomial through (1,1), (2,4), (3,9). Then estimate P(2.5).</div>
+          <details class="reveal"><summary>Reveal answer</summary><div class="answer">
+            \(P(x)=1\!\cdot\!\dfrac{(x-2)(x-3)}{(1-2)(1-3)}+4\!\cdot\!\dfrac{(x-1)(x-3)}{(2-1)(2-3)}+9\!\cdot\!\dfrac{(x-1)(x-2)}{(3-1)(3-2)} = x^2.\)
+            <span class="final">P(x) = x²,  so P(2.5) = 6.25</span>
+          </div></details>
+        </div>
+
+        <div class="practice"><span class="ptag">✏️ 4.3 Newton's divided-difference form</span>
+          <div class="given">For (0,1), (1,3), (2,2) build the divided-difference table and write P(x); then find P(0.5).</div>
+          <details class="reveal"><summary>Reveal answer</summary><div class="answer">
+            \(f[x_0,x_1]=\dfrac{3-1}{1-0}=2,\quad f[x_1,x_2]=\dfrac{2-3}{2-1}=-1\)<br>
+            \(f[x_0,x_1,x_2]=\dfrac{-1-2}{2-0}=-1.5\)<br>
+            \(P(x)=1+2(x-0)-1.5\,(x-0)(x-1)\)<br>
+            \(P(0.5)=1+1-1.5(0.5)(-0.5)=\mathbf{2.375}\)
+            <span class="final">the Newton coefficients are the top of each divided-difference column</span>
+          </div></details>
+        </div>
+
+        <div class="practice"><span class="ptag">✏️ 4.4 The danger of high-degree interpolation</span>
+          <div class="given">You have 20 noisy measurements. Fit one degree-19 interpolating polynomial, or least-squares fit a low-degree curve?</div>
+          <details class="reveal"><summary>Reveal answer</summary><div class="answer">
+            <b>Least-squares fit.</b> A high-degree polynomial forced through <em>every</em> point oscillates wildly between them — <b>Runge's phenomenon</b> — especially near the ends. Regression follows the trend without chasing the noise.
+            <span class="final">high degree ≠ better; interpolate only exact data, and keep the degree low</span>
+          </div></details>
+        </div>
+
+        <div class="practice"><span class="ptag">✏️ 4.5 Piecewise &amp; spline interpolation</span>
+          <div class="given">For 11 exact points, why prefer a cubic spline over one degree-10 polynomial? What smoothness does a cubic spline guarantee?</div>
+          <details class="reveal"><summary>Reveal answer</summary><div class="answer">
+            A spline uses a separate <b>low-degree (cubic) piece between each pair of points</b>, so it cannot develop the large end-oscillations of a single high-degree polynomial.<br>
+            At every interior knot it matches value, <b>first derivative, and second derivative</b> (\(C^{2}\) continuity), so the curve looks smooth. A "natural" spline sets the second derivative to zero at the two ends.
+            <span class="final">many smooth low-degree pieces beat one high-degree curve</span>
+          </div></details>
+        </div>
+
+        <div class="practice"><span class="ptag">✏️ 4.6 MATLAB's built-in interpolation</span>
+          <div class="given">Which built-in interpolates a 1-D data set at query points <code>xq</code>? How do you ask for linear vs spline?</div>
+          <details class="reveal"><summary>Reveal answer</summary><div class="answer">
+<pre><code>yq = interp1(x, y, xq, 'linear');   % straight-line pieces
+yq = interp1(x, y, xq, 'spline');   % smooth cubic spline
+yq = interp1(x, y, xq, 'pchip');    % shape-preserving cubic</code></pre>
+            The method string picks the scheme; <code>'spline'</code> is the \(C^{2}\) cubic spline from 4.5.
+            <span class="final">interp1 for 1-D; interp2 for surfaces</span>
+          </div></details>
+        </div>
       </div>
 
       <div class="complete-bar" id="completeBar"><span class="txt"></span><button class="btn"></button></div>
@@ -310,24 +365,6 @@ legend('data','linear','spline','polynomial'); grid on;</textarea>
   setTimeout(draw,60);
 })();
 
-/* ===== Quiz ===== */
-renderQuiz('quizRoot','m4',[
-  { q:'The key difference between interpolation and least-squares regression is that interpolation:',
-    options:['ignores the data','passes exactly through every data point','always uses a straight line','needs no data points'],
-    answer:1, explain:'Interpolation assumes the data is exact and forces the curve through every point; regression assumes noise and only follows the trend.' },
-  { q:'How many points uniquely determine a polynomial of degree at most n−1?',
-    options:['n − 1','n','n + 1','2n'],
-    answer:1, explain:'Exactly n points with distinct x-values determine a unique polynomial of degree ≤ n−1 (2 points → line, 3 → parabola, …).' },
-  { q:'A Lagrange basis polynomial Lᵢ(x) is constructed so that at the nodes it equals:',
-    options:['1 everywhere','1 at xᵢ and 0 at every other node','0 at xᵢ','the data value yᵢ'],
-    answer:1, explain:'Lᵢ(xᵢ)=1 and Lᵢ(xⱼ)=0 for j≠i. That property makes P(xₖ)=yₖ at every node, so the interpolant passes through all points.' },
-  { q:'Runge\'s phenomenon is the tendency of high-degree interpolating polynomials to:',
-    options:['converge instantly','oscillate wildly between equally spaced nodes','become a straight line','lose all data points'],
-    answer:1, explain:'With many equally spaced nodes, the single high-degree polynomial fits the nodes but oscillates strongly between them, especially near the interval ends.' },
-  { q:'To smoothly interpolate many points without Runge oscillation, the best choice is usually:',
-    options:['a higher-degree polynomial','a cubic spline (many low-degree pieces)','bisection','extrapolation'],
-    answer:1, explain:'A cubic spline joins low-degree cubics that match value and curvature at the nodes — smooth and stable, unlike one global high-degree polynomial.' }
-]);
 wireCompleteBar('m4');
 </script>
 </body>
