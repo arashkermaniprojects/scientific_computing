@@ -313,6 +313,15 @@ details.reveal[open]>summary{background:var(--brand-dark);border-radius:9px 9px 
 details.reveal .answer{border:1px solid var(--brand);border-top:0;border-radius:0 0 10px 10px;padding:1rem 1.1rem;background:#fbfefe}
 details.reveal .answer .final{margin-top:.6rem;font-weight:800;color:var(--ok);background:#e7f7ee;border-radius:8px;padding:.5rem .8rem;display:inline-block}
 .mini-svg{width:100%;max-width:520px;height:auto;display:block;margin:.4rem auto .2rem}
+/* ---------- Matrix-slicing interactive ---------- */
+.matgrid{display:inline-grid;gap:6px;margin:.5rem 0}
+.matgrid .corner,.matgrid .hdr{display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;color:#8a97a4}
+.matcell{width:46px;height:42px;display:flex;align-items:center;justify-content:center;background:#fff;border:1px solid #d8e0ea;border-radius:8px;font-variant-numeric:tabular-nums;font-weight:600;color:#33475b;transition:background .12s,border-color .12s}
+.matcell.sel{background:#e7f2fb;border-color:#2563a8;color:#12467f;box-shadow:0 0 0 1px #2563a8 inset}
+.matcell.del{background:#fdecea;border-color:#c0392b;color:#a5281b;box-shadow:0 0 0 1px #c0392b inset}
+.slice-cmd{font-family:ui-monospace,Menlo,Consolas,monospace;background:#0f2540;color:#eaf2fb;padding:.5rem .8rem;border-radius:8px;display:inline-block;margin:.3rem 0}
+.slice-two{display:flex;gap:1.6rem;flex-wrap:wrap;align-items:flex-start}
+
 /* ---------- Collapsible section ---------- */
 details.section-collapse > summary.sec-toggle{list-style:none;cursor:pointer;display:flex;align-items:center;gap:.55rem;padding:.15rem 0;border-radius:8px}
 details.section-collapse > summary.sec-toggle::-webkit-details-marker{display:none}
