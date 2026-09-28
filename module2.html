@@ -757,14 +757,12 @@ MATLAB fzero        = 0.739085</pre></div>
         <p>Solve \(f(x)=x^2-2\) from the two initial values \(x_0=1,\ x_1=2\); each step uses the two latest points. Stop when \(E_k=|x_k-x_{k-1}|<\varepsilon=10^{-3}\), or after at most <b>20 iterations</b>:</p>
         <div class="tablewrap">
           <table class="data">
-            <thead><tr><th>k</th><th>\(x_k\)</th><th>\(f(x_k)\)</th><th>\(E_k=|x_k-x_{k-1}|\)</th></tr></thead>
+            <thead><tr><th>k</th><th>\(x_{k-1}\)</th><th>\(x_k\)</th><th>\(f(x_{k-1})\)</th><th>\(f(x_k)\)</th><th>\(x_{k+1}\)</th><th>\(E_{k+1}=|x_{k+1}-x_k|\)</th></tr></thead>
             <tbody>
-              <tr><td>0</td><td>1.000</td><td>−1.000</td><td>—</td></tr>
-              <tr><td>1</td><td>2.000</td><td>+2.000</td><td>—</td></tr>
-              <tr><td>2</td><td>1.333</td><td>−0.222</td><td>0.6667</td></tr>
-              <tr><td>3</td><td>1.400</td><td>−0.040</td><td>0.0667</td></tr>
-              <tr><td>4</td><td>1.415</td><td>+0.001</td><td>0.0146</td></tr>
-              <tr class="converged"><td>5</td><td>1.414</td><td>−0.000</td><td>0.0004 &lt; ε ✓</td></tr>
+              <tr><td>1</td><td>1.000</td><td>2.000</td><td>−1.000</td><td>+2.000</td><td>1.333</td><td>0.6667</td></tr>
+              <tr><td>2</td><td>2.000</td><td>1.333</td><td>+2.000</td><td>−0.222</td><td>1.400</td><td>0.0667</td></tr>
+              <tr><td>3</td><td>1.333</td><td>1.400</td><td>−0.222</td><td>−0.040</td><td>1.415</td><td>0.0146</td></tr>
+              <tr class="converged"><td>4</td><td>1.400</td><td>1.415</td><td>−0.040</td><td>+0.001</td><td>1.414</td><td>0.0004 &lt; ε ✓</td></tr>
             </tbody>
           </table>
         </div>
