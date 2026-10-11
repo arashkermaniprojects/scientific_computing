@@ -893,6 +893,11 @@ x =
       <div class="panel">
         <h2>2.6 Solving linear systems: Gaussian elimination</h2>
         <div class="voicebar"><span class="vlabel">🔊 Listen to this section</span><audio controls preload="metadata" src="assets/audio/m2_gauss.mp3"></audio></div>
+        <h3 id="gauss-sym" style="margin-top:.4rem">🎞 Lecture animation: Gaussian elimination</h3>
+        <p>This animation <b>is</b> the lecture for this section: follow it from the left-hand panel through the last step, then use the text and code below as reference. Everything is symbolic, so it holds for any system and any size <i>n</i>. Use <b>Step</b> / <b>Back</b>, <b>Auto</b>, or drag the progress bar; change <i>n</i> to see the pattern generalise.</p>
+        <div class="demo sd-demo" data-sd="gauss" data-n="4"></div>
+        <div class="callout idea"><div class="h">📌 What to remember</div><ul><li><b>Three row operations</b> (swap, scale, add a multiple) never change the solution; elimination uses only “add a multiple”, plus swaps for pivoting.</li><li>Cost: ≈ <i>2n³/3</i> operations to eliminate, ≈ <i>n²</i> to back-substitute.</li><li>A zero or tiny pivot breaks the method or amplifies rounding error — <b>partial pivoting</b> (swap in the largest entry) fixes this.</li></ul></div>
+        <h3>Reference: definitions, example &amp; code</h3>
         <p>Now we turn from one equation to <b>systems</b> \(A\mathbf{x} = \mathbf{b}\). Gaussian elimination is the workhorse direct method. It uses three <b>elementary row operations</b> — swapping rows, scaling a row by a nonzero constant, and adding a multiple of one row to another — to transform the augmented matrix \([A\,|\,\mathbf{b}]\) into <b>row-echelon (upper-triangular) form</b>.</p>
         <ol>
           <li><b>Forward elimination:</b> introduce zeros below each pivot, column by column, until the system is upper triangular.</li>
@@ -960,9 +965,6 @@ X_builtin = A \ B;</textarea>
           <div class="readout" id="geOut"></div>
         </div>
 
-        <h3 id="gauss-sym">🎞 Animation: Gaussian elimination (symbols only)</h3>
-        <p>Watch pivot, multiplier and row update for each stage, then back substitution. Everything is parametric: entries are symbols, and you can change the size <i>n</i>. Use <b>Step</b>, <b>Back</b>, <b>Auto</b>, or drag the progress bar.</p>
-        <div class="demo sd-demo" data-sd="gauss" data-n="4"></div>
         <div class="callout idea"><div class="h">💡 After elimination</div>Once the matrix is upper-triangular, <b>back-substitution</b> reads off the unknowns from the bottom row up — here giving \(x=1,\ y=2,\ z=3\).</div>
       </div>
     </section>
@@ -972,6 +974,11 @@ X_builtin = A \ B;</textarea>
       <div class="panel">
         <h2>2.7 LU factorization</h2>
         <div class="voicebar"><span class="vlabel">🔊 Listen to this section</span><audio controls preload="metadata" src="assets/audio/m2_lu.mp3"></audio></div>
+        <h3 id="lu-sym" style="margin-top:.4rem">🎞 Lecture animation: LU factorization</h3>
+        <p>This animation <b>is</b> the lecture for this section. It picks up exactly where Gaussian elimination stopped: same steps, but the multipliers are <b>kept</b>. Use <b>Step</b> / <b>Back</b>, <b>Auto</b>, or drag the progress bar; change <i>n</i> to see the pattern generalise.</p>
+        <div class="demo sd-demo" data-sd="lu" data-n="4"></div>
+        <div class="callout idea"><div class="h">📌 What to remember</div><ul><li><i>A</i> = <i>L U</i>, with <i>L</i> unit lower-triangular (multipliers) and <i>U</i> upper-triangular (eliminated matrix).</li><li>Factor once (≈ <i>2n³/3</i>), then each new right-hand side costs only ≈ <i>2n²</i> — two triangular solves.</li><li>With pivoting the factorization is <i>P A = L U</i>; MATLAB’s <code>[L,U,P] = lu(A)</code> returns the permutation too.</li></ul></div>
+        <h3>Reference: definitions, example &amp; code</h3>
         <p>LU decomposition factors a square matrix into a <b>lower</b>-triangular \(L\) (ones on the diagonal) times an <b>upper</b>-triangular \(U\):</p>
         <div class="eqn">\[ A = L\,U. \]</div>
         <p>This is Gaussian elimination's bookkeeping made reusable. Once you have \(L\) and \(U\), solving \(A\mathbf{x}=\mathbf{b}\) is two cheap triangular solves:</p>
@@ -996,9 +1003,6 @@ disp('Solution x ='); disp(x)</textarea>
      -1</pre></div>
 
 
-        <h3 id="lu-sym">🎞 Animation: LU factorization (symbols only)</h3>
-        <p>See the multipliers drop into <i>L</i> while <i>A</i> turns into <i>U</i>, then the two cheap triangular solves. Everything is parametric: entries are symbols, and you can change the size <i>n</i>. Use <b>Step</b>, <b>Back</b>, <b>Auto</b>, or drag the progress bar.</p>
-        <div class="demo sd-demo" data-sd="lu" data-n="4"></div>
         <p class="note-src">Source: LU Factorization lecture (slides).</p>
       </div>
     </section>
@@ -1008,6 +1012,11 @@ disp('Solution x ='); disp(x)</textarea>
       <div class="panel">
         <h2>2.8 Cholesky factorization</h2>
         <div class="voicebar"><span class="vlabel">🔊 Listen to this section</span><audio controls preload="metadata" src="assets/audio/m2_chol.mp3"></audio></div>
+        <h3 id="chol-sym" style="margin-top:.4rem">🎞 Lecture animation: Cholesky factorization</h3>
+        <p>This animation <b>is</b> the lecture for this section. Watch how symmetry lets us compute only half of everything. Use <b>Step</b> / <b>Back</b>, <b>Auto</b>, or drag the progress bar; change <i>n</i> to see the pattern generalise.</p>
+        <div class="demo sd-demo" data-sd="chol" data-n="4"></div>
+        <div class="callout idea"><div class="h">📌 What to remember</div><ul><li>Requires <i>A</i> symmetric <b>and</b> positive definite; then <i>A</i> = <i>L L</i><sup>T</sup> with positive diagonal in <i>L</i>.</li><li>About half the cost of LU (≈ <i>n³/3</i>) and half the storage; stable without pivoting.</li><li>The algorithm doubles as a test: a non-positive value under a square root means <i>A</i> is <b>not</b> positive definite.</li></ul></div>
+        <h3>Reference: definitions, example &amp; code</h3>
         <p>When \(A\) is <b>symmetric and positive definite</b> (all eigenvalues positive), it has a special, cheaper factorization into a lower-triangular matrix times its own transpose:</p>
         <div class="eqn">\[ A = L\,L^{\mathsf{T}}. \]</div>
         <p>Cholesky is about <b>twice as fast</b> as LU and numerically very stable — the method of choice for the symmetric positive-definite systems that arise in least-squares (Module 3) and many engineering problems. Solving uses the same two-step idea:</p>
@@ -1035,9 +1044,6 @@ disp('Solution x ='); disp(x)</textarea>
      1</pre></div>
 
 
-        <h3 id="chol-sym">🎞 Animation: Cholesky factorization (symbols only)</h3>
-        <p>See <i>L</i> built column by column from the lower triangle of <i>A</i>, with <i>L</i><sup>T</sup> mirrored for free. Everything is parametric: entries are symbols, and you can change the size <i>n</i>. Use <b>Step</b>, <b>Back</b>, <b>Auto</b>, or drag the progress bar.</p>
-        <div class="demo sd-demo" data-sd="chol" data-n="4"></div>
         <div class="callout def"><div class="h">📐 Positive definite?</div>A symmetric matrix is positive definite iff every pivot in Cholesky is real and positive. If <code>chol</code> errors, \(A\) is not positive definite — fall back to LU.</div>
         <p class="note-src">Source: Cholesky Factorization lecture (slides).</p>
       </div>
