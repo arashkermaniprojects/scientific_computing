@@ -45,9 +45,13 @@
         <li><a href="#compare">2.5 Comparison & polynomials</a></li>
         <li><a href="#gauss">2.6 Gaussian elimination</a></li>
         <li><a href="#gauss-demo" class="sub">🎛 Demo: elimination</a></li>
+        <li><a href="#gauss-sym" class="sub">🎞 Animation: elimination (symbolic)</a></li>
         <li><a href="#lu">2.7 LU factorization</a></li>
+        <li><a href="#lu-sym" class="sub">🎞 Animation: LU (symbolic)</a></li>
         <li><a href="#chol">2.8 Cholesky factorization</a></li>
+        <li><a href="#chol-sym" class="sub">🎞 Animation: Cholesky (symbolic)</a></li>
         <li><a href="#quiz">✏️ Practice examples</a></li>
+        <li><a href="module2_selfstudy.html">📝 Self-study hour: root finding</a></li>
       </ul>
     </div>
     <div id="progressWidget" class="progress-card"></div>
@@ -65,6 +69,8 @@
         <span class="clo-chip">🧪 Assessed by Midterm &amp; Lab</span>
       </div>
     </section>
+
+    <div class="callout tip" style="margin-top:1.2rem"><div class="h">📝 Self-study hour</div>After this week's class, work through the <a href="module2_selfstudy.html"><b>Root-finding self-study page</b></a> — a one-hour, self-paced session on fixed-point iteration, bisection and Newton's method with worked examples, MATLAB exercises and a self-check quiz.</div>
 
     <section class="section" id="intro">
       <div class="panel">
@@ -953,6 +959,10 @@ X_builtin = A \ B;</textarea>
           </div>
           <div class="readout" id="geOut"></div>
         </div>
+
+        <h3 id="gauss-sym">🎞 Animation: Gaussian elimination (symbols only)</h3>
+        <p>Watch pivot, multiplier and row update for each stage, then back substitution. Everything is parametric: entries are symbols, and you can change the size <i>n</i>. Use <b>Step</b>, <b>Back</b>, <b>Auto</b>, or drag the progress bar.</p>
+        <div class="demo sd-demo" data-sd="gauss" data-n="4"></div>
         <div class="callout idea"><div class="h">💡 After elimination</div>Once the matrix is upper-triangular, <b>back-substitution</b> reads off the unknowns from the bottom row up — here giving \(x=1,\ y=2,\ z=3\).</div>
       </div>
     </section>
@@ -985,6 +995,10 @@ disp('Solution x ='); disp(x)</textarea>
       2
      -1</pre></div>
 
+
+        <h3 id="lu-sym">🎞 Animation: LU factorization (symbols only)</h3>
+        <p>See the multipliers drop into <i>L</i> while <i>A</i> turns into <i>U</i>, then the two cheap triangular solves. Everything is parametric: entries are symbols, and you can change the size <i>n</i>. Use <b>Step</b>, <b>Back</b>, <b>Auto</b>, or drag the progress bar.</p>
+        <div class="demo sd-demo" data-sd="lu" data-n="4"></div>
         <p class="note-src">Source: LU Factorization lecture (slides).</p>
       </div>
     </section>
@@ -1020,6 +1034,10 @@ disp('Solution x ='); disp(x)</textarea>
      1
      1</pre></div>
 
+
+        <h3 id="chol-sym">🎞 Animation: Cholesky factorization (symbols only)</h3>
+        <p>See <i>L</i> built column by column from the lower triangle of <i>A</i>, with <i>L</i><sup>T</sup> mirrored for free. Everything is parametric: entries are symbols, and you can change the size <i>n</i>. Use <b>Step</b>, <b>Back</b>, <b>Auto</b>, or drag the progress bar.</p>
+        <div class="demo sd-demo" data-sd="chol" data-n="4"></div>
         <div class="callout def"><div class="h">📐 Positive definite?</div>A symmetric matrix is positive definite iff every pivot in Cholesky is real and positive. If <code>chol</code> errors, \(A\) is not positive definite — fall back to LU.</div>
         <p class="note-src">Source: Cholesky Factorization lecture (slides).</p>
       </div>
@@ -1151,6 +1169,7 @@ disp('Solution x ='); disp(x)</textarea>
 <footer class="site">BCS 311 · Scientific Computing — Module 2 of 5 · Dr. Arash Kermani Kolankeh.</footer>
 
 <script src="assets/app.js"></script>
+<script src="assets/symdemo.js"></script>
 <script>
 /* ===== shared plot helper ===== */
 function makePlotter(cv){

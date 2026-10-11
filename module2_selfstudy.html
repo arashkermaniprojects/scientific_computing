@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Module 2 · Self-Study Hour: Root Finding — BCS 311</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+<script>window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['\\[','\\]']]},svg:{fontCache:'global'}};</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" async></script>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="logo" href="index.html"><span class="badge">BCS&nbsp;311</span> Scientific Computing</a>
+    <button class="menu-toggle" aria-label="Menu">☰</button>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="module1.html">1 · MATLAB</a>
+      <a href="module2.html" class="active">2 · Equations</a>
+      <a href="module3.html">3 · Least Squares</a>
+      <a href="module4.html">4 · Interpolation</a>
+      <a href="module5.html">5 · Integration & ODEs</a>
+    </nav>
+  </div>
+</header>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="card">
+      <h4>Self-study · Module 2</h4>
+      <ul class="toc">
+        <li><a href="#start">Before you start</a></li>
+        <li><a href="#recap">① Recap (5 min)</a></li>
+        <li><a href="#worked">② Worked examples (15 min)</a></li>
+        <li><a href="#w1" class="sub">W1 · Bisection</a></li>
+        <li><a href="#w2" class="sub">W2 · Newton</a></li>
+        <li><a href="#w3" class="sub">W3 · Fixed-point</a></li>
+        <li><a href="#lab">③ MATLAB exercises (25 min)</a></li>
+        <li><a href="#e1" class="sub">E1 · myBisect</a></li>
+        <li><a href="#e2" class="sub">E2 · myNewton</a></li>
+        <li><a href="#e3" class="sub">E3 · Convergence race</a></li>
+        <li><a href="#e4" class="sub">E4 · Stretch: bungee jumper</a></li>
+        <li><a href="#selfcheck">④ Self-check (10 min)</a></li>
+        <li><a href="#next">Before next class</a></li>
+      </ul>
+    </div>
+    <div id="progressWidget" class="progress-card"></div>
+  </aside>
+
+  <main class="content">
+
+    <section class="hero" style="padding:2rem 2.2rem">
+      <div class="kicker">Module 2 · CLO-2 · Self-study hour</div>
+      <h1 style="font-size:2rem">Root Finding — Self-Study</h1>
+      <p style="margin-bottom:.4rem">Your second hour this week. You have already seen fixed-point iteration, bisection and Newton's method in class. Here you work through them on your own: recap, follow worked examples, write the methods as MATLAB functions, and check your understanding before the next session.</p>
+      <div class="pill-row">
+        <span class="clo-chip">⏱ 60 minutes</span>
+        <span class="clo-chip">🧪 MATLAB Online</span>
+        <span class="clo-chip">📘 Chapra Ch. 5, 6</span>
+      </div>
+    </section>
+
+    <!-- START -->
+    <section class="section" id="start">
+      <div class="panel">
+        <h2>Before you start</h2>
+        <p>Open <a href="https://matlab.mathworks.com" target="_blank" rel="noopener">MATLAB Online</a> in a second tab and sign in with your university account. Keep paper and a calculator next to you — the worked examples ask you to fill in rows by hand before revealing them.</p>
+        <div class="tablewrap">
+          <table class="data">
+            <thead><tr><th>Part</th><th class="l">What you do</th><th>Time</th></tr></thead>
+            <tbody>
+              <tr><td>①</td><td class="l">Recap the three methods and the stopping rule</td><td>5 min</td></tr>
+              <tr><td>②</td><td class="l">Follow three worked examples; complete the missing rows on paper</td><td>15 min</td></tr>
+              <tr><td>③</td><td class="l">Write <code>myBisect</code> and <code>myNewton</code>, race the methods, try the stretch problem</td><td>25 min</td></tr>
+              <tr><td>④</td><td class="l">Self-check quiz — 3 questions per method</td><td>10 min</td></tr>
+              <tr><td>—</td><td class="l">Buffer / note down questions for next class</td><td>5 min</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout tip"><div class="h">🛠 How to use this hour</div>Try every step <b>before</b> pressing <b>Reveal answer</b>. If you are stuck for more than five minutes, reveal, read the answer carefully, then close it and redo the step yourself. As in the labs, do not use AI — you will not have it in the assessments.</div>
+      </div>
+    </section>
+
+    <!-- RECAP -->
+    <section class="section" id="recap">
+      <div class="panel">
+        <h2>① Recap: three ways to solve \(f(x)=0\)</h2>
+        <p>Most non-linear equations have no closed-form solution, so we start from a guess and <b>iterate</b> until the change is below a tolerance \(\varepsilon\). Each method below has a full lesson on the <a href="module2.html">Module 2 page</a> — follow the links if something here feels unfamiliar.</p>
+
+        <div class="fcard">
+          <div class="flabel">Fixed-point iteration · <a href="module2.html#fixed" style="color:inherit">lesson 2.1</a></div>
+          \[ \text{rewrite } f(x)=0 \text{ as } x=g(x), \qquad x_{n+1}=g(x_n), \qquad \text{converges near } r \text{ if } |g'(r)|<1. \]
+        </div>
+        <div class="fcard">
+          <div class="flabel">Bisection · <a href="module2.html#bisect" style="color:inherit">lesson 2.2</a></div>
+          \[ f(a)\,f(b)<0, \qquad c=\frac{a+b}{2}, \qquad \text{keep the half that still changes sign}, \qquad E_n=\frac{b-a}{2}. \]
+        </div>
+        <div class="fcard">
+          <div class="flabel">Newton's method · <a href="module2.html#newton" style="color:inherit">lesson 2.3</a></div>
+          \[ x_{n+1}=x_n-\frac{f(x_n)}{f'(x_n)}. \]
+        </div>
+
+        <div class="callout def"><div class="h">📏 The stopping rule used throughout</div>
+          Stop when the error estimate is below the tolerance, \(E_n<\varepsilon\), <b>or</b> when a maximum number of iterations is reached — whichever comes first. For bisection \(E_n=\tfrac{b-a}{2}\); for fixed-point and Newton \(E_n=|x_{n+1}-x_n|\). The iteration cap protects you from methods that never converge.
+        </div>
+
+        <div class="tablewrap">
+          <table class="data">
+            <thead><tr><th class="l">Method</th><th>Needs</th><th>Convergence</th><th>Guaranteed?</th></tr></thead>
+            <tbody>
+              <tr><td class="l">Fixed-point</td><td>a good \(g(x)\)</td><td>linear (error × \(|g'(r)|\) per step)</td><td>only if \(|g'|<1\)</td></tr>
+              <tr><td class="l">Bisection</td><td>bracket \([a,b]\)</td><td>linear (error halves per step)</td><td>✅ yes, if sign change</td></tr>
+              <tr><td class="l">Newton</td><td>\(f'\) + a good guess</td><td>quadratic (digits ≈ double)</td><td>no</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- WORKED EXAMPLES -->
+    <section class="section" id="worked">
+      <h2 class="section-title">② Worked examples</h2>
+      <p class="section-sub">All three examples solve the <b>same equation</b>, \(f(x)=x^3-x-2=0\), whose only real root is \(r\approx1.52138\). Seeing one problem three ways makes the differences between the methods obvious.</p>
+
+      <!-- W1 -->
+      <div class="panel" id="w1">
+        <h2>W1 · Bisection on \(x^3-x-2\) <span class="tag">fully worked</span></h2>
+        <p>Initial interval \([a,b]=[1,2]\): \(f(1)=-2<0\) and \(f(2)=4>0\), so a root is bracketed. Halve until \(E_n=\tfrac{b-a}{2}<\varepsilon=0.01\), or after at most <b>20 iterations</b>. Four decimals.</p>
+        <div class="tablewrap">
+          <table class="data">
+            <thead><tr><th>n</th><th>\(a\)</th><th>\(b\)</th><th>\(c=\tfrac{a+b}{2}\)</th><th>\(f(c)\)</th><th>keep</th><th>\(E_n=\tfrac{b-a}{2}\)</th></tr></thead>
+            <tbody>
+              <tr><td>1</td><td>1.0000</td><td>2.0000</td><td>1.5000</td><td>−0.1250</td><td>[c, b]</td><td>0.5000</td></tr>
+              <tr><td>2</td><td>1.5000</td><td>2.0000</td><td>1.7500</td><td>+1.6094</td><td>[a, c]</td><td>0.2500</td></tr>
+              <tr><td>3</td><td>1.5000</td><td>1.7500</td><td>1.6250</td><td>+0.6660</td><td>[a, c]</td><td>0.1250</td></tr>
+              <tr><td>4</td><td>1.5000</td><td>1.6250</td><td>1.5625</td><td>+0.2522</td><td>[a, c]</td><td>0.0625</td></tr>
+              <tr><td>5</td><td>1.5000</td><td>1.5625</td><td>1.5312</td><td>+0.0591</td><td>[a, c]</td><td>0.0312</td></tr>
+              <tr><td>6</td><td>1.5000</td><td>1.5312</td><td>1.5156</td><td>−0.0341</td><td>[c, b]</td><td>0.0156</td></tr>
+              <tr class="converged"><td>7</td><td>1.5156</td><td>1.5312</td><td>1.5234</td><td>+0.0123</td><td>[a, c]</td><td>0.0078 &lt; ε ✓</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p><b>How to read a row.</b> In row 1, \(f(a)=f(1)=-2\) and \(f(c)=-0.125\) have the <em>same</em> sign, so the sign change must be in the right half: keep \([c,b]\). In row 2, \(f(a)=f(1.5)&lt;0\) but \(f(c)=+1.609\), so keep \([a,c]\).</p>
+        <p>After 7 halvings \(x\approx1.5234\) with error bound 0.0078; the true root \(1.52138\) is indeed within 0.0078 of it.</p>
+        <div class="callout idea"><div class="h">💡 Predict the count in advance</div>The bound after \(n\) halvings is \(\tfrac{b_0-a_0}{2^{n}}\). With \(b_0-a_0=1\) and \(\varepsilon=0.01\) we need \(2^{n}&gt;100\), i.e. \(n=7\) — exactly what the table shows. Bisection is the only method here whose iteration count you can compute <em>before</em> running it.</div>
+      </div>
+
+      <!-- W2 -->
+      <div class="panel" id="w2">
+        <h2>W2 · Newton on \(x^3-x-2\) <span class="tag">partially worked</span></h2>
+        <p>Initial value \(x_0=1.5\), \(f'(x)=3x^2-1\). Stop when \(E_n=|x_{n+1}-x_n|&lt;\varepsilon=10^{-6}\), or after at most <b>20 iterations</b>. Six decimals.</p>
+        <p>Row 0 is done for you: \(f(1.5)=3.375-1.5-2=-0.125\), \(f'(1.5)=3(2.25)-1=5.75\), so \(x_1=1.5-\tfrac{-0.125}{5.75}=1.521739\).</p>
+        <div class="tablewrap">
+          <table class="data">
+            <thead><tr><th>n</th><th>\(x_n\)</th><th>\(f(x_n)\)</th><th>\(f'(x_n)\)</th><th>\(x_{n+1}\)</th><th>\(E_n=|x_{n+1}-x_n|\)</th></tr></thead>
+            <tbody>
+              <tr><td>0</td><td>1.500000</td><td>−0.125000</td><td>5.750000</td><td>1.521739</td><td>0.021739</td></tr>
+              <tr><td>1</td><td>1.521739</td><td>?</td><td>?</td><td>?</td><td>?</td></tr>
+              <tr><td>2</td><td>?</td><td>?</td><td>?</td><td>?</td><td>?</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="practice">
+          <span class="ptag">✏️ Your turn</span>
+          <p style="margin:.2rem 0">Complete rows 1 and 2 on paper. Does row 2 meet the tolerance?</p>
+          <details class="reveal"><summary>Reveal answer</summary>
+            <div class="answer">
+              <div class="tablewrap"><table class="data">
+                <thead><tr><th>n</th><th>\(x_n\)</th><th>\(f(x_n)\)</th><th>\(f'(x_n)\)</th><th>\(x_{n+1}\)</th><th>\(E_n\)</th></tr></thead>
+                <tbody>
+                  <tr><td>0</td><td>1.500000</td><td>−0.125000</td><td>5.750000</td><td>1.521739</td><td>0.021739</td></tr>
+                  <tr><td>1</td><td>1.521739</td><td>0.002137</td><td>5.947070</td><td>1.521380</td><td>0.000359</td></tr>
+                  <tr class="converged"><td>2</td><td>1.521380</td><td>0.000001</td><td>5.943790</td><td>1.521380</td><td>0.0000001 &lt; ε ✓</td></tr>
+                </tbody>
+              </table></div>
+              <span class="final">E₂ ≈ 1×10⁻⁷ &lt; 10⁻⁶ → stop at n = 2,   x ≈ 1.521380</span>
+              <p style="margin-top:.6rem">Look at the error column: \(0.022 \to 0.00036 \to 10^{-7}\). Each error is roughly the <b>square</b> of the previous one — quadratic convergence. Newton reaches six decimals in 3 steps; bisection needed 7 steps just for two.</p>
+            </div>
+          </details>
+        </div>
+        <div class="callout warn"><div class="h">⚠️ Same equation, bad start</div>Start Newton at \(x_0=0.6\) instead. There \(f'(0.6)=0.08\) is almost zero (the curve is nearly flat at \(x=1/\sqrt3\approx0.577\)), so the tangent hits the axis far away: \(x_1\approx30.4\). The method does eventually crawl back, but needs 13 steps instead of 3. A near-zero \(f'\) is the classic way Newton goes wrong.</div>
+      </div>
+
+      <!-- W3 -->
+      <div class="panel" id="w3">
+        <h2>W3 · Fixed-point: a good \(g\) and a bad \(g\) <span class="tag">partially worked</span></h2>
+        <p>Solve \(x=e^{-x}\) (equivalently \(f(x)=x-e^{-x}=0\), root \(r\approx0.567143\)). The same equation can be rearranged in two ways:</p>
+        <div class="two-col">
+          <div class="callout idea" style="margin:0"><div class="h">Option A: \(g(x)=e^{-x}\)</div>\(g'(x)=-e^{-x}\), so \(|g'(r)|\approx0.567&lt;1\) → <b>converges</b>.</div>
+          <div class="callout warn" style="margin:0"><div class="h">Option B: \(g(x)=-\ln x\)</div>\(g'(x)=-1/x\), so \(|g'(r)|\approx1.76&gt;1\) → <b>diverges</b>.</div>
+        </div>
+
+        <h3>Option A — initial value \(x_0=0.5\), \(\varepsilon=0.01\), max 20 iterations, four decimals</h3>
+        <div class="tablewrap">
+          <table class="data">
+            <thead><tr><th>n</th><th>\(x_n\)</th><th>\(x_{n+1}=e^{-x_n}\)</th><th>\(E_n=|x_{n+1}-x_n|\)</th><th>\(E_n&lt;\varepsilon?\)</th></tr></thead>
+            <tbody>
+              <tr><td>0</td><td>0.5000</td><td>0.6065</td><td>0.1065</td><td>no</td></tr>
+              <tr><td>1</td><td>0.6065</td><td>0.5452</td><td>0.0613</td><td>no</td></tr>
+              <tr><td>2</td><td>0.5452</td><td>0.5797</td><td>0.0345</td><td>no</td></tr>
+              <tr><td>3</td><td>?</td><td>?</td><td>?</td><td>?</td></tr>
+              <tr><td>4</td><td>?</td><td>?</td><td>?</td><td>?</td></tr>
+              <tr><td>5</td><td>?</td><td>?</td><td>?</td><td>?</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="practice">
+          <span class="ptag">✏️ Your turn</span>
+          <p style="margin:.2rem 0">Complete rows 3–5. Then notice the pattern in the \(x_n\) column: does it approach the root from one side or from both?</p>
+          <details class="reveal"><summary>Reveal answer</summary>
+            <div class="answer">
+              <div class="tablewrap"><table class="data">
+                <thead><tr><th>n</th><th>\(x_n\)</th><th>\(x_{n+1}\)</th><th>\(E_n\)</th><th>\(E_n&lt;\varepsilon?\)</th></tr></thead>
+                <tbody>
+                  <tr><td>3</td><td>0.5797</td><td>0.5601</td><td>0.0196</td><td>no</td></tr>
+                  <tr><td>4</td><td>0.5601</td><td>0.5712</td><td>0.0111</td><td>no</td></tr>
+                  <tr class="converged"><td>5</td><td>0.5712</td><td>0.5649</td><td>0.0063</td><td>✓ stop</td></tr>
+                </tbody>
+              </table></div>
+              <span class="final">E₅ = 0.0063 &lt; 0.01 → stop at n = 5,   x ≈ 0.565   (true r = 0.567143)</span>
+              <p style="margin-top:.6rem">The iterates <b>zig-zag</b> around the root (0.607, 0.545, 0.580, 0.560, …) because \(g'(r)\) is <b>negative</b>. Each error is about \(0.57\times\) the previous one — that factor is \(|g'(r)|\). Compare the <a href="module2.html#fixed-demo">cobweb demo</a> on the Module 2 page.</p>
+            </div>
+          </details>
+        </div>
+
+        <h3>Option B — the same start, \(x_0=0.5\), with \(g(x)=-\ln x\)</h3>
+        <div class="tablewrap">
+          <table class="data">
+            <thead><tr><th>n</th><th>\(x_n\)</th><th>\(x_{n+1}=-\ln x_n\)</th><th>\(E_n\)</th></tr></thead>
+            <tbody>
+              <tr><td>0</td><td>0.5000</td><td>0.6931</td><td>0.1931</td></tr>
+              <tr><td>1</td><td>0.6931</td><td>0.3665</td><td>0.3266</td></tr>
+              <tr><td>2</td><td>0.3665</td><td>1.0037</td><td>0.6372</td></tr>
+              <tr><td>3</td><td>1.0037</td><td>−0.0037</td><td>1.0074</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>The error <b>grows</b> every step, and at \(n=4\) we would need \(\ln(-0.0037)\), which is not a real number — the iteration has broken down. Same equation, same starting point: only the choice of \(g\) changed. Always check \(|g'|&lt;1\) near the root before iterating.</p>
+      </div>
+    </section>
+
+    <!-- MATLAB EXERCISES -->
+    <section class="section" id="lab">
+      <h2 class="section-title">③ Hands-on MATLAB exercises</h2>
+      <p class="section-sub">Copy each starter into MATLAB Online, fill in the <code>___</code> blanks, and run it. As in the labs, each function goes in its own file named after the function (e.g. <code>myBisect.m</code>), and every function must be <b>called</b> to be tested.</p>
+
+      <!-- E1 -->
+      <div class="panel" id="e1">
+        <h2>E1 · Turn bisection into a function</h2>
+        <p>In class you ran bisection as a script. Turn it into a reusable function <code>[root, n] = myBisect(f, a, b, tol, nmax)</code> that returns the root estimate and the number of halvings. It must <b>refuse to start</b> if there is no sign change on \([a,b]\).</p>
+        <div class="codewrap editable">
+          <div class="codehead"><span class="lang"><span class="dot"></span>MATLAB · editable · myBisect.m (starter)</span><button class="copybtn">Copy</button></div>
+          <textarea spellcheck="false" rows="15">function [root, n] = myBisect(f, a, b, tol, nmax)
+% MYBISECT  Root of f on [a,b] by bisection.
+if f(a)*f(b) > ___
+    error('f(a) and f(b) must have opposite signs');
+end
+n = 0;
+while (b - a)/2 >= tol && n < ___
+    c = ___;
+    if f(a)*f(c) < 0,  b = ___;  else  a = ___;  end
+    n = n + 1;
+end
+root = (a + b)/2;
+end</textarea>
+        </div>
+        <p>Test it in the Command Window, including one call that <em>should</em> fail:</p>
+        <div class="codewrap editable">
+          <div class="codehead"><span class="lang"><span class="dot"></span>MATLAB · editable · test calls</span><button class="copybtn">Copy</button></div>
+          <textarea spellcheck="false" rows="5">f = @(x) x.^3 - x - 2;
+[r, n] = myBisect(f, 1, 2, 1e-6, 100);
+fprintf('root = %.6f after %d halvings\n', r, n);
+
+myBisect(f, 2, 3, 1e-6, 100)     % no sign change: f(2)=4, f(3)=22</textarea>
+        </div>
+        <div class="practice">
+          <span class="ptag">✏️ Check yourself</span>
+          <p style="margin:.2rem 0">Before running: using the bound \(\tfrac{1}{2^{n}}&lt;2\times10^{-6}\), how many halvings do you expect?</p>
+          <details class="reveal"><summary>Reveal solution &amp; output</summary>
+            <div class="answer">
+              <div class="codewrap has-output">
+                <div class="codehead"><span class="lang"><span class="dot"></span>MATLAB · myBisect.m (solution)</span><button class="copybtn">Copy</button></div>
+                <pre class="plain"><code>function [root, n] = myBisect(f, a, b, tol, nmax)
+% MYBISECT  Root of f on [a,b] by bisection.
+if f(a)*f(b) > 0
+    error('f(a) and f(b) must have opposite signs');
+end
+n = 0;
+while (b - a)/2 >= tol && n < nmax
+    c = (a + b)/2;
+    if f(a)*f(c) < 0,  b = c;  else  a = c;  end
+    n = n + 1;
+end
+root = (a + b)/2;
+end</code></pre>
+              </div>
+              <div class="mout"><div class="mout-head">Command Window output</div><pre>root = 1.521380 after 19 halvings
+Error using myBisect
+f(a) and f(b) must have opposite signs</pre></div>
+              <p>The loop stops when \((b-a)/2&lt;10^{-6}\), i.e. \(1/2^{n+1}&lt;10^{-6}\), which first happens at \(n=19\) (\(2^{20}\approx1.05\times10^{6}\)). The second call stops at the guard — without it, bisection would silently return a meaningless "root" near 2.</p>
+            </div>
+          </details>
+        </div>
+      </div>
+
+      <!-- E2 -->
+      <div class="panel" id="e2">
+        <h2>E2 · Newton as a function</h2>
+        <p>Write <code>[root, n] = myNewton(f, fp, x0, tol, nmax)</code>, where <code>fp</code> is the derivative. Stop when \(|x_{n+1}-x_n|&lt;\) <code>tol</code> or after <code>nmax</code> steps. Then compare it with MATLAB's <code>fzero</code>.</p>
+        <div class="codewrap editable">
+          <div class="codehead"><span class="lang"><span class="dot"></span>MATLAB · editable · myNewton.m (starter)</span><button class="copybtn">Copy</button></div>
+          <textarea spellcheck="false" rows="13">function [root, n] = myNewton(f, fp, x0, tol, nmax)
+% MYNEWTON  Root of f by Newton's method from initial value x0.
+x = x0;
+for n = 1:nmax
+    xnew = ___;                    % Newton update
+    if abs(___) < tol
+        root = xnew;
+        return
+    end
+    x = ___;
+end
+root = x;                          % reached nmax without converging
+end</textarea>
+        </div>
+        <div class="codewrap editable">
+          <div class="codehead"><span class="lang"><span class="dot"></span>MATLAB · editable · test calls</span><button class="copybtn">Copy</button></div>
+          <textarea spellcheck="false" rows="5">f  = @(x) x.^3 - x - 2;
+fp = @(x) 3*x.^2 - 1;
+[r, n] = myNewton(f, fp, 1.5, 1e-6, 50);
+fprintf('myNewton = %.10f after %d steps\n', r, n);
+fprintf('fzero    = %.10f\n', fzero(f, 1.5));</textarea>
+        </div>
+        <div class="practice">
+          <span class="ptag">✏️ Check yourself</span>
+          <p style="margin:.2rem 0">Your step count should match W2. Then change the initial value to <code>0.6</code> and compare the number of steps.</p>
+          <details class="reveal"><summary>Reveal solution &amp; output</summary>
+            <div class="answer">
+              <div class="codewrap has-output">
+                <div class="codehead"><span class="lang"><span class="dot"></span>MATLAB · myNewton.m (solution)</span><button class="copybtn">Copy</button></div>
+                <pre class="plain"><code>function [root, n] = myNewton(f, fp, x0, tol, nmax)
+% MYNEWTON  Root of f by Newton's method from initial value x0.
+x = x0;
+for n = 1:nmax
+    xnew = x - f(x)/fp(x);         % Newton update
+    if abs(xnew - x) < tol
+        root = xnew;
+        return
+    end
+    x = xnew;
+end
+root = x;                          % reached nmax without converging
+end</code></pre>
+              </div>
+              <div class="mout"><div class="mout-head">Command Window output</div><pre>myNewton = 1.5213797068 after 3 steps
+fzero    = 1.5213797068</pre></div>
+              <p>3 steps — the three rows of W2. From \(x_0=0.6\) the first step jumps to \(x_1\approx30.4\), and it takes <b>13 steps</b> instead of 3 to come back: same method, same equation, only the initial value changed.</p>
+            </div>
+          </details>
+        </div>
+      </div>
+
+      <!-- E3 -->
+      <div class="panel" id="e3">
+        <h2>E3 · The convergence race</h2>
+        <p>Run all three methods on \(x^3-x-2=0\) with the same tolerance \(10^{-8}\) and plot the <b>true error</b> \(|x_n-r|\) at every step on a log scale. For fixed-point use \(g(x)=(x+2)^{1/3}\) (from \(x^3=x+2\)). This script is complete — run it, then answer the questions below.</p>
+        <div class="codewrap editable has-output">
+          <div class="codehead"><span class="lang"><span class="dot"></span>MATLAB · editable · race.m</span><button class="copybtn">Copy</button></div>
+          <textarea spellcheck="false" rows="30">f  = @(x) x.^3 - x - 2;
+fp = @(x) 3*x.^2 - 1;
+g  = @(x) (x + 2).^(1/3);
+r  = fzero(f, 1.5);              % reference root
+tol = 1e-8;
+
+% bisection on [1, 2]
+a = 1;  b = 2;  eb = [];
+while (b - a)/2 >= tol
+    c = (a + b)/2;
+    if f(a)*f(c) < 0,  b = c;  else  a = c;  end
+    eb(end+1) = abs((a + b)/2 - r);
+end
+
+% fixed-point from x0 = 1.5
+x = 1.5;  ef = [];
+while true
+    xnew = g(x);  ef(end+1) = abs(xnew - r);
+    if abs(xnew - x) < tol,  break;  end
+    x = xnew;
+end
+
+% Newton from x0 = 1.5
+x = 1.5;  en = [];
+while true
+    xnew = x - f(x)/fp(x);  en(end+1) = abs(xnew - r);
+    if abs(xnew - x) < tol,  break;  end
+    x = xnew;
+end
+
+fprintf('iterations: bisection %d, fixed-point %d, Newton %d\n', numel(eb), numel(ef), numel(en));
+semilogy(1:numel(eb), eb, 'b-o', 1:numel(ef), ef, 'g-^', 1:numel(en), en, 'r-s')
+xlabel('iteration n');  ylabel('|x_n - r|');  grid on
+legend('bisection', 'fixed-point', 'Newton');  title('Convergence race on x^3 - x - 2 = 0')</textarea>
+        </div>
+<div class="mout"><div class="mout-head">Command Window output</div><pre>iterations: bisection 26, fixed-point 9, Newton 4</pre></div>
+<div class="figout"><div class="mout-head" style="background:#eef3f9">Figure output</div><img src="assets/figs/m2s_race.png" alt="figure: semilog plot of error versus iteration — bisection a slow jagged line over 26 steps, fixed-point a straight line over 9 steps, Newton a steepening curve over 3 steps"><div class="cap">figure: error vs. iteration on a log scale — bisection (blue), fixed-point (green), Newton (red)</div></div>
+        <div class="practice">
+          <span class="ptag">✏️ Read the plot</span>
+          <ol>
+            <li>Fixed-point gives a <b>straight line</b> on a log scale. What does that tell you about how the error shrinks? Estimate the factor per step from the plot and compare with \(g'(r)=\tfrac{1}{3(r+2)^{2/3}}\).</li>
+            <li>Why is the bisection line <b>jagged</b>, even though its error <em>bound</em> halves every step?</li>
+            <li>Why does the Newton curve get <b>steeper</b> every step instead of being straight?</li>
+          </ol>
+          <details class="reveal"><summary>Reveal answers</summary>
+            <div class="answer">
+              <ol>
+                <li>A straight line on a log scale means the error is multiplied by the <b>same factor</b> every step — linear convergence. The line drops about one decade per 1.2 steps, a factor of ≈ 0.14, matching \(g'(r)=1/(3\cdot3.5214^{2/3})\approx0.144\).</li>
+                <li>The bound \(\tfrac{b-a}{2}\) halves exactly, but the true error depends on where the root happens to sit in the bracket — sometimes the midpoint lands very close to it by luck (e.g. step 21), and the next step moves away again.</li>
+                <li>Quadratic convergence: \(E_{n+1}\approx C\,E_n^{2}\), so the number of correct digits roughly <b>doubles</b> each step (\(3.6\times10^{-4}\to9.9\times10^{-8}\to7.5\times10^{-15}\)). The 4th error is exactly 0 in double precision, so <code>semilogy</code> cannot plot it.</li>
+              </ol>
+            </div>
+          </details>
+        </div>
+      </div>
+
+      <!-- E4 -->
+      <div class="panel" id="e4">
+        <h2>E4 · Stretch: the bungee jumper <span class="tag">optional</span></h2>
+        <p>This is the opening problem of Chapra Ch. 5. A bungee jumper's velocity after \(t\) seconds of free fall is</p>
+        <div class="eqn">\[ v(t)=\sqrt{\frac{g\,m}{c_d}}\;\tanh\!\left(\sqrt{\frac{g\,c_d}{m}}\;t\right), \qquad g=9.81\ \text{m/s}^2,\quad c_d=0.25\ \text{kg/m}. \]</div>
+        <p>What <b>mass</b> \(m\) makes the jumper reach \(v=36\) m/s after \(t=4\) s? You cannot solve for \(m\) algebraically — so write it as a root problem \(F(m)=v(4)-36=0\) and use your <code>myBisect</code>.</p>
+        <div class="practice">
+          <span class="ptag">✏️ Your task</span>
+          <ul>
+            <li>Define <code>F</code> as an anonymous function of <code>m</code>.</li>
+            <li>Find a bracket: evaluate <code>F(50)</code> and <code>F(200)</code> — do they have opposite signs?</li>
+            <li>Call <code>myBisect(F, 50, 200, 1e-6, 100)</code> and compare with <code>fzero(F, [50 200])</code>.</li>
+            <li>Why would Newton be less convenient here?</li>
+          </ul>
+          <details class="reveal"><summary>Reveal solution &amp; output</summary>
+            <div class="answer">
+              <div class="codewrap has-output">
+                <div class="codehead"><span class="lang"><span class="dot"></span>MATLAB · bungee.m</span><button class="copybtn">Copy</button></div>
+                <pre class="plain"><code>g = 9.81;  cd = 0.25;  t = 4;  v = 36;
+F = @(m) sqrt(g*m/cd) .* tanh(sqrt(g*cd./m)*t) - v;
+fprintf('F(50) = %.4f,  F(200) = %.4f\n', F(50), F(200));
+[m, n] = myBisect(F, 50, 200, 1e-6, 100);
+fprintf('myBisect: m = %.4f kg after %d halvings\n', m, n);
+fprintf('fzero:    m = %.4f kg\n', fzero(F, [50 200]));</code></pre>
+              </div>
+              <div class="mout"><div class="mout-head">Command Window output</div><pre>F(50) = -4.5794,  F(200) = 0.8603
+myBisect: m = 142.7376 kg after 27 halvings
+fzero:    m = 142.7376 kg</pre></div>
+              <span class="final">m ≈ 142.74 kg</span>
+              <p style="margin-top:.6rem">Newton would need \(F'(m)\), and differentiating this expression with respect to \(m\) by hand is messy and error-prone. Bisection only needs a bracket — which is why a derivative-free method is often the practical choice for "real" formulas. (Next week's secant method is another way around the derivative.)</p>
+            </div>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <!-- SELF-CHECK -->
+    <section class="section" id="selfcheck">
+      <h2 class="section-title">④ Self-check</h2>
+      <p class="section-sub">Three questions per method. Aim for at least 7 / 9; if you miss a question, read its explanation and revisit the linked lesson before next class.</p>
+      <div class="quiz">
+        <div class="qhead"><span class="pill">Self-check</span><b>Fixed-point · Bisection · Newton</b></div>
+        <div id="ssQuiz"></div>
+      </div>
+    </section>
+
+    <!-- NEXT CLASS -->
+    <section class="section" id="next">
+      <div class="panel">
+        <h2>Before next class</h2>
+        <p>You are ready for the next session if you can:</p>
+        <ul>
+          <li>rearrange \(f(x)=0\) into \(x=g(x)\) and decide, using \(|g'(r)|\), whether the iteration will converge;</li>
+          <li>carry out bisection by hand, choose the correct half each step, and predict the number of halvings from the error bound;</li>
+          <li>carry out Newton's method by hand and explain why a near-zero \(f'\) or a poor initial value can make it fail;</li>
+          <li>write <code>myBisect</code> and <code>myNewton</code> as MATLAB functions with a tolerance and an iteration cap, and check them against <code>fzero</code>.</li>
+        </ul>
+        <div class="callout tip"><div class="h">📝 Bring your questions</div>Write down anything that did not click — a step in a table, an error message from MATLAB, a quiz explanation you disagreed with — and bring it to the next class.</div>
+      </div>
+
+      <div class="complete-bar" id="ssCompleteBar"><span class="txt"></span><button class="btn"></button></div>
+
+      <div class="lessonnav">
+        <a class="prev" href="module2.html"><div class="dir">← Back to lesson</div><div class="ttl">Module 2 · Linear &amp; Non-linear Systems</div></a>
+        <a class="next" href="module2.html#secant"><div class="dir">Coming next →</div><div class="ttl">2.4 The secant method</div></a>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<footer class="site">BCS 311 · Scientific Computing — Module 2 self-study hour · Dr. Arash Kermani Kolankeh.</footer>
+
+<script src="assets/app.js"></script>
+<script>
+renderQuiz("ssQuiz", "m2s", [
+  /* ---- Fixed-point ---- */
+  { q: "Which rearrangement \\(x=g(x)\\) of \\(x^3-x-2=0\\) converges to the root \\(r\\approx1.52\\) from a nearby initial value?",
+    options: ["\\(g(x)=x^3-2\\)", "\\(g(x)=(x+2)^{1/3}\\)", "\\(g(x)=\\dfrac{x+2}{x^2}\\)", "All three — they describe the same equation"],
+    answer: 1,
+    explain: "Check \\(|g'(r)|\\): for \\(x^3-2\\) it is \\(3r^2\\approx6.9\\); for \\((x+2)^{1/3}\\) it is \\(\\approx0.14\\); for \\((x+2)/x^2\\) it is \\(\\approx1.57\\). Only \\(|g'(r)|<1\\) converges, even though all three have the same fixed point." },
+  { q: "With \\(g(x)=e^{-x}\\) the iterates go 0.607, 0.545, 0.580, 0.560, … — alternating above and below the root. Why?",
+    options: ["The tolerance is too large", "\\(g'(r)\\) is negative, with \\(|g'(r)|<1\\)", "\\(g'(r)\\) is greater than 1", "The initial value was on the wrong side of the root"],
+    answer: 1,
+    explain: "\\(g'(r)=-e^{-r}\\approx-0.567\\). A negative slope flips the error's sign each step (zig-zag); \\(|g'(r)|<1\\) makes it shrink. A positive slope below 1 would approach from one side." },
+  { q: "Near the root, each fixed-point step multiplies the error by roughly…",
+    options: ["\\(1/2\\), always", "\\(|g'(r)|\\)", "the previous error (it is squared)", "\\(|f'(r)|\\)"],
+    answer: 1,
+    explain: "\\(x_{n+1}-r=g(x_n)-g(r)\\approx g'(r)(x_n-r)\\). So the error shrinks by the factor \\(|g'(r)|\\) per step — linear convergence. Halving is bisection; squaring is Newton." },
+  /* ---- Bisection ---- */
+  { q: "Bisection on \\([1,2]\\): how many halvings guarantee the error bound \\(\\tfrac{b_0-a_0}{2^n}\\) is below \\(10^{-3}\\)?",
+    options: ["3", "7", "10", "1000"],
+    answer: 2,
+    explain: "We need \\(1/2^n<10^{-3}\\), i.e. \\(2^n>1000\\). \\(2^9=512\\) is not enough; \\(2^{10}=1024\\) is. So \\(n=10\\) — and you know it before running a single step." },
+  { q: "You try bisection on \\(f(x)=x^2\\) over \\([-1,1]\\). What happens?",
+    options: ["It converges to 0 in one step", "It cannot start: \\(f(-1)\\,f(1)>0\\), so there is no bracket", "It converges slowly because the root is a minimum", "It diverges to infinity"],
+    answer: 1,
+    explain: "\\(f(-1)=f(1)=1\\), both positive, so the sign test fails — even though a root exists at 0. Bisection only finds roots where \\(f\\) <b>changes sign</b>; a root that touches the axis is invisible to it." },
+  { q: "One bisection step gives \\(f(a)=-3\\), \\(f(c)=+2\\), \\(f(b)=+5\\). Which interval do you keep?",
+    options: ["\\([a,c]\\)", "\\([c,b]\\)", "Either — both contain a root", "Neither — stop, \\(c\\) is the root"],
+    answer: 0,
+    explain: "The sign change is between \\(f(a)<0\\) and \\(f(c)>0\\), so the root is in \\([a,c]\\): set \\(b\\leftarrow c\\). \\(f(c)\\) and \\(f(b)\\) have the same sign, so \\([c,b]\\) is not guaranteed to contain a root." },
+  /* ---- Newton ---- */
+  { q: "One Newton step for \\(f(x)=x^3-x-2\\) from \\(x_0=1\\) gives \\(x_1=\\) …",
+    options: ["1.5", "2", "0", "3"],
+    answer: 1,
+    explain: "\\(f(1)=-2\\), \\(f'(1)=3-1=2\\), so \\(x_1=1-\\tfrac{-2}{2}=2\\)." },
+  { q: "For the same \\(f\\), Newton from \\(x_0=0.6\\) jumps to \\(x_1\\approx30.4\\). Why?",
+    options: ["\\(f(0.6)\\) is very large", "\\(f'(0.6)=0.08\\) is almost zero, so the tangent is nearly flat", "Newton always overshoots on its first step", "The tolerance was set too small"],
+    answer: 1,
+    explain: "\\(x_1=x_0-f(x_0)/f'(x_0)\\): dividing \\(f(0.6)\\approx-2.38\\) by \\(0.08\\) gives a huge step. A near-horizontal tangent meets the axis far away. \\(f'=0\\) at \\(x=1/\\sqrt3\\approx0.577\\), right next to the initial value." },
+  { q: "Newton's errors on a problem are \\(2\\times10^{-2}\\), \\(4\\times10^{-4}\\), \\(1\\times10^{-7}\\). This pattern is called…",
+    options: ["linear convergence", "quadratic convergence", "divergence", "sublinear convergence"],
+    answer: 1,
+    explain: "Each error is roughly the square of the previous (\\((2\\times10^{-2})^2=4\\times10^{-4}\\)), so the number of correct digits about doubles every step — quadratic convergence." }
+]);
+/* MathJax typesets the quiz on page load; re-typeset when "Reset quiz" rebuilds it */
+(function () {
+  const quiz = document.getElementById("ssQuiz");
+  new MutationObserver(() => {
+    if (window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise([quiz]);
+  }).observe(quiz, { childList: true });
+})();
+
+/* self-study completion — stored separately so it does not change the 5-module progress count */
+(function () {
+  const ID = "m2_selfstudy";
+  const bar = document.getElementById("ssCompleteBar");
+  const btn = bar.querySelector("button"), txt = bar.querySelector(".txt");
+  function refresh() {
+    const done = BCS311.isDone(ID);
+    bar.classList.toggle("done", done);
+    txt.textContent = done ? "✓ Self-study hour complete — see you in class!" : "Worked through everything? Mark this self-study hour complete.";
+    btn.textContent = done ? "Mark as not complete" : "Mark self-study complete";
+    btn.className = done ? "btn ghost" : "btn";
+  }
+  btn.addEventListener("click", () => { BCS311.setDone(ID, !BCS311.isDone(ID)); refresh(); });
+  refresh();
+})();
+</script>
+</body>
+</html>
