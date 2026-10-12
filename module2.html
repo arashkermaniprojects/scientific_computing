@@ -6,7 +6,7 @@
 <title>Module 2 · Linear & Non-linear Systems — BCS 311</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/style.css?v=1791785265">
+<link rel="stylesheet" href="assets/style.css?v=1791791205">
 <script>window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['\\[','\\]']]},svg:{fontCache:'global'}};</script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" async></script>
 </head>
@@ -48,6 +48,7 @@
         <li><a href="#gauss-sym" class="sub">🎞 Animation: elimination (symbolic)</a></li>
         <li><a href="#lu">2.7 LU factorization</a></li>
         <li><a href="#lu-sym" class="sub">🎞 Animation: LU (symbolic)</a></li>
+        <li><a href="#lu-numeric" class="sub">Worked numeric examples</a></li>
         <li><a href="#chol">2.8 Cholesky factorization</a></li>
         <li><a href="#chol-sym" class="sub">🎞 Animation: Cholesky (symbolic)</a></li>
         <li><a href="#quiz">✏️ Practice examples</a></li>
@@ -984,6 +985,39 @@ X_builtin = A \ B;</textarea>
         <p>This is Gaussian elimination's bookkeeping made reusable. Once you have \(L\) and \(U\), solving \(A\mathbf{x}=\mathbf{b}\) is two cheap triangular solves:</p>
         <div class="eqn">\[ L\mathbf{y} = \mathbf{b}\ \text{(forward)},\qquad U\mathbf{x} = \mathbf{y}\ \text{(backward)}. \]</div>
         <div class="callout idea"><div class="h">💡 Why factor?</div>The expensive elimination is done <b>once</b>. To solve the same \(A\) against many right-hand sides \(\mathbf{b}\), you reuse \(L\) and \(U\) — only the two fast triangular solves repeat. Hugely efficient for repeated solves.</div>
+        <h3 id="lu-numeric">Worked numerical examples</h3>
+        <p>The animation above can show the same numbers: choose <b>size</b> 3 and <b>values → numbers</b>. Here they are written out by hand.</p>
+
+        <div class="callout def"><div class="h">Example 1 — factor, then solve (3 × 3)</div>
+          <p style="margin:.2rem 0">Solve \(A\mathbf{x}=\mathbf{b}\) with</p>
+          <div class="eqn">\[ A=\begin{bmatrix}2&-2&2\\-2&5&-3\\6&-12&9\end{bmatrix},\qquad \mathbf{b}=\begin{bmatrix}8\\-13\\36\end{bmatrix}. \]</div>
+          <p><b>Step 1 — eliminate column 1</b> (pivot \(u_{11}=2\)). Multipliers \(l_{21}=\tfrac{-2}{2}=-1\) and \(l_{31}=\tfrac{6}{2}=3\). Row 2 ← row 2 − (−1)·row 1, row 3 ← row 3 − 3·row 1:</p>
+          <div class="eqn">\[ \begin{bmatrix}2&-2&2\\-2&5&-3\\6&-12&9\end{bmatrix}\;\longrightarrow\;\begin{bmatrix}2&-2&2\\0&3&-1\\0&-6&3\end{bmatrix}. \]</div>
+          <p><b>Step 2 — eliminate column 2</b> (pivot \(u_{22}=3\)). Multiplier \(l_{32}=\tfrac{-6}{3}=-2\). Row 3 ← row 3 − (−2)·row 2:</p>
+          <div class="eqn">\[ \begin{bmatrix}2&-2&2\\0&3&-1\\0&-6&3\end{bmatrix}\;\longrightarrow\;\begin{bmatrix}2&-2&2\\0&3&-1\\0&0&1\end{bmatrix}=U. \]</div>
+          <p><b>The multipliers fill \(L\)</b> below a diagonal of ones, and the check \(LU=A\) works:</p>
+          <div class="eqn">\[ L=\begin{bmatrix}1&0&0\\-1&1&0\\3&-2&1\end{bmatrix},\qquad LU=\begin{bmatrix}1&0&0\\-1&1&0\\3&-2&1\end{bmatrix}\begin{bmatrix}2&-2&2\\0&3&-1\\0&0&1\end{bmatrix}=\begin{bmatrix}2&-2&2\\-2&5&-3\\6&-12&9\end{bmatrix}=A. \]</div>
+          <p><b>Step 3 — forward solve \(L\mathbf{y}=\mathbf{b}\)</b> (top to bottom, no divisions):</p>
+          <div class="eqn">\[ \begin{aligned} y_1&=8\\ -y_1+y_2&=-13\;\Rightarrow\;y_2=-13+8=-5\\ 3y_1-2y_2+y_3&=36\;\Rightarrow\;y_3=36-24-10=2 \end{aligned} \]</div>
+          <p><b>Step 4 — backward solve \(U\mathbf{x}=\mathbf{y}\)</b> (bottom to top):</p>
+          <div class="eqn">\[ \begin{aligned} x_3&=\tfrac{2}{1}=2\\ 3x_2-x_3&=-5\;\Rightarrow\;x_2=\tfrac{-5+2}{3}=-1\\ 2x_1-2x_2+2x_3&=8\;\Rightarrow\;x_1=\tfrac{8-2-4}{2}=1 \end{aligned}\qquad\Rightarrow\qquad \mathbf{x}=\begin{bmatrix}1\\-1\\2\end{bmatrix}. \]</div>
+          <p>Check in the original system: \(2(1)-2(-1)+2(2)=8\), \(\;-2(1)+5(-1)-3(2)=-13\), \(\;6(1)-12(-1)+9(2)=36\). ✓</p>
+        </div>
+
+        <div class="callout idea"><div class="h">Example 2 — the same factors, a new right-hand side</div>
+          <p style="margin:.2rem 0">Now solve \(A\mathbf{x}=\mathbf{b}'\) with \(\mathbf{b}'=(0,\,1,\,-3)^T\). <b>No elimination is repeated</b> — reuse \(L\) and \(U\) from Example 1.</p>
+          <div class="eqn">\[ L\mathbf{y}=\mathbf{b}':\; y_1=0,\;\; y_2=1-(-1)(0)=1,\;\; y_3=-3-3(0)-(-2)(1)=-1. \]</div>
+          <div class="eqn">\[ U\mathbf{x}=\mathbf{y}:\; x_3=-1,\;\; x_2=\tfrac{1+x_3}{3}=0,\;\; x_1=\tfrac{0+2x_2-2x_3}{2}=1\;\Rightarrow\;\mathbf{x}'=\begin{bmatrix}1\\0\\-1\end{bmatrix}. \]</div>
+          <p>Only two triangular solves (about \(n^2\) operations) instead of a new elimination (about \(\tfrac23n^3\)).</p>
+        </div>
+
+        <div class="callout def"><div class="h">Example 3 — the matrix from the code below, by hand</div>
+          <p style="margin:.2rem 0">\(A=\begin{bmatrix}1&-3&0\\0&1&3\\2&-10&2\end{bmatrix}\), \(\mathbf{b}=(-5,-1,-20)^T\). Column 1: \(l_{21}=0\) (nothing to clear), \(l_{31}=2\), giving row 3 \((0,-4,2)\). Column 2: \(l_{32}=\tfrac{-4}{1}=-4\), giving row 3 \((0,0,14)\).</p>
+          <div class="eqn">\[ L=\begin{bmatrix}1&0&0\\0&1&0\\2&-4&1\end{bmatrix},\qquad U=\begin{bmatrix}1&-3&0\\0&1&3\\0&0&14\end{bmatrix}. \]</div>
+          <div class="eqn">\[ L\mathbf{y}=\mathbf{b}:\; y_1=-5,\; y_2=-1,\; y_3=-20-2(-5)+4(-1)=-14. \qquad U\mathbf{x}=\mathbf{y}:\; x_3=\tfrac{-14}{14}=-1,\; x_2=-1-3(-1)=2,\; x_1=-5+3(2)-0=1. \]</div>
+          <p>So \(\mathbf{x}=(1,2,-1)^T\), exactly the output of the MATLAB code. (MATLAB's <code>lu</code> may swap rows for stability, so its printed \(L\) and \(U\) can differ from these — the solution does not.)</p>
+        </div>
+
         <div class="codewrap editable has-output">
           <div class="codehead"><span class="lang"><span class="dot"></span>MATLAB · editable</span><button class="copybtn">Copy</button></div>
           <textarea spellcheck="false" rows="14">% Solve A x = b via LU
@@ -1183,7 +1217,7 @@ disp('Solution x ='); disp(x)</textarea>
 <footer class="site">BCS 311 · Scientific Computing — Module 2 of 5 · Dr. Arash Kermani Kolankeh.</footer>
 
 <script src="assets/app.js"></script>
-<script src="assets/symdemo.js?v=1791785265"></script>
+<script src="assets/symdemo.js?v=1791791205"></script>
 <script>
 /* ===== shared plot helper ===== */
 function makePlotter(cv){
