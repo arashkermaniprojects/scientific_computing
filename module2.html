@@ -6,7 +6,7 @@
 <title>Module 2 · Linear & Non-linear Systems — BCS 311</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/style.css?v=1791784849">
+<link rel="stylesheet" href="assets/style.css?v=1791785265">
 <script>window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['\\[','\\]']]},svg:{fontCache:'global'}};</script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" async></script>
 </head>
@@ -1014,6 +1014,14 @@ disp('Solution x ='); disp(x)</textarea>
         <div class="voicebar"><span class="vlabel">🔊 Listen to this section</span><audio controls preload="metadata" src="assets/audio/m2_chol.mp3"></audio></div>
         <h3 id="chol-sym" style="margin-top:.4rem">🎞 Lecture animation: Cholesky factorization</h3>
         <p>Watch how symmetry lets us compute only half of everything. Use <b>Step</b> / <b>Back</b>, <b>Auto</b>, or drag the progress bar; change <i>n</i> to see the pattern generalise.</p>
+        <div class="callout def"><div class="h">📐 What does “symmetric” mean? An example</div>
+          <p style="margin:.2rem 0 .5rem">A matrix is <b>symmetric</b> when it is a mirror image across its main diagonal: \(a_{ij}=a_{ji}\), i.e. \(A=A^T\). The entry in row 1, column 3 equals the entry in row 3, column 1, and so on.</p>
+          <div style="display:flex;flex-wrap:wrap;gap:1.2rem 2.4rem;align-items:center">
+            <div>\[A=\begin{bmatrix}4&-2&4\\-2&2&-4\\4&-4&12\end{bmatrix}\qquad a_{12}=a_{21}=-2,\; a_{13}=a_{31}=4,\; a_{23}=a_{32}=-4\]</div>
+            <div>\[B=\begin{bmatrix}4&-2&4\\\mathbf{1}&2&-4\\4&-4&12\end{bmatrix}\ \text{is not symmetric: } b_{21}=1\ne b_{12}=-2\]</div>
+          </div>
+          <p style="margin:.4rem 0 0">Because the upper triangle just repeats the lower one, only <b>half</b> of a symmetric matrix carries information — this is what Cholesky exploits. (For <i>n</i> = 3 this same \(A\) is the numeric example in the animation below: set <b>size</b> to 3 and <b>values</b> to <i>numbers</i>.)</p>
+        </div>
         <div class="demo sd-demo" data-sd="chol" data-n="4"></div>
         <div class="callout idea"><div class="h">📌 What to remember</div><ul><li>Requires <i>A</i> symmetric <b>and</b> positive definite; then <i>A</i> = <i>L L</i><sup>T</sup> with positive diagonal in <i>L</i>.</li><li>About half the cost of LU (≈ <i>n³/3</i>) and half the storage; stable without pivoting.</li><li>The algorithm doubles as a test: a non-positive value under a square root means <i>A</i> is <b>not</b> positive definite.</li></ul></div>
         <h3>Reference: definitions, example &amp; code</h3>
@@ -1175,7 +1183,7 @@ disp('Solution x ='); disp(x)</textarea>
 <footer class="site">BCS 311 · Scientific Computing — Module 2 of 5 · Dr. Arash Kermani Kolankeh.</footer>
 
 <script src="assets/app.js"></script>
-<script src="assets/symdemo.js?v=1791784849"></script>
+<script src="assets/symdemo.js?v=1791785265"></script>
 <script>
 /* ===== shared plot helper ===== */
 function makePlotter(cv){

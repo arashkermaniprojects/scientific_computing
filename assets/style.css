@@ -477,3 +477,22 @@ details.section-collapse[open] > summary.sec-toggle{margin-bottom:.6rem}
 .ss>sup{grid-row:1;grid-column:1;display:block;line-height:1.1;vertical-align:baseline;position:static}
 .ss>sub{grid-row:2;grid-column:1;display:block;line-height:1.1;vertical-align:baseline;position:static}
 .sd-c{min-width:var(--sd)}
+/* ---- system-of-equations panel + numbers mode ---- */
+.sd-sys{margin-top:.8rem;background:#fff;border:1px solid var(--line);border-radius:12px;padding:.7rem .9rem}
+.sd-sysh{font-size:.8rem;color:var(--muted);margin-bottom:.45rem}
+.sd-syscols{display:flex;flex-wrap:wrap;gap:.6rem 1.6rem}
+.sd-sc{flex:1 1 280px;min-width:0}
+.sd-sct{font-size:.8rem;font-weight:700;color:var(--ink-soft);margin-bottom:.3rem}
+.sd-eq{font-family:'Cambria Math',Georgia,serif;font-size:.98rem;line-height:1.9;padding:.05rem .55rem;border-radius:7px;border:1.5px solid transparent;white-space:nowrap;overflow-x:auto;transition:background .3s,border-color .3s}
+.sd-eq .eqs{margin:0 .45em;color:var(--muted)}
+.sd-eq .eqp{color:var(--muted)}
+.sd-eq .ss{font-size:.7em}
+.sd-eq.k-tgt{background:#fff1dd;border-color:var(--accent)}
+.sd-eq.k-src{background:#eaf1fb;border-color:var(--blue)}
+.sd-eq.k-pivot{background:#e6f4f5;border-color:var(--brand)}
+.sd-eq.k-soft{background:#fff8ee;border-color:#f5d3a6}
+.sd-eq.k-done{background:#e7f7ee}
+.sd-eq .tick{color:var(--ok);font-weight:700}
+.sd-sysn{font-size:.84rem;color:var(--ink-soft);margin-top:.5rem;line-height:1.5}
+.sd-arr2{margin:0 .5em;color:var(--accent);font-weight:700}
+.sd-numi{color:#7a3e05;font-family:'Cambria Math',Georgia,serif;background:#fff1dd;border-radius:6px;padding:.05rem .4rem}
