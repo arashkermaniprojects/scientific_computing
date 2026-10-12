@@ -17,19 +17,37 @@ function S(name,i,j,s){
 const grid=(r,c,f)=>Array.from({length:r},(_,i)=>Array.from({length:c},(_,j)=>f(i,j)));
 const range=(a,b)=>{const o=[];for(let i=a;i<=b;i++)o.push(i);return o;};
 
+/* equation 'workbench': values fly from matrix cells into slots; result flies back */
+function mkBench(head,terms,div,o){
+  const fills=[head]; let body='{0}';
+  terms.forEach(tm=>{ const i0=fills.length; fills.push(tm[0]); let t=`{${i0}}`;
+    if(tm[2]==='sq') t+='²'; else if(tm[1]){ fills.push(tm[1]); t+=`·{${i0+1}}`; }
+    body+=` − ${t}`; });
+  let t=body;
+  if(div){ const di=fills.length; fills.push(div); t=(terms.length?`( ${body} )`:body)+` / {${di}}`; }
+  if(o.sqrt) t=`√( ${body} )`;
+  return {tpl:'{R} = '+t,fills,res:o.res};
+}
+
 /* ---------- generic snapshot builder ---------- */
 function Builder(meta){
-  const steps=[]; let hl={}, lab={}, pw='', tf=null;
+  const steps=[]; let hl={}, lab={}, pw='', tf=null, fxs=[], bn=null, fo=false;
   return {
     meta, steps,
-    clear(){hl={};lab={};},
+    clear(){hl={};lab={};fxs=[];bn=null;fo=false;},
+    focus(){fo=true;},
+    say(ref,text,o){fxs.push(Object.assign({t:'say',ref,text},o||{}));},
+    ring(ref,o){fxs.push(Object.assign({t:'ring',ref},o||{}));},
+    arrow(from,to,o){fxs.push(Object.assign({t:'arrow',from,to},o||{}));},
+    ghost(o){fxs.push(Object.assign({t:'ghost'},o));},
+    bench(o){bn=o;},
     set(id,r,c,k){hl[id+':'+r+','+c]=k;},
     setLab(id,r,k){lab[id+':'+r]=k;},
     get(id,r,c){return hl[id+':'+r+','+c]||'';},
     getLab(id,r){return lab[id+':'+r]||'';},
     why(t){pw=t;},
     setTally(f){tf=f;},
-    emit(phase,cap,mats){cap.y=pw; pw=''; steps.push({phase,cap,mats,tally:tf?tf():[]});}
+    emit(phase,cap,mats){cap.y=pw; pw=''; steps.push({phase,cap,mats,tally:tf?tf():[],fx:fxs.slice(),bench:bn,focus:fo});}
   };
 }
 const cap=(t,w,g,i)=>({t,w,g,i:i||''});
@@ -42,7 +60,7 @@ function buildGauss(n){
   const B=Builder({
     mats:[{id:'M',title:'Augmented matrix [ <i>A</i> | <b>b</b> ]',rows:n,cols:aug,bar:n-1,rowLabels:true},
           {id:'X',title:'Unknowns <b>x</b>',rows:n,cols:1}],
-    layout:[['M','X']],
+    layout:[['M','_','X']],
     phases:['Forward elimination','Back substitution'],
     intro:{goal:'Solve <i>A x</i> = <b>b</b> for the unknown vector <b>x</b>.',
       idea:'Replace the system by an <b>equivalent</b> one whose matrix is upper-triangular. Then the unknowns drop out one at a time, from the bottom row upward.',
@@ -73,7 +91,8 @@ function buildGauss(n){
     B.set('M',k-1,k-1,'k-pivot'); B.setLab('M',k-1,'k-pivot');
     for(let j=k;j<aug;j++) B.set('M',k-1,j,'k-src');
     for(let i=k+1;i<=n;i++){ B.set('M',i-1,k-1,'k-soft'); B.setLab('M',i-1,'k-soft'); }
-    B.why(`Each stage deals with exactly one column. After stage <i>k</i>, column <i>k</i> is zero below the diagonal and never touched again — that is the progress measure.`);emit(0,cap(`Stage <i>k</i> = ${k}: take the pivot`,
+    B.focus();B.say(['M',k-1,k-1],'pivot',{delay:300});for(let i=k+1;i<=n;i++)B.arrow(['M',k-1,k-1],['M',i-1,k-1],{delay:1400+(i-k-1)*800,dur:900});B.say(['M',k,k-1],'to clear',{delay:1600,side:'left'});
+    emit(0,cap(`Stage <i>k</i> = ${k}: take the pivot`,
       `The pivot ${S('a',k,k,k-1)} sits on the diagonal. Every entry below it in column ${k} has to be cleared, one row at a time, using row ${k}.`,
       `for <i>i</i> = <i>k</i>+1 … <i>n</i>:  ${S('m','i','k')} = ${S('a','i','k','k−1')} / ${S('a','k','k','k−1')},   <i>R<sub>i</sub></i> ← <i>R<sub>i</sub></i> − ${S('m','i','k')}·<i>R<sub>k</sub></i>`,
       `<i>k</i> = ${k}  →  rows ${k+1}${k+1<n?'…'+n:''} still to clear`));
@@ -83,7 +102,8 @@ function buildGauss(n){
       B.clear();
       B.set('M',k-1,k-1,'k-pivot'); B.set('M',i-1,k-1,'k-tgt');
       B.setLab('M',k-1,'k-pivot'); B.setLab('M',i-1,'k-tgt');
-      mc++;B.why(`If the pivot were 0 we could not divide; if it were tiny the multiplier would be huge and amplify rounding errors. That is why real codes swap rows first (<b>partial pivoting</b>).`);emit(0,cap(`Multiplier for row ${i}`,
+    B.focus();B.say(['M',i-1,k-1],'entry to cancel',{delay:300,side:'left'});B.say(['M',k-1,k-1],'pivot',{delay:300});B.bench(mkBench({from:['M',i-1,k-1],text:S('a',i,k,k-1)},[],{from:['M',k-1,k-1],text:S('a',k,k,k-1)},{res:{text:S('m',i,k),to:[]}}));
+    emit(0,cap(`Multiplier for row ${i}`,
         `Ratio of the entry to remove over the pivot — exactly the factor that will cancel it.`,
         `${S('m','i','k')} = ${S('a','i','k','k−1')} / ${S('a','k','k','k−1')}`,
         `${S('m',i,k)} = ${S('a',i,k,k-1)} / ${S('a',k,k,k-1)}`));
@@ -95,7 +115,8 @@ function buildGauss(n){
       for(let j=k;j<aug;j++){ B.set('M',k-1,j,'k-src'); B.set('M',i-1,j,'k-tgt'); }
       B.set('M',i-1,k-1,'k-done');
       const j1=k+1;
-      ru++;B.why(`Replacing an equation by itself minus a multiple of another does <b>not change the solution</b>. The same multiple must be applied to <i>b</i>, otherwise the two sides of the equation would no longer balance.`);emit(0,cap(`Row ${i} ← row ${i} − ${S('m',i,k)} · row ${k}`,
+    B.focus();B.bench({tpl:`<i>R</i><sub>${i}</sub> ← <i>R</i><sub>${i}</sub> − ${S('m',i,k)} · <i>R</i><sub>${k}</sub>`,fills:[],res:null});B.ghost({id:'M',src:k-1,dst:i-1,c0:k-1,c1:aug-1,h0:j=>j===n?S('b',k):S('a',k,j+1),h1:j=>'m·'+(j===n?S('b',k):S('a',k,j+1)),pill:'× '+S('m',i,k)});B.say(['M',k-1,aug-1],'copy of row '+k,{delay:400,side:'right'});B.ring(['M',i-1,k-1],{delay:4300,cls:'ok'});B.say(['M',i-1,k-1],'becomes 0',{delay:4500,side:'left'});
+    emit(0,cap(`Row ${i} ← row ${i} − ${S('m',i,k)} · row ${k}`,
         `Subtract the multiple of the pivot row. The entry under the pivot becomes <b>0</b>; the rest of row ${i} (and its right-hand side) change to stage (${k}).`,
         `${S('a','i','j','k')} = ${S('a','i','j','k−1')} − ${S('m','i','k')}·${S('a','k','j','k−1')}   (<i>j</i> = <i>k</i>+1 … <i>n</i>, and the same for <i>b</i>)`,
         j1<=n?`e.g. ${S('a',i,j1,k)} = ${S('a',i,j1,k-1)} − ${S('m',i,k)}·${S('a',k,j1,k-1)}   …`:`${S('b',i,null,k)} = ${S('b',i,null,k-1)} − ${S('m',i,k)}·${S('b',k,null,k-1)}`));
@@ -117,7 +138,8 @@ function buildGauss(n){
     B.set('M',i-1,n,'k-src');
     B.set('X',i-1,0,'k-tgt'); xd[i-1]=true;
     const terms=range(i+1,n).map(j=>`${S('a',i,j,i-1)}·${S('x',j)}`);
-    B.why(`Going upward, each row introduces only <b>one</b> new unknown — this is the payoff of the triangular shape.`);emit(1,cap(i===n?`Solve the last row for ${S('x',n)}`:`Back-substitute for ${S('x',i)}`,
+    B.focus();B.say(['X',i-1,0],'unknown',{delay:300,side:'right'});B.bench(mkBench({from:['M',i-1,n],text:S('b',i,null,i-1)},range(i+1,n).map(j=>[{from:['M',i-1,j-1],text:S('a',i,j,i-1)},{from:['X',j-1,0],text:S('x',j)}]),{from:['M',i-1,i-1],text:S('a',i,i,i-1)},{res:{text:S('x',i),to:[['X',i-1,0]]}}));
+    emit(1,cap(i===n?`Solve the last row for ${S('x',n)}`:`Back-substitute for ${S('x',i)}`,
       i===n?`The last row has a single unknown, so divide the right-hand side by the pivot.`
            :`Row ${i} has one new unknown, ${S('x',i)}; everything to its right is already known (blue), so move it across and divide by the pivot.`,
       `${S('x','i')} = ( ${S('b','i',null,'i−1')} − Σ<sub>j=i+1…n</sub> ${S('a','i','j','i−1')}·${S('x','j')} ) / ${S('a','i','i','i−1')}`,
@@ -141,7 +163,7 @@ function buildLU(n){
           {id:'b',title:'<b>b</b>',rows:n,cols:1},
           {id:'y',title:'<b>y</b>  ( <i>L y</i> = <b>b</b> )',rows:n,cols:1},
           {id:'x',title:'<b>x</b>  ( <i>U x</i> = <b>y</b> )',rows:n,cols:1}],
-    layout:[['W','L'],['b','y','x']],
+    layout:[['W','_','L'],['b','y','x']],
     phases:['Factor  A = L U','Forward solve  L y = b','Backward solve  U x = y'],
     intro:{goal:'Split the expensive part of solving <i>A x</i> = <b>b</b> from the cheap part, so it is done only once.',
       idea:'Gaussian elimination already produces an upper-triangular <i>U</i>. If we <b>keep the multipliers</b> in a lower-triangular <i>L</i> (ones on the diagonal), then <i>A</i> = <i>L U</i>, and every solve becomes two quick triangular solves.',
@@ -180,7 +202,8 @@ function buildLU(n){
     B.clear();
     B.set('W',k-1,k-1,'k-pivot'); B.setLab('W',k-1,'k-pivot');
     for(let i=k+1;i<=n;i++){ B.set('W',i-1,k-1,'k-soft'); B.setLab('W',i-1,'k-soft'); }
-    B.why(`A row stops changing once it has served as the pivot row, so it can be copied straight into <i>U</i>. Row <i>k</i> of <i>U</i> is row <i>k</i> of the working matrix at the moment stage <i>k</i> starts.`);emit(0,cap(`Stage <i>k</i> = ${k}: row ${k} is final`,
+    B.focus();B.say(['W',k-1,k-1],'pivot',{delay:300});for(let i=k+1;i<=n;i++)B.arrow(['W',k-1,k-1],['W',i-1,k-1],{delay:1400+(i-k-1)*800,dur:900});B.say(['W',k,k-1],'to clear',{delay:1600,side:'left'});B.say(['W',k-1,n-1],'row '+k+' of U',{delay:900,side:'right'});
+    emit(0,cap(`Stage <i>k</i> = ${k}: row ${k} is final`,
       `Row ${k} will not change any more, so it becomes row ${k} of <i>U</i> (entries renamed ${S('u',k,'j')}). Its pivot ${S('u',k,k)} is used to clear column ${k} below.`,
       `${S('u','k','j')} = ${S('a','k','j','k−1')}   (<i>j</i> ≥ <i>k</i>)`,
       `<i>k</i> = ${k}`));
@@ -190,7 +213,8 @@ function buildLU(n){
       B.set('W',k-1,k-1,'k-pivot'); B.set('W',i-1,k-1,'k-src');
       B.setLab('W',k-1,'k-pivot'); B.setLab('W',i-1,'k-tgt');
       B.set('L',i-1,k-1,'k-tgt');
-      B.why(`Column <i>k</i> of <i>L</i> records how much of row <i>k</i> was removed from every row below it. Undoing elimination means adding exactly these multiples back: that is why <i>A</i> = <i>L U</i>.`);emit(0,cap(`Multiplier ${S('l',i,k)} → store it in <i>L</i>`,
+    B.focus();B.say(['W',i-1,k-1],'entry to cancel',{delay:300,side:'left'});B.say(['W',k-1,k-1],'pivot',{delay:300});B.bench(mkBench({from:['W',i-1,k-1],text:S('a',i,k,k-1)},[],{from:['W',k-1,k-1],text:S('u',k,k)},{res:{text:S('l',i,k),to:[['L',i-1,k-1]]}}));
+    emit(0,cap(`Multiplier ${S('l',i,k)} → store it in <i>L</i>`,
         `The ratio that cancels the entry is computed and written straight into position (${i},${k}) of <i>L</i> — this is the bookkeeping that makes the factorization reusable.`,
         `${S('l','i','k')} = ${S('a','i','k','k−1')} / ${S('u','k','k')}`,
         `${S('l',i,k)} = ${S('a',i,k,k-1)} / ${S('u',k,k)}`));
@@ -201,7 +225,8 @@ function buildLU(n){
       for(let j=k;j<n;j++){ B.set('W',k-1,j,'k-src'); B.set('W',i-1,j,'k-tgt'); }
       B.set('W',i-1,k-1,'k-done'); B.set('L',i-1,k-1,'k-src');
       const j1=k+1;
-      B.why(`Notice the right-hand side <b>b</b> is not involved — the factorization depends on <i>A</i> alone, which is what makes it reusable.`);emit(0,cap(`Row ${i} ← row ${i} − ${S('l',i,k)} · row ${k}`,
+    B.focus();B.bench({tpl:`<i>R</i><sub>${i}</sub> ← <i>R</i><sub>${i}</sub> − ${S('l',i,k)} · <i>R</i><sub>${k}</sub>`,fills:[],res:null});B.ghost({id:'W',src:k-1,dst:i-1,c0:k-1,c1:n-1,h0:j=>S('u',k,j+1),h1:j=>'l·'+S('u',k,j+1),pill:'× '+S('l',i,k)});B.ring(['L',i-1,k-1],{delay:100});B.say(['L',i-1,k-1],'stored multiplier',{delay:200,side:'bottom'});B.ring(['W',i-1,k-1],{delay:4300,cls:'ok'});B.say(['W',i-1,k-1],'becomes 0',{delay:4500,side:'left'});
+    emit(0,cap(`Row ${i} ← row ${i} − ${S('l',i,k)} · row ${k}`,
         `Apply the stored multiplier to the rest of row ${i}. The entry under the pivot vanishes (it is now remembered by ${S('l',i,k)}).`,
         `${S('a','i','j','k')} = ${S('a','i','j','k−1')} − ${S('l','i','k')}·${S('u','k','j')}   (<i>j</i> = <i>k</i>+1 … <i>n</i>)`,
         j1<=n?`e.g. ${S('a',i,j1,k)} = ${S('a',i,j1,k-1)} − ${S('l',i,k)}·${S('u',k,j1)}   …`:''));
@@ -223,7 +248,8 @@ function buildLU(n){
     for(let j=1;j<i;j++){ B.set('L',i-1,j-1,'k-src'); B.set('y',j-1,0,'k-src'); }
     yd[i-1]=true;
     const terms=range(1,i-1).map(j=>`${S('l',i,j)}·${S('y',j)}`);
-    B.why(`<i>Ax</i> = <b>b</b> became <i>L</i>(<i>U x</i>) = <b>b</b>. Name the inner part <b>y</b> = <i>U x</i>; then <i>L y</i> = <b>b</b> is triangular and is solved from the top.`);emit(1,cap(i===1?`Forward solve: ${S('y',1)}`:`Forward solve: ${S('y',i)}`,
+    B.focus();B.say(['y',i-1,0],'unknown',{delay:300,side:'right'});B.bench(mkBench({from:['b',i-1,0],text:S('b',i)},range(1,i-1).map(j=>[{from:['L',i-1,j-1],text:S('l',i,j)},{from:['y',j-1,0],text:S('y',j)}]),null,{res:{text:S('y',i),to:[['y',i-1,0]]}}));
+    emit(1,cap(i===1?`Forward solve: ${S('y',1)}`:`Forward solve: ${S('y',i)}`,
       i===1?`<i>L</i> has ones on the diagonal, so the first unknown is just the first entry of <b>b</b>.`
            :`Row ${i} of <i>L</i> multiplies the already-known ${S('y',1)}…${S('y',i-1)} (blue). Move those terms across; the diagonal entry is 1, so no division is needed.`,
       `${S('y','i')} = ${S('b','i')} − Σ<sub>j&lt;i</sub> ${S('l','i','j')}·${S('y','j')}`,
@@ -236,7 +262,8 @@ function buildLU(n){
     for(let j=i+1;j<=n;j++){ B.set('W',i-1,j-1,'k-src'); B.set('x',j-1,0,'k-src'); }
     xd[i-1]=true;
     const terms=range(i+1,n).map(j=>`${S('u',i,j)}·${S('x',j)}`);
-    B.why(`Now that <b>y</b> is known, <i>U x</i> = <b>y</b> is also triangular, solved from the bottom — exactly the back substitution of Gaussian elimination.`);emit(2,cap(`Backward solve: ${S('x',i)}`,
+    B.focus();B.say(['x',i-1,0],'unknown',{delay:300,side:'right'});B.bench(mkBench({from:['y',i-1,0],text:S('y',i)},range(i+1,n).map(j=>[{from:['W',i-1,j-1],text:S('u',i,j)},{from:['x',j-1,0],text:S('x',j)}]),{from:['W',i-1,i-1],text:S('u',i,i)},{res:{text:S('x',i),to:[['x',i-1,0]]}}));
+    emit(2,cap(`Backward solve: ${S('x',i)}`,
       i===n?`The last row of <i>U</i> has one unknown: divide ${S('y',n)} by ${S('u',n,n)}.`
            :`Subtract the known terms to the right of the diagonal (blue) from ${S('y',i)}, then divide by the pivot ${S('u',i,i)}.`,
       `${S('x','i')} = ( ${S('y','i')} − Σ<sub>j&gt;i</sub> ${S('u','i','j')}·${S('x','j')} ) / ${S('u','i','i')}`,
@@ -300,7 +327,8 @@ function buildChol(n){
     for(let k=1;k<j;k++){ B.set('L',j-1,k-1,'k-src'); B.set('T',k-1,j-1,'k-src'); }
     Ld[j-1][j-1]=true;
     const sq=range(1,j-1).map(k=>`${S('l',j,k)}²`);
-    B.why(`The equation for ${S('a','j','j')} is ${S('a','j','j')} = Σ<sub>k≤j</sub> ${S('l','j','k')}²; every term but the last is known, which isolates ${S('l','j','j')}. Positive definiteness guarantees the square root is of a positive number.`);emit(0,cap(`Column ${j}: diagonal ${S('l',j,j)}`,
+    B.focus();B.say(['L',j-1,j-1],'new entry',{delay:300,side:'right'});B.bench(mkBench({from:['A',j-1,j-1],text:S('a',j,j)},range(1,j-1).map(q=>[{from:['L',j-1,q-1],text:S('l',j,q)},null,'sq']),null,{sqrt:true,res:{text:S('l',j,j),to:[['L',j-1,j-1],['T',j-1,j-1]]}}));
+    emit(0,cap(`Column ${j}: diagonal ${S('l',j,j)}`,
       j===1?`The first diagonal entry is simply the square root of ${S('a',1,1)}.`
            :`Subtract the squares of the entries already placed to the left in row ${j} (blue) from ${S('a',j,j)}, then take the square root. The radicand <b>must be positive</b> — that is the positive-definite test.`,
       `${S('l','j','j')} = √( ${S('a','j','j')} − Σ<sub>k&lt;j</sub> ${S('l','j','k')}² )`,
@@ -313,7 +341,8 @@ function buildChol(n){
       for(let k=1;k<j;k++){ B.set('L',i-1,k-1,'k-src'); B.set('L',j-1,k-1,'k-src'); }
       Ld[i-1][j-1]=true;
       const prods=range(1,j-1).map(k=>`${S('l',i,k)}·${S('l',j,k)}`);
-      B.why(`The equation for ${S('a','i','j')} is ${S('a','i','j')} = Σ<sub>k≤j</sub> ${S('l','i','k')}${S('l','j','k')}; only the last term contains the unknown ${S('l','i','j')} — everything else is already in <i>L</i>.`);emit(0,cap(`Column ${j}: entry ${S('l',i,j)}`,
+    B.focus();B.say(['L',i-1,j-1],'new entry',{delay:300,side:'right'});B.bench(mkBench({from:['A',i-1,j-1],text:S('a',i,j)},range(1,j-1).map(q=>[{from:['L',i-1,q-1],text:S('l',i,q)},{from:['L',j-1,q-1],text:S('l',j,q)}]),{from:['L',j-1,j-1],text:S('l',j,j)},{res:{text:S('l',i,j),to:[['L',i-1,j-1],['T',j-1,i-1]]}}));
+    emit(0,cap(`Column ${j}: entry ${S('l',i,j)}`,
         j===1?`First column: divide ${S('a',i,1)} by the diagonal ${S('l',1,1)} (teal).`
              :`Rows ${i} and ${j} of <i>L</i> overlap to the left of column ${j} (blue pairs). Subtract their dot product from ${S('a',i,j)}, then divide by the diagonal ${S('l',j,j)} (teal).`,
         `${S('l','i','j')} = ( ${S('a','i','j')} − Σ<sub>k&lt;j</sub> ${S('l','i','k')}·${S('l','j','k')} ) / ${S('l','j','j')}`,
@@ -333,7 +362,8 @@ function buildChol(n){
     for(let j=1;j<i;j++){ B.set('L',i-1,j-1,'k-src'); B.set('y',j-1,0,'k-src'); }
     yd[i-1]=true;
     const terms=range(1,i-1).map(j=>`${S('l',i,j)}·${S('y',j)}`);
-    B.why(`Here the diagonal of <i>L</i> is not 1 (unlike LU), so each step ends with a division.`);emit(1,cap(`Forward solve: ${S('y',i)}`,
+    B.focus();B.say(['y',i-1,0],'unknown',{delay:300,side:'right'});B.bench(mkBench({from:['b',i-1,0],text:S('b',i)},range(1,i-1).map(j=>[{from:['L',i-1,j-1],text:S('l',i,j)},{from:['y',j-1,0],text:S('y',j)}]),{from:['L',i-1,i-1],text:S('l',i,i)},{res:{text:S('y',i),to:[['y',i-1,0]]}}));
+    emit(1,cap(`Forward solve: ${S('y',i)}`,
       i===1?`Only the diagonal of row 1 is present: divide ${S('b',1)} by ${S('l',1,1)}.`
            :`Use the known ${S('y',1)}…${S('y',i-1)} (blue), then divide by the diagonal ${S('l',i,i)} (teal).`,
       `${S('y','i')} = ( ${S('b','i')} − Σ<sub>j&lt;i</sub> ${S('l','i','j')}·${S('y','j')} ) / ${S('l','i','i')}`,
@@ -345,7 +375,8 @@ function buildChol(n){
     for(let j=i+1;j<=n;j++){ B.set('T',i-1,j-1,'k-src'); B.set('x',j-1,0,'k-src'); }
     xd[i-1]=true;
     const terms=range(i+1,n).map(j=>`${S('l',j,i)}·${S('x',j)}`);
-    B.why(`Transposing swaps rows and columns: no new matrix has to be stored — the solve just reads <i>L</i> by columns.`);emit(2,cap(`Backward solve: ${S('x',i)}`,
+    B.focus();B.say(['x',i-1,0],'unknown',{delay:300,side:'right'});B.bench(mkBench({from:['y',i-1,0],text:S('y',i)},range(i+1,n).map(j=>[{from:['T',i-1,j-1],text:S('l',j,i)},{from:['x',j-1,0],text:S('x',j)}]),{from:['T',i-1,i-1],text:S('l',i,i)},{res:{text:S('x',i),to:[['x',i-1,0]]}}));
+    emit(2,cap(`Backward solve: ${S('x',i)}`,
       i===n?`Last row of <i>L</i><sup>T</sup>: divide ${S('y',n)} by ${S('l',n,n)}.`
            :`Row ${i} of <i>L</i><sup>T</sup> is column ${i} of <i>L</i>. Subtract the known terms (blue) from ${S('y',i)} and divide by ${S('l',i,i)}.`,
       `${S('x','i')} = ( ${S('y','i')} − Σ<sub>j&gt;i</sub> ${S('l','j','i')}·${S('x','j')} ) / ${S('l','i','i')}`,
@@ -366,14 +397,14 @@ const BUILDERS={gauss:buildGauss,lu:buildLU,chol:buildChol};
    ========================================================= */
 function mount(root){
   const kind=root.dataset.sd, build=BUILDERS[kind]; if(!build) return;
-  let n=+(root.dataset.n||4), data, k=0, timer=null, speed=1100, first=true;
+  let n=+(root.dataset.n||4), data, k=0, timer=null, speed=1, first=true, pend=[], matById={};
 
   root.innerHTML=`
     <div class="demo-head"><span class="pill">Live</span> <span class="sd-title"></span></div>
     <div class="sd-intro"></div>
     <div class="sd-phases"></div>
     <div class="sd-phinfo"></div>
-    <div class="sd-stage"></div>
+    <div class="sd-wrap"><div class="sd-stage"></div><div class="sd-bench"><span class="sd-bl">workbench</span><span class="sd-bf"></span></div><div class="sd-fx"></div></div>
     <div class="sd-tally"></div>
     <div class="sd-legend"></div>
     <div class="sd-prog"><input type="range" class="sd-scrub" min="0" value="0" aria-label="Progress through the algorithm"><span class="sd-count"></span></div>
@@ -384,21 +415,21 @@ function mount(root){
       <button class="btn accent sd-auto">Auto ▶</button>
       <button class="btn ghost sd-reset">Reset</button>
       <label class="sd-sel">size <i>n</i> <select class="sd-n"><option>3</option><option>4</option><option>5</option></select></label>
-      <label class="sd-sel">speed <select class="sd-sp"><option value="1700">slow</option><option value="1100" selected>normal</option><option value="600">fast</option></select></label>
+      <label class="sd-sel">speed <select class="sd-sp"><option value="1.6">slow</option><option value="1" selected>normal</option><option value="0.55">fast</option></select></label>
     </div>`;
   const $=s=>root.querySelector(s);
-  const stage=$('.sd-stage'), scrub=$('.sd-scrub'), nSel=$('.sd-n'), autoBtn=$('.sd-auto');
+  const wrap=$('.sd-wrap'), fxl=$('.sd-fx'), stage=$('.sd-stage'), scrub=$('.sd-scrub'), nSel=$('.sd-n'), autoBtn=$('.sd-auto');
   $('.sd-title').textContent={gauss:'Gaussian elimination — symbolic walkthrough',lu:'LU factorization — symbolic walkthrough',chol:'Cholesky factorization — symbolic walkthrough'}[kind];
   nSel.value=String(n);
 
   function setup(){
     stop(); data=build(n); k=0; first=true;
     stage.innerHTML=''; stage.style.setProperty('--sd',(n>=5?(kind==='chol'?36:40):46)+'px');
-    const byId={}; data.meta.mats.forEach(m=>byId[m.id]=m);
+    const byId={}; data.meta.mats.forEach(m=>byId[m.id]=m); matById=byId;
     data.meta.layout.forEach(row=>{
       const r=document.createElement('div'); r.className='sd-row';
       row.forEach(id=>{
-        if(!byId[id]){ const g=document.createElement('div'); g.className='sd-glue'; g.textContent=id; r.appendChild(g); return; }
+        if(!byId[id]){ const g=document.createElement('div'); g.className=id==='_'?'sd-spacer':'sd-glue'; if(id!=='_') g.textContent=id; r.appendChild(g); return; }
         const m=byId[id];
         const box=document.createElement('div'); box.className='sd-mat';
         box.innerHTML=`<div class="sd-mt">${m.title}</div>`;
@@ -425,26 +456,54 @@ function mount(root){
     $('.sd-intro').innerHTML=`<div class="sd-ib"><span class="sd-tag">goal</span> ${it.goal}</div><div class="sd-ib"><span class="sd-tag">idea</span> ${it.idea}</div><div class="sd-ib"><span class="sd-tag">how to read it</span><ul>${it.watch.map(w=>`<li>${w}</li>`).join('')}</ul></div>`;
     $('.sd-tally').innerHTML=data.steps[0].tally.map(()=>`<div class="sd-tl"><span class="sd-tn"></span><div class="sd-tbar"><div></div></div></div>`).join('');
     scrub.max=data.steps.length-1; scrub.value=0;
-    render(); first=false;
+    render(false); first=false;
   }
 
-  function render(){
-    const st=data.steps[k];
+  function applyCell(el,cell,pop){
+    const cls='sd-c '+(cell.c||'');
+    if(el._c!==cls){ el.className=cls; el._c=cls; }
+    if(el._t!==cell.t){
+      el.innerHTML=cell.t; el._t=cell.t;
+      if(pop&&!first){ el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop'); }
+    }
+  }
+  const sc=()=>speed;
+  function benchTL(b){
+    if(!b) return null;
+    const nf=b.fills.length, gap=nf>5?1100:1500, d0=700;
+    const fl=b.fills.map((f,i)=>({delay:d0+i*gap,land:d0+i*gap+1300}));
+    const last=nf?fl[nf-1].land:500;
+    if(!b.res) return {fl,end:600};
+    const reveal=last+500, fly=reveal+800, land=fly+1300, hasT=b.res.to&&b.res.to.length;
+    return {fl,reveal,fly,land,end:hasT?land:reveal+700};
+  }
+  function totalOf(st){
+    let e=800;
+    (st.fx||[]).forEach(x=>{ e=Math.max(e,(x.delay||0)+(x.t==='ghost'?5200:x.t==='arrow'?(x.dur||800):800)); });
+    const tl=benchTL(st.bench); if(tl) e=Math.max(e,tl.end);
+    return e+1100;
+  }
+  function landing(st){
+    const L={}, f=sc(), tl=benchTL(st.bench);
+    if(tl&&tl.land!=null) (st.bench.res.to||[]).forEach(r=>{ L[r[0]+':'+r[1]+','+r[2]]=tl.land*f; });
+    (st.fx||[]).forEach(e=>{ if(e.t==='ghost') for(let j=e.c0;j<=e.c1;j++) L[e.id+':'+e.dst+','+j]=4200*f; });
+    return L;
+  }
+  function render(animate){
+    pend.forEach(clearTimeout); pend=[];
+    const st=data.steps[k], land=animate?landing(st):{};
     data.meta.mats.forEach(m=>{
       const snap=st.mats[m.id];
       for(let i=0;i<m.rows;i++){
         for(let j=0;j<m.cols;j++){
-          const el=m.cellEls[i][j], cell=snap.cells[i][j];
-          const cls='sd-c '+(cell.c||'');
-          if(el._c!==cls){ el.className=cls; el._c=cls; }
-          if(el._t!==cell.t){
-            el.innerHTML=cell.t; el._t=cell.t;
-            if(!first){ el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop'); }
-          }
+          const el=m.cellEls[i][j], cell=snap.cells[i][j], key=m.id+':'+i+','+j;
+          if(land[key]!=null) pend.push(setTimeout(()=>applyCell(el,cell,true),land[key]));
+          else applyCell(el,cell,true);
         }
         if(m.labEls.length){ m.labEls[i].className='sd-rl '+((snap.lab&&snap.lab[i])||''); }
       }
     });
+    playFx(st,animate);
     root.querySelectorAll('.sd-ph').forEach(p=>{
       const i=+p.dataset.i; p.classList.toggle('active',i===st.phase); p.classList.toggle('done',i<st.phase||(k===data.steps.length-1));
     });
@@ -460,20 +519,112 @@ function mount(root){
     $('.sd-back').disabled=k===0; $('.sd-step').disabled=k===last;
   }
 
-  function go(i){ k=Math.max(0,Math.min(data.steps.length-1,i)); render(); }
-  function stop(){ if(timer){clearInterval(timer);timer=null;} autoBtn.textContent='Auto ▶'; }
+  /* ---- motion layer ---- */
+  const NS='http://www.w3.org/2000/svg', T='translate(-50%,-50%)';
+  function pos(r){
+    const el=matById[r[0]].cellEls[r[1]][r[2]], a=wrap.getBoundingClientRect(), b=el.getBoundingClientRect();
+    return {x:b.left-a.left+b.width/2+(r[3]||0)*b.width, y:b.top-a.top+b.height/2, w:b.width, h:b.height};
+  }
+  function posEl(el){ const a=wrap.getBoundingClientRect(), b=el.getBoundingClientRect(); return {x:b.left-a.left+b.width/2,y:b.top-a.top+b.height/2,w:b.width,h:b.height}; }
+  function mk(cls,html,x,y){ const d=document.createElement('div'); d.className=cls; d.innerHTML=html; d.style.left=x+'px'; d.style.top=y+'px'; fxl.appendChild(d); return d; }
+  function ring(ref,delay,cls,f){
+    const a=pos(ref), d=mk('sd-ring '+(cls||''),'',a.x,a.y); d.style.width=a.w*1.15+'px'; d.style.height=a.h*1.15+'px';
+    d.animate([{opacity:0,transform:T+' scale(.8)'},{opacity:1,transform:T+' scale(1)',offset:.25},{opacity:0,transform:T+' scale(1.6)'}],{duration:1000*f,delay:delay*f,fill:'both'});
+  }
+  function flyChip(html,a,b,delay,dur,cls,f){
+    const dx=b.x-a.x, dy=b.y-a.y, d=mk('sd-chip '+(cls||''),html,a.x,a.y);
+    d.animate([{opacity:0,transform:T+' scale(.5)'},{opacity:1,transform:T+' scale(1.15)',offset:.14},
+      {opacity:1,transform:`${T} translate(${dx/2}px,${dy/2-26}px) scale(1.1)`,offset:.55},
+      {opacity:1,transform:`${T} translate(${dx}px,${dy}px) scale(1)`,offset:.9},
+      {opacity:0,transform:`${T} translate(${dx}px,${dy}px) scale(.7)`}],{duration:dur*f,delay:delay*f,fill:'both',easing:'ease-in-out'});
+  }
+  function playBench(st,animate,f){
+    const bf=$('.sd-bf'), b=st.bench; bf.innerHTML='';
+    if(!b){ bf.innerHTML='<span class="sd-bhint">(each step’s calculation is assembled here)</span>'; return; }
+    bf.innerHTML=b.tpl.replace(/\{(R|\d+)\}/g,(m,x)=>`<span class="slot${x==='R'?' res':''}" data-s="${x}">?</span>`);
+    const slot=x=>bf.querySelector(`.slot[data-s="${x}"]`), tl=benchTL(b);
+    const fill=(el,html)=>{ el.innerHTML=html; el.classList.add('filled'); el.classList.remove('pop2'); void el.offsetWidth; el.classList.add('pop2'); };
+    if(!animate){ b.fills.forEach((fl,i)=>{ const e=slot(i); if(e){e.innerHTML=fl.text;e.classList.add('filled');} }); if(b.res){ const e=slot('R'); if(e){e.innerHTML=b.res.text;e.classList.add('filled');} } return; }
+    b.fills.forEach((fl,i)=>{
+      const e=slot(i); if(!e) return; const t=tl.fl[i];
+      ring(fl.from,t.delay-250,'',f);
+      flyChip(fl.text,pos(fl.from),posEl(e),t.delay,1300,'',f);
+      pend.push(setTimeout(()=>fill(e,fl.text),t.land*f));
+    });
+    if(b.res){
+      const e=slot('R');
+      pend.push(setTimeout(()=>fill(e,b.res.text),tl.reveal*f));
+      (b.res.to||[]).forEach(r=>{
+        pend.push(setTimeout(()=>{ if(e) flyChip(b.res.text,posEl(e),pos(r),0,1300,'res',f); },tl.fly*f));
+        pend.push(setTimeout(()=>ring(r,0,'ok',f),(tl.land-200)*f));
+      });
+    }
+  }
+  function playFx(st,animate){
+    fxl.innerHTML='';
+    const f=animate?sc():0, svg=document.createElementNS(NS,'svg'); svg.setAttribute('class','sd-fxsvg');
+    svg.innerHTML='<defs><marker id="sdah'+kind+'" markerWidth="9" markerHeight="9" refX="6" refY="3.5" orient="auto"><path d="M0,0 L8,3.5 L0,7 Z" fill="#0e7c86"/></marker></defs>';
+    fxl.appendChild(svg);
+    stage.classList.toggle('focus',!!(animate&&(st.focus)));
+    playBench(st,animate,f);
+    (st.fx||[]).forEach(e=>{
+      const dl=(e.delay||0)*f;
+      if(e.t==='arrow'){
+        const a=pos(e.from), b=pos(e.to), dx=b.x-a.x, dy=b.y-a.y, L=Math.hypot(dx,dy)||1, ux=dx/L, uy=dy/L, r=a.h*.55;
+        const ln=document.createElementNS(NS,'line');
+        ln.setAttribute('x1',a.x+ux*r); ln.setAttribute('y1',a.y+uy*r); ln.setAttribute('x2',b.x-ux*r); ln.setAttribute('y2',b.y-uy*r);
+        ln.setAttribute('stroke','#0e7c86'); ln.setAttribute('stroke-width','3'); ln.setAttribute('marker-end','url(#sdah'+kind+')'); ln.setAttribute('stroke-linecap','round');
+        svg.appendChild(ln);
+        if(f){ ln.setAttribute('stroke-dasharray',L); ln.animate([{strokeDashoffset:L,opacity:0},{opacity:1,offset:.1},{strokeDashoffset:0,opacity:1}],{duration:(e.dur||800)*f,delay:dl,fill:'both'}); }
+      } else if(e.t==='say'){
+        if(!f&&(e.delay||0)>500) return;
+        const a=pos(e.ref), side=e.side||'top', d=mk('sd-say s-'+side,e.text,a.x,a.y);
+        const g=(e.gap!=null?e.gap:8);
+        if(side==='top'){ d.style.top=(a.y-a.h/2-g)+'px'; }
+        else if(side==='bottom'){ d.style.top=(a.y+a.h/2+g)+'px'; }
+        else if(side==='left'){ d.style.left=(a.x-a.w/2-g-(matById[e.ref[0]].rowLabels?30:0))+'px'; }
+        else { d.style.left=(a.x+a.w/2+g)+'px'; }
+        if(f) d.animate([{opacity:0},{opacity:1}],{duration:400*f,delay:dl,fill:'both'});
+      } else if(e.t==='ring'&&f){
+        ring(e.ref,e.delay||0,e.cls,f);
+      } else if(e.t==='ghost'&&f){
+        const dyAll=pos([e.id,e.dst,e.c0]).y-pos([e.id,e.src,e.c0]).y, D=5000*f;
+        const K=(o)=>o.map(x=>x);
+        for(let j=e.c0;j<=e.c1;j++){
+          const a=pos([e.id,e.src,j]), d=mk('sd-chip sd-g',`<span class="g0">${e.h0(j)}</span><span class="g1">${e.h1(j)}</span>`,a.x,a.y); d.style.width=a.w+'px'; d.style.height=a.h+'px';
+          d.animate([{opacity:0,transform:T+' scale(.85)',offset:0},{opacity:1,transform:T+' scale(1.12)',offset:.06},{opacity:1,transform:T+' scale(1.12)',offset:.44},
+            {opacity:1,transform:`${T} translateY(${dyAll}px) scale(1.04)`,offset:.84},{opacity:0,transform:`${T} translateY(${dyAll}px) scale(1)`,offset:1}],{duration:D,fill:'both',easing:'ease-in-out'});
+          d.querySelector('.g0').animate([{opacity:1,offset:0},{opacity:1,offset:.2},{opacity:0,offset:.32},{opacity:0,offset:1}],{duration:D,fill:'both'});
+          d.querySelector('.g1').animate([{opacity:0,offset:0},{opacity:0,offset:.2},{opacity:1,offset:.32},{opacity:1,offset:1}],{duration:D,fill:'both'});
+        }
+        const a=pos([e.id,e.src,e.c1,1.05]), d=mk('sd-chip sd-pill',e.pill,a.x,a.y);
+        d.animate([{opacity:0,transform:T+' scale(.5)',offset:0},{opacity:0,transform:T+' scale(.5)',offset:.18},{opacity:1,transform:T+' scale(1.15)',offset:.26},{opacity:1,transform:T,offset:.44},
+          {opacity:1,transform:`${T} translateY(${dyAll}px)`,offset:.84},{opacity:0,transform:`${T} translateY(${dyAll}px)`,offset:1}],{duration:D,fill:'both',easing:'ease-in-out'});
+        const o=pos([e.id,e.dst,e.c0,-1.05]), m=mk('sd-chip sd-op','−',o.x,o.y);
+        m.animate([{opacity:0,offset:0},{opacity:0,offset:.4},{opacity:1,transform:T+' scale(1.4)',offset:.46},{opacity:1,transform:T+' scale(1)',offset:.7},{opacity:0,offset:1}],{duration:D,fill:'both'});
+      }
+    });
+  }
+  window.addEventListener('resize',()=>{ if(data) playFx(data.steps[k],false); });
+  function go(i,animate){ k=Math.max(0,Math.min(data.steps.length-1,i)); render(!!animate); }
+  function stop(){ if(timer){clearTimeout(timer);timer=null;} autoBtn.textContent='Auto ▶'; }
+  function tick(){
+    if(k>=data.steps.length-1){ stop(); return; }
+    go(k+1,true);
+    timer=setTimeout(tick,totalOf(data.steps[k])*sc());
+  }
   function play(){
     if(k>=data.steps.length-1) go(0);
     autoBtn.textContent='Pause ⏸';
-    timer=setInterval(()=>{ if(k>=data.steps.length-1){stop();return;} go(k+1); },speed);
+    timer=setTimeout(tick,k===0?500:200);
   }
-  $('.sd-step').onclick=()=>{ stop(); go(k+1); };
+  $('.sd-step').onclick=()=>{ stop(); go(k+1,true); };
   $('.sd-back').onclick=()=>{ stop(); go(k-1); };
   $('.sd-reset').onclick=()=>{ stop(); go(0); };
   autoBtn.onclick=()=>{ timer?stop():play(); };
   scrub.oninput=()=>{ stop(); go(+scrub.value); };
   nSel.onchange=()=>{ n=+nSel.value; setup(); };
-  $('.sd-sp').onchange=e=>{ speed=+e.target.value; if(timer){stop();play();} };
+  $('.sd-sp').onchange=e=>{ speed=+e.target.value; };
   setup();
 }
 
