@@ -63,8 +63,9 @@
                fSub: x => `(${x})^{3}-${c}`, dSub: x => `3(${x})^{2}`, truth: `\\sqrt[3]{${c}}`, tv: Math.cbrt(c) };
     }
     if (k === 2) {
-      const c = rnd(3, 40); const f = x => x ** 3 + x - c;
-      let a = 0; while (f(a + 1) <= 0) a++;
+      let c, a;                                       // skip c = a³+a (10, 30): the root would be the integer endpoint itself
+      do { c = rnd(3, 40); a = 0; while ((a + 1) ** 3 + (a + 1) <= c) a++; } while (a ** 3 + a === c);
+      const f = x => x ** 3 + x - c;
       return { fTex: `x^{3}+x-${c}`, dTex: "3x^{2}+1", f, d: x => 3 * x * x + 1, a, b: a + 1,
                fSub: x => `(${x})^{3}+(${x})-${c}`, dSub: x => `3(${x})^{2}+1` };
     }
@@ -149,12 +150,15 @@
     let n = 1, c = a, fc = 0, E = 1, ok = false;
     for (; n <= nmax; n++) {
       c = R((a + b) / 2, d); fc = R(Fm.f(c), d); E = R((b - a) / 2, d);
-      const left = fa * fc < 0;                       // sign change in [a, c]?
+      const left = fa * fc <= 0;                      // sign change in [a, c]?  (fc = 0 exactly: keep c as the right end)
       const na = left ? a : c, nb = left ? c : b;
+      const verdict = fc === 0 ? "<b>zero</b> ⇒ \\(c\\) is a root ⇒ keep \\([a,c]\\), set \\(b\\leftarrow c\\)"
+                    : left ? "<b>negative</b> ⇒ the root is in \\([a,c]\\) ⇒ set \\(b\\leftarrow c\\)"
+                    : "<b>positive</b> ⇒ the root is in \\([c,b]\\) ⇒ set \\(a\\leftarrow c\\)";
       steps.push({ title: `Iteration n = ${n}`, html:
         `\\(c=\\tfrac{a+b}{2}=\\tfrac{${F(a, d)}+${F(b, d)}}{2}=${F(c, d)}\\)<br>
          \\(f(c)=${Fm.fSub(F(c, d))}=${S(fc, d)}\\)<br>
-         \\(f(a)\\,f(c)=(${S(fa, d)})(${S(fc, d)})\\) is ${left ? "<b>negative</b> ⇒ the root is in \\([a,c]\\) ⇒ set \\(b\\leftarrow c\\)" : "<b>positive</b> ⇒ the root is in \\([c,b]\\) ⇒ set \\(a\\leftarrow c\\)"}<br>
+         \\(f(a)\\,f(c)=(${S(fa, d)})(${S(fc, d)})\\) is ${verdict}<br>
          New interval \\([${F(na, d)},\\,${F(nb, d)}]\\);  error bound \\(E_{${n}}=\\tfrac{b-a}{2}=\\tfrac{${F(b, d)}-${F(a, d)}}{2}=${F(E, d)}\\).<br>${CONT(E, tol, n)}`,
         row: [n, F(a, d), F(b, d), F(c, d), S(fc, d), left ? "[a, c]" : "[c, b]", F(E, d), E < tol ? "✓ stop" : "no"], rowClass: E < tol ? "converged" : "" });
       if (left) { b = c; fb = fc; } else { a = c; fa = fc; }
