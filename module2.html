@@ -35,17 +35,21 @@
         <li><a href="#intro">Root finding: the problem</a></li>
         <li><a href="#fixed">2.1 Fixed-point iteration</a></li>
         <li><a href="#fixed-demo" class="sub">🎛 Demo: two views</a></li>
+        <li><a href="#fixed-example" class="sub">✏️ Worked example &amp; practice</a></li>
         <li><a href="#fixed-theory" class="sub">↳ Convergence &amp; basins</a></li>
         <li><a href="#bisect">2.2 Bisection</a></li>
         <li><a href="#bisect-demo" class="sub">🎛 Demo: bisection</a></li>
+        <li><a href="#bisect-example" class="sub">✏️ Worked example &amp; practice</a></li>
         <li><a href="#newton">2.3 Newton's method</a></li>
         <li><a href="#newton-demo" class="sub">🎛 Demo: Newton</a></li>
+        <li><a href="#newton-example" class="sub">✏️ Worked example &amp; practice</a></li>
         <li><a href="#secant">2.4 Secant method</a></li>
         <li><a href="#secant-demo" class="sub">🎛 Demo: secant</a></li>
+        <li><a href="#secant-example" class="sub">✏️ Worked example &amp; practice</a></li>
         <li><a href="#compare">2.5 Comparison & polynomials</a></li>
         <li><a href="#gauss">2.6 Gaussian elimination</a></li>
-        <li><a href="#gauss-demo" class="sub">🎛 Demo: elimination</a></li>
         <li><a href="#gauss-sym" class="sub">🎞 Animation: elimination (symbolic)</a></li>
+        <li><a href="#gauss-demo" class="sub">🎛 Demo: elimination</a></li>
         <li><a href="#lu">2.7 LU factorization</a></li>
         <li><a href="#lu-sym" class="sub">🎞 Animation: LU (symbolic)</a></li>
         <li><a href="#lu-numeric" class="sub">Worked numeric examples</a></li>
@@ -173,59 +177,6 @@
 
         <p>The <b>cobweb</b> traces the iteration in the top picture: from \(x_k\) go <b>up</b> to the curve (its height is \(g(x_k)=x_{k+1}\)), then <b>across</b> to the line \(y=x\), and repeat. The stacked demo below animates this while keeping the shared vertical line, so you watch the cobweb close on the crossing and the dots close on the root <em>at the same \(x\)</em>.</p>
 
-        <h3>Worked example</h3>
-        <p>Solve \(2x^3 - 2x - 5 = 0\). Rearrange to isolate \(x\):</p>
-        <div class="eqn">\[ x = \left(\frac{2x+5}{2}\right)^{1/3} \;=\; g(x), \quad\text{which satisfies } |g'(x)|<1 \text{ near } x=1.5. \]</div>
-        <p>Iterate \(x_{n+1}=g(x_n)\) from the initial value \(x_0=1.5\); stop when the error \(E_n=|x_{n+1}-x_n|<\varepsilon=10^{-4}\), or after at most <b>20 iterations</b>:</p>
-        <div class="tablewrap">
-          <table class="data">
-            <thead><tr><th>n</th><th>\(x_n\)</th><th>\(x_{n+1}=g(x_n)\)</th><th>\(E_n=|x_{n+1}-x_n|\)</th></tr></thead>
-            <tbody>
-              <tr><td>0</td><td>1.5000</td><td>1.5874</td><td>0.0874</td></tr>
-              <tr><td>1</td><td>1.5874</td><td>1.5989</td><td>0.0115</td></tr>
-              <tr><td>2</td><td>1.5989</td><td>1.6004</td><td>0.0015</td></tr>
-              <tr><td>3</td><td>1.6004</td><td>1.6006</td><td>0.0002</td></tr>
-              <tr class="converged"><td>4</td><td>1.6006</td><td>1.6006</td><td>0.00003 &lt; ε ✓</td></tr>
-            </tbody>
-          </table>
-        </div>
-        <p>The error shrinks by ≈ \(|g'(x^{*})|\approx0.13\) each step and drops below \(\varepsilon\) at \(n=4\): root \(x \approx 1.6006\).</p>
-
-        <div class="codewrap editable has-output">
-          <div class="codehead"><span class="lang"><span class="dot"></span>MATLAB · editable · Fixed_point_iteration.m</span><button class="copybtn">Copy</button></div>
-          <textarea spellcheck="false" rows="21">% Solve the SAME equation as the table:  2x^3 - 2x - 5 = 0
-% Rearranged as  x = g(x) = (x + 2.5)^(1/3)
-g   = @(x) (x + 2.5).^(1/3);
-x   = 1.5;                 % starting guess x0
-tol = 1e-4;
-
-for n = 0:20
-    xnew = g(x);
-    err  = abs(xnew - x);                              % E_n
-    fprintf('n=%d  x=%.5f  g(x)=%.5f  err=%.5f\n', n, x, xnew, err);
-    if err < tol,  break;  end                         % stop at tolerance
-    x = xnew;
-end
-fprintf('self-written fixed point = %.6f\n', xnew);
-
-% MATLAB built-in for comparison (solves f(x)=0 directly)
-f = @(x) 2*x.^3 - 2*x - 5;
-fprintf('MATLAB fzero             = %.6f\n', fzero(f, 1.5));</textarea>
-        </div>
-<div class="mout"><div class="mout-head">Command Window output</div><pre>n=0  x=1.50000  g(x)=1.58740  err=0.08740
-n=1  x=1.58740  g(x)=1.59888  err=0.01148
-n=2  x=1.59888  g(x)=1.60037  err=0.00150
-n=3  x=1.60037  g(x)=1.60057  err=0.00019
-n=4  x=1.60057  g(x)=1.60059  err=0.00003
-self-written fixed point = 1.600595
-MATLAB fzero             = 1.600599</pre></div>
-        <div class="callout tip"><div class="h">🔬 Three ways, one root</div>
-          <b>By hand</b> (3 dp): 1.601 &nbsp;·&nbsp; <b>self-written program</b>: 1.600595 &nbsp;·&nbsp; <b>MATLAB </b><code>fzero</code>: 1.600599.
-          They agree to four decimals. The tiny gap is only the stopping rule: hand-work and the loop halt when \(E_n&lt;10^{-4}\), whereas <code>fzero</code> drives \(f\) to machine precision.
-        </div>
-
-        <div class="gen-practice" data-gen="fixed"></div>
-        <p class="note-src">Source: Root Finding lecture &amp; <code>Fixed_pont_iteration.m</code>.</p>
       </div>
     </section>
 
@@ -290,7 +241,7 @@ MATLAB fzero             = 1.600599</pre></div>
           </div>
           <figure style="margin:0"><canvas id="fpCanvas" class="demo-canvas" height="480"></canvas></figure>
           <div style="margin-top:.8rem">
-            <div style="font-size:.82rem;font-weight:700;color:var(--ink);margin-bottom:.28rem">Basin of attraction — which starting point x₀ converges (green) or diverges (red)</div>
+            <div style="font-size:.82rem;font-weight:700;color:var(--ink);margin-bottom:.28rem">Basin of attraction — which starting point x₀ converges (green) or diverges (red) · explained in §2.1.1 below</div>
             <canvas id="bsCanvas" class="basinbar" height="48"></canvas>
           </div>
           <div class="btnrow">
@@ -301,6 +252,65 @@ MATLAB fzero             = 1.600599</pre></div>
           <div class="readout" id="cwOut"></div>
         </div>
         <div class="callout tip"><div class="h">🔎 Try this</div>Switch between <code>g(x)=x²</code> and <code>g(x)=√x</code> — the <em>same</em> equation \(x^2-x=0\), yet the green basin (and which root you land on) flips. Then, with <code>g(x)=x²</code>, drag \(x_0\) just past the edge of the green band and watch the iteration escape to infinity.</div>
+      </div>
+    </section>
+
+    <!-- FIXED-POINT WORKED EXAMPLE -->
+    <section class="section" id="fixed-example">
+      <div class="panel">
+        <h2>✏️ 2.1 Fixed-point iteration — worked example &amp; practice</h2>
+        <p>Solve \(2x^3 - 2x - 5 = 0\). Rearrange to isolate \(x\):</p>
+        <div class="eqn">\[ x = \left(\frac{2x+5}{2}\right)^{1/3} \;=\; g(x), \quad\text{which satisfies } |g'(x)|<1 \text{ near } x=1.5. \]</div>
+        <p>Iterate \(x_{n+1}=g(x_n)\) from the initial value \(x_0=1.5\); stop when the error \(E_n=|x_{n+1}-x_n|<\varepsilon=10^{-4}\), or after at most <b>20 iterations</b>:</p>
+        <div class="tablewrap">
+          <table class="data">
+            <thead><tr><th>n</th><th>\(x_n\)</th><th>\(x_{n+1}=g(x_n)\)</th><th>\(E_n=|x_{n+1}-x_n|\)</th></tr></thead>
+            <tbody>
+              <tr><td>0</td><td>1.5000</td><td>1.5874</td><td>0.0874</td></tr>
+              <tr><td>1</td><td>1.5874</td><td>1.5989</td><td>0.0115</td></tr>
+              <tr><td>2</td><td>1.5989</td><td>1.6004</td><td>0.0015</td></tr>
+              <tr><td>3</td><td>1.6004</td><td>1.6006</td><td>0.0002</td></tr>
+              <tr class="converged"><td>4</td><td>1.6006</td><td>1.6006</td><td>0.00003 &lt; ε ✓</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>The error shrinks by ≈ \(|g'(x^{*})|\approx0.13\) each step and drops below \(\varepsilon\) at \(n=4\): root \(x \approx 1.6006\).</p>
+
+        <div class="codewrap editable has-output">
+          <div class="codehead"><span class="lang"><span class="dot"></span>MATLAB · editable · Fixed_point_iteration.m</span><button class="copybtn">Copy</button></div>
+          <textarea spellcheck="false" rows="21">% Solve the SAME equation as the table:  2x^3 - 2x - 5 = 0
+% Rearranged as  x = g(x) = (x + 2.5)^(1/3)
+g   = @(x) (x + 2.5).^(1/3);
+x   = 1.5;                 % starting guess x0
+tol = 1e-4;
+
+for n = 0:20
+    xnew = g(x);
+    err  = abs(xnew - x);                              % E_n
+    fprintf('n=%d  x=%.5f  g(x)=%.5f  err=%.5f\n', n, x, xnew, err);
+    if err < tol,  break;  end                         % stop at tolerance
+    x = xnew;
+end
+fprintf('self-written fixed point = %.6f\n', xnew);
+
+% MATLAB built-in for comparison (solves f(x)=0 directly)
+f = @(x) 2*x.^3 - 2*x - 5;
+fprintf('MATLAB fzero             = %.6f\n', fzero(f, 1.5));</textarea>
+        </div>
+<div class="mout"><div class="mout-head">Command Window output</div><pre>n=0  x=1.50000  g(x)=1.58740  err=0.08740
+n=1  x=1.58740  g(x)=1.59888  err=0.01148
+n=2  x=1.59888  g(x)=1.60037  err=0.00150
+n=3  x=1.60037  g(x)=1.60057  err=0.00019
+n=4  x=1.60057  g(x)=1.60059  err=0.00003
+self-written fixed point = 1.600595
+MATLAB fzero             = 1.600599</pre></div>
+        <div class="callout tip"><div class="h">🔬 Three ways, one root</div>
+          <b>By hand</b> (3 dp): 1.601 &nbsp;·&nbsp; <b>self-written program</b>: 1.600595 &nbsp;·&nbsp; <b>MATLAB </b><code>fzero</code>: 1.600599.
+          They agree to four decimals. The tiny gap is only the stopping rule: hand-work and the loop halt when \(E_n&lt;10^{-4}\), whereas <code>fzero</code> drives \(f\) to machine precision.
+        </div>
+
+        <div class="gen-practice" data-gen="fixed"></div>
+        <p class="note-src">Source: Root Finding lecture &amp; <code>Fixed_pont_iteration.m</code>.</p>
       </div>
     </section>
 
@@ -518,7 +528,41 @@ MATLAB fzero             = 1.600599</pre></div>
         </div>
         <div class="callout idea"><div class="h">💡 Guaranteed but slow</div>Always converges for a sign-changing continuous \(f\), but only <b>linearly</b> (≈ one bit/step). The dependable fallback when faster methods misbehave.</div>
 
-        <h3>Worked example</h3>
+      </div>
+    </section>
+
+    <!-- BISECTION DEMO -->
+    <section class="section" id="bisect-demo">
+      <div class="panel">
+        <h2>🎛 Demo: watch bisection bracket a root</h2>
+        <p>The shaded band is the current bracket \([a,b]\). Each step halves it and keeps the half where the sign changes. Press <b>Step</b> to advance one iteration, or <b>Auto</b> to run.</p>
+        <div class="demo">
+          <div class="demo-head"><span class="pill">Live</span> Bisection method</div>
+          <canvas id="biCanvas" height="320"></canvas>
+          <div class="controls">
+            <div class="control" style="min-width:230px">
+              <label>Function</label>
+              <select id="biFn">
+                <option value="0">f(x) = x² − 2   on [0, 2]</option>
+                <option value="1">f(x) = x³ − 2x − 1   on [1, 2]</option>
+                <option value="2">f(x) = cos(x) − x   on [0, 1]</option>
+              </select>
+            </div>
+          </div>
+          <div class="btnrow">
+            <button class="btn" id="biStep">Step ▸</button>
+            <button class="btn accent" id="biAuto">Auto ▶</button>
+            <button class="btn ghost" id="biReset">Reset</button>
+          </div>
+          <div class="readout" id="biOut"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- BISECTION WORKED EXAMPLE -->
+    <section class="section" id="bisect-example">
+      <div class="panel">
+        <h2>✏️ 2.2 Bisection — worked example &amp; practice</h2>
         <p>Bracket the root of \(f(x)=x^2-2\) in the initial interval \([a,b]=[1,2]\); halve until the error bound \(E_n=\tfrac{b-a}{2}<\varepsilon=0.01\), or after at most <b>20 iterations</b>:</p>
         <div class="tablewrap">
           <table class="data">
@@ -541,8 +585,8 @@ MATLAB fzero             = 1.600599</pre></div>
           <textarea spellcheck="false" rows="16">% Solve the SAME equation as the table:  x^2 - 2 = 0  on [1, 2]
 f   = @(x) x.^2 - 2;
 a = 1;  b = 2;  tol = 1e-4;  nmax = 20;   % initial interval, tolerance, max iterations
-n = 0;
-while (b - a)/2 >= tol && n < nmax
+n = 1;
+while (b - a)/2 >= tol && n <= nmax
     c = (a + b)/2;
     fprintf('n=%d  a=%.4f  b=%.4f  c=%.4f  f(c)=%+.4f  err=%.4f\n', n, a, b, c, f(c), (b-a)/2);
     if f(a)*f(c) < 0,  b = c;  else  a = c;  end     % keep the half with the sign change
@@ -553,19 +597,19 @@ fprintf('self-written bisection = %.6f\n', (a + b)/2);
 % MATLAB built-in for comparison
 fprintf('MATLAB fzero           = %.6f\n', fzero(f, [1 2]));</textarea>
         </div>
-<div class="mout"><div class="mout-head">Command Window output</div><pre>n=0  a=1.0000  b=2.0000  c=1.5000  f(c)=+0.2500  err=0.5000
-n=1  a=1.0000  b=1.5000  c=1.2500  f(c)=-0.4375  err=0.2500
-n=2  a=1.2500  b=1.5000  c=1.3750  f(c)=-0.1094  err=0.1250
-n=3  a=1.3750  b=1.5000  c=1.4375  f(c)=+0.0664  err=0.0625
-n=4  a=1.3750  b=1.4375  c=1.4062  f(c)=-0.0225  err=0.0312
-n=5  a=1.4062  b=1.4375  c=1.4219  f(c)=+0.0217  err=0.0156
-n=6  a=1.4062  b=1.4219  c=1.4141  f(c)=-0.0004  err=0.0078
-n=7  a=1.4141  b=1.4219  c=1.4180  f(c)=+0.0106  err=0.0039
-n=8  a=1.4141  b=1.4180  c=1.4160  f(c)=+0.0051  err=0.0020
-n=9  a=1.4141  b=1.4160  c=1.4150  f(c)=+0.0023  err=0.0010
-n=10 a=1.4141  b=1.4150  c=1.4146  f(c)=+0.0010  err=0.0005
-n=11 a=1.4141  b=1.4146  c=1.4143  f(c)=+0.0003  err=0.0002
-n=12 a=1.4141  b=1.4143  c=1.4142  f(c)=-0.0001  err=0.0001
+<div class="mout"><div class="mout-head">Command Window output</div><pre>n=1  a=1.0000  b=2.0000  c=1.5000  f(c)=+0.2500  err=0.5000
+n=2  a=1.0000  b=1.5000  c=1.2500  f(c)=-0.4375  err=0.2500
+n=3  a=1.2500  b=1.5000  c=1.3750  f(c)=-0.1094  err=0.1250
+n=4  a=1.3750  b=1.5000  c=1.4375  f(c)=+0.0664  err=0.0625
+n=5  a=1.3750  b=1.4375  c=1.4062  f(c)=-0.0225  err=0.0312
+n=6  a=1.4062  b=1.4375  c=1.4219  f(c)=+0.0217  err=0.0156
+n=7  a=1.4062  b=1.4219  c=1.4141  f(c)=-0.0004  err=0.0078
+n=8  a=1.4141  b=1.4219  c=1.4180  f(c)=+0.0106  err=0.0039
+n=9  a=1.4141  b=1.4180  c=1.4160  f(c)=+0.0051  err=0.0020
+n=10 a=1.4141  b=1.4160  c=1.4150  f(c)=+0.0023  err=0.0010
+n=11 a=1.4141  b=1.4150  c=1.4146  f(c)=+0.0010  err=0.0005
+n=12 a=1.4141  b=1.4146  c=1.4143  f(c)=+0.0003  err=0.0002
+n=13 a=1.4141  b=1.4143  c=1.4142  f(c)=-0.0001  err=0.0001
 self-written bisection = 1.414246
 MATLAB fzero           = 1.414214</pre></div>
         <div class="callout tip"><div class="h">🔬 Three ways, one root</div>
@@ -602,34 +646,6 @@ MATLAB fzero           = 1.414214</pre></div>
       </div>
     </section>
 
-    <!-- BISECTION DEMO -->
-    <section class="section" id="bisect-demo">
-      <div class="panel">
-        <h2>🎛 Demo: watch bisection bracket a root</h2>
-        <p>The shaded band is the current bracket \([a,b]\). Each step halves it and keeps the half where the sign changes. Press <b>Step</b> to advance one iteration, or <b>Auto</b> to run.</p>
-        <div class="demo">
-          <div class="demo-head"><span class="pill">Live</span> Bisection method</div>
-          <canvas id="biCanvas" height="320"></canvas>
-          <div class="controls">
-            <div class="control" style="min-width:230px">
-              <label>Function</label>
-              <select id="biFn">
-                <option value="0">f(x) = x² − 2   on [0, 2]</option>
-                <option value="1">f(x) = x³ − 2x − 1   on [1, 2]</option>
-                <option value="2">f(x) = cos(x) − x   on [0, 1]</option>
-              </select>
-            </div>
-          </div>
-          <div class="btnrow">
-            <button class="btn" id="biStep">Step ▸</button>
-            <button class="btn accent" id="biAuto">Auto ▶</button>
-            <button class="btn ghost" id="biReset">Reset</button>
-          </div>
-          <div class="readout" id="biOut"></div>
-        </div>
-      </div>
-    </section>
-
     <!-- NEWTON -->
     <section class="section" id="newton">
       <div class="panel">
@@ -647,7 +663,45 @@ MATLAB fzero           = 1.414214</pre></div>
           \[ x_{k+1} = x_k - \frac{f(x_k)}{f'(x_k)}. \]
         </div>
 
-        <h3>Worked example</h3>
+      </div>
+    </section>
+
+    <!-- NEWTON DEMO -->
+    <section class="section" id="newton-demo">
+      <div class="panel">
+        <h2>🎛 Demo: Newton's tangent leaps</h2>
+        <p>Choose a function and a starting point \(x_0\). Each step draws the tangent (orange) and drops to the \(x\)-axis to get the next guess. Notice how quickly the steps shrink.</p>
+        <div class="demo">
+          <div class="demo-head"><span class="pill">Live</span> Newton–Raphson</div>
+          <canvas id="nwCanvas" height="320"></canvas>
+          <div class="controls">
+            <div class="control" style="min-width:230px">
+              <label>Function</label>
+              <select id="nwFn">
+                <option value="0">f(x) = x² − 2   (root √2)</option>
+                <option value="1">f(x) = x³ − 2x − 1   (root ≈1.618)</option>
+                <option value="2">f(x) = cos(x) − x   (root ≈0.739)</option>
+              </select>
+            </div>
+            <div class="control" style="min-width:240px">
+              <label>Start x₀: <span class="val" id="nwX0val">2.0</span></label>
+              <input id="nwX0" type="range" min="-2" max="3" step="0.1" value="2">
+            </div>
+          </div>
+          <div class="btnrow">
+            <button class="btn" id="nwStep">Step ▸</button>
+            <button class="btn accent" id="nwAuto">Auto ▶</button>
+            <button class="btn ghost" id="nwReset">Reset</button>
+          </div>
+          <div class="readout" id="nwOut"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- NEWTON WORKED EXAMPLE -->
+    <section class="section" id="newton-example">
+      <div class="panel">
+        <h2>✏️ 2.3 Newton's method — worked example &amp; practice</h2>
         <p>Solve \(\cos x - x = 0\) from the initial value \(x_0 = \pi/4 \approx 0.785398\), with \(f'(x) = -\sin x - 1\); stop when \(E_n=|x_{n+1}-x_n|<\varepsilon=10^{-6}\), or after at most <b>20 iterations</b>:</p>
         <div class="tablewrap">
           <table class="data">
@@ -715,38 +769,6 @@ MATLAB fzero        = 0.739085</pre></div>
       </div>
     </section>
 
-    <!-- NEWTON DEMO -->
-    <section class="section" id="newton-demo">
-      <div class="panel">
-        <h2>🎛 Demo: Newton's tangent leaps</h2>
-        <p>Choose a function and a starting point \(x_0\). Each step draws the tangent (orange) and drops to the \(x\)-axis to get the next guess. Notice how quickly the steps shrink.</p>
-        <div class="demo">
-          <div class="demo-head"><span class="pill">Live</span> Newton–Raphson</div>
-          <canvas id="nwCanvas" height="320"></canvas>
-          <div class="controls">
-            <div class="control" style="min-width:230px">
-              <label>Function</label>
-              <select id="nwFn">
-                <option value="0">f(x) = x² − 2   (root √2)</option>
-                <option value="1">f(x) = x³ − 2x − 1   (root ≈1.618)</option>
-                <option value="2">f(x) = cos(x) − x   (root ≈0.739)</option>
-              </select>
-            </div>
-            <div class="control" style="min-width:240px">
-              <label>Start x₀: <span class="val" id="nwX0val">2.0</span></label>
-              <input id="nwX0" type="range" min="-2" max="3" step="0.1" value="2">
-            </div>
-          </div>
-          <div class="btnrow">
-            <button class="btn" id="nwStep">Step ▸</button>
-            <button class="btn accent" id="nwAuto">Auto ▶</button>
-            <button class="btn ghost" id="nwReset">Reset</button>
-          </div>
-          <div class="readout" id="nwOut"></div>
-        </div>
-      </div>
-    </section>
-
     <!-- SECANT -->
     <section class="section" id="secant">
       <div class="panel">
@@ -764,7 +786,41 @@ MATLAB fzero        = 0.739085</pre></div>
           \[ x_{k+1} = x_k - f(x_k)\,\frac{x_k - x_{k-1}}{f(x_k) - f(x_{k-1})}. \]
         </div>
 
-        <h3>Worked example</h3>
+      </div>
+    </section>
+
+    <!-- SECANT DEMO -->
+    <section class="section" id="secant-demo">
+      <div class="panel">
+        <h2>🎛 Demo: the secant sweep</h2>
+        <p>The secant method draws a straight line through the two most recent points on the curve and takes its \(x\)-intercept as the next guess. Watch each secant line (orange) pivot toward the root — no derivative required.</p>
+        <div class="demo">
+          <div class="demo-head"><span class="pill">Live</span> Secant method</div>
+          <canvas id="scCanvas" height="320"></canvas>
+          <div class="controls">
+            <div class="control" style="min-width:230px">
+              <label>Function</label>
+              <select id="scFn">
+                <option value="0">f(x) = x² − 2   (root √2)</option>
+                <option value="1">f(x) = x³ − 2x − 1   (root ≈1.618)</option>
+                <option value="2">f(x) = cos(x) − x   (root ≈0.739)</option>
+              </select>
+            </div>
+          </div>
+          <div class="btnrow">
+            <button class="btn" id="scStep">Step ▸</button>
+            <button class="btn accent" id="scAuto">Auto ▶</button>
+            <button class="btn ghost" id="scReset">Reset</button>
+          </div>
+          <div class="readout" id="scOut"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECANT WORKED EXAMPLE -->
+    <section class="section" id="secant-example">
+      <div class="panel">
+        <h2>✏️ 2.4 Secant method — worked example &amp; practice</h2>
         <p>Solve \(f(x)=x^2-2\) from the two initial values \(x_0=1,\ x_1=2\); each step uses the two latest points. Stop when \(E_k=|x_k-x_{k-1}|<\varepsilon=10^{-3}\), or after at most <b>20 iterations</b>:</p>
         <div class="tablewrap">
           <table class="data">
@@ -829,28 +885,6 @@ MATLAB fzero        = 1.414214</pre></div>
         </div>
 
         <div class="gen-practice" data-gen="secant"></div>
-        <h2 id="secant-demo" style="margin-top:1.6rem">🎛 Demo: the secant sweep</h2>
-        <p>The secant method draws a straight line through the two most recent points on the curve and takes its \(x\)-intercept as the next guess. Watch each secant line (orange) pivot toward the root — no derivative required.</p>
-        <div class="demo">
-          <div class="demo-head"><span class="pill">Live</span> Secant method</div>
-          <canvas id="scCanvas" height="320"></canvas>
-          <div class="controls">
-            <div class="control" style="min-width:230px">
-              <label>Function</label>
-              <select id="scFn">
-                <option value="0">f(x) = x² − 2   (root √2)</option>
-                <option value="1">f(x) = x³ − 2x − 1   (root ≈1.618)</option>
-                <option value="2">f(x) = cos(x) − x   (root ≈0.739)</option>
-              </select>
-            </div>
-          </div>
-          <div class="btnrow">
-            <button class="btn" id="scStep">Step ▸</button>
-            <button class="btn accent" id="scAuto">Auto ▶</button>
-            <button class="btn ghost" id="scReset">Reset</button>
-          </div>
-          <div class="readout" id="scOut"></div>
-        </div>
       </div>
     </section>
 
@@ -899,26 +933,35 @@ x =
       <div class="panel">
         <h2>2.6 Solving linear systems: Gaussian elimination</h2>
         <div class="voicebar"><span class="vlabel">🔊 Listen to this section</span><audio controls preload="metadata" src="assets/audio/m2_gauss.mp3"></audio></div>
-        <h3 id="gauss-sym" style="margin-top:.4rem">🎞 Lecture animation: Gaussian elimination</h3>
-        <p>Everything is symbolic, so it holds for any system and any size <i>n</i>. Use <b>Step</b> / <b>Back</b>, <b>Auto</b>, or drag the progress bar; change <i>n</i> to see the pattern generalise.</p>
-        <div class="demo sd-demo" data-sd="gauss" data-n="4"></div>
-        <div class="callout idea"><div class="h">📌 What to remember</div><ul><li><b>Three row operations</b> (swap, scale, add a multiple) never change the solution; elimination uses only “add a multiple”, plus swaps for pivoting.</li><li>Cost: ≈ <i>2n³/3</i> operations to eliminate, ≈ <i>n²</i> to back-substitute.</li><li>A zero or tiny pivot breaks the method or amplifies rounding error — <b>partial pivoting</b> (swap in the largest entry) fixes this.</li></ul></div>
-        <h3>Reference: definitions, example &amp; code</h3>
+        <h3>Definitions</h3>
         <p>Now we turn from one equation to <b>systems</b> \(A\mathbf{x} = \mathbf{b}\). Gaussian elimination is the workhorse direct method. It uses three <b>elementary row operations</b> — swapping rows, scaling a row by a nonzero constant, and adding a multiple of one row to another — to transform the augmented matrix \([A\,|\,\mathbf{b}]\) into <b>row-echelon (upper-triangular) form</b>.</p>
         <ol>
           <li><b>Forward elimination:</b> introduce zeros below each pivot, column by column, until the system is upper triangular.</li>
           <li><b>Back substitution:</b> solve the last equation for the last unknown, then work upward.</li>
         </ol>
         <h3>Worked example</h3>
-        <p>Find the parabola \(y = ax^2 + bx + c\) through \((3,25)\), \((1,5)\), \((-2,20)\). Substituting the points gives a \(3\times3\) system; elimination + back-substitution yields</p>
-        <div class="eqn">\[ a = 3, \quad b = -2, \quad c = 4 \;\Rightarrow\; y = 3x^2 - 2x + 4. \]</div>
+        <p>Find the parabola \(y = ax^2 + bx + c\) through the points \((1,5)\), \((3,25)\), \((-2,20)\). Substituting each point into \(y=ax^2+bx+c\) gives one linear equation in the unknowns \(a,b,c\) (we list \((1,5)\) first so that the first pivot is 1):</p>
+        <div class="eqn">\[ \begin{aligned} a+b+c&=5\\ 9a+3b+c&=25\\ 4a-2b+c&=20 \end{aligned} \qquad\Longrightarrow\qquad \left[\begin{array}{ccc|c}1&1&1&5\\9&3&1&25\\4&-2&1&20\end{array}\right]. \]</div>
+        <div class="callout def"><div class="h">Forward elimination</div>
+          <p style="margin:.2rem 0"><b>Column 1</b> (pivot \(1\)). Multipliers \(m_{21}=\tfrac{9}{1}=9\) and \(m_{31}=\tfrac{4}{1}=4\).</p>
+          <p style="margin:.2rem 0">\(R_2\leftarrow R_2-9R_1:\)<br>\(\big[\,9-9(1),\ 3-9(1),\ 1-9(1)\ \big|\ 25-9(5)\,\big]=\big[\,0,\ -6,\ -8\ \big|\ -20\,\big]\)</p>
+          <p style="margin:.2rem 0">\(R_3\leftarrow R_3-4R_1:\)<br>\(\big[\,4-4(1),\ -2-4(1),\ 1-4(1)\ \big|\ 20-4(5)\,\big]=\big[\,0,\ -6,\ -3\ \big|\ 0\,\big]\)</p>
+          <div class="eqn">\[ \left[\begin{array}{ccc|c}1&1&1&5\\0&-6&-8&-20\\0&-6&-3&0\end{array}\right] \]</div>
+          <p style="margin:.2rem 0"><b>Column 2</b> (pivot \(-6\)). Multiplier \(m_{32}=\tfrac{-6}{-6}=1\).</p>
+          <p style="margin:.2rem 0">\(R_3\leftarrow R_3-1\cdot R_2:\)<br>\(\big[\,0-0,\ -6-(-6),\ -3-(-8)\ \big|\ 0-(-20)\,\big]=\big[\,0,\ 0,\ 5\ \big|\ 20\,\big]\)</p>
+          <div class="eqn">\[ \left[\begin{array}{ccc|c}1&1&1&5\\0&-6&-8&-20\\0&0&5&20\end{array}\right]\qquad\text{upper triangular — elimination done.} \]</div>
+        </div>
+        <div class="callout def"><div class="h">Back substitution</div>
+          <div class="eqn">\[ \begin{aligned} 5c&=20 &&\Rightarrow\ c=\tfrac{20}{5}=4\\ -6b-8c&=-20 &&\Rightarrow\ b=\frac{-20+8(4)}{-6}=\frac{12}{-6}=-2\\ a+b+c&=5 &&\Rightarrow\ a=5-(-2)-4=3 \end{aligned} \]</div>
+          <p style="margin:.2rem 0">So \(a=3,\ b=-2,\ c=4\) and the parabola is \(y=3x^2-2x+4\). Check at the three points: \(3(1)^2-2(1)+4=5\) ✓, \(3(3)^2-2(3)+4=25\) ✓, \(3(-2)^2-2(-2)+4=20\) ✓.</p>
+        </div>
         <div class="codewrap editable has-output">
           <div class="codehead"><span class="lang"><span class="dot"></span>MATLAB · editable · Gaussian_Elimination.m</span><button class="copybtn">Copy</button></div>
-          <textarea spellcheck="false" rows="24">A = [10 3 1 1;
-      3 10 2 2;
-      1  2 10 3;
-      2  3 4 10];
-B = [19; 29; 35; 45];
+          <textarea spellcheck="false" rows="25">% Solve the SAME system as the worked example (parabola through 3 points)
+A = [1  1  1;
+     9  3  1;
+     4 -2  1];
+B = [5; 25; 20];
 
 N = length(B);   X = zeros(N,1);
 aug = [A B];                 % augmented matrix [A | B]
@@ -937,20 +980,26 @@ for p = N-1:-1:1
     X(p) = (aug(p,N+1) - aug(p,p+1:N)*X(p+1:N)) / aug(p,p);
 end
 
-disp('Solution vector X ='); disp(X)
+disp('Solution X = [a; b; c]'); disp(X)
 
 % In practice, just use the backslash operator:
 X_builtin = A \ B;</textarea>
         </div>
-<div class="mout"><div class="mout-head">Command Window output</div><pre>Solution vector X = 
-    0.9050
-    1.5962
-    2.2025
-    2.9591</pre></div>
+<div class="mout"><div class="mout-head">Command Window output</div><pre>Solution X = [a; b; c]
+     3
+    -2
+     4</pre></div>
+        <div class="callout tip"><div class="h">🔬 Two ways, one answer</div><b>By hand</b> and the <b>self-written program</b> both give \((a,b,c)=(3,-2,4)\) — exact integers here, because every pivot divided cleanly. <code>A \ B</code> gives the same.</div>
 
         <div class="callout warn"><div class="h">⚠️ Numerical limitation</div>If a pivot is zero (or tiny), the multiplier blows up. <b>Partial pivoting</b> — swapping in the row with the largest pivot — keeps elimination stable. MATLAB's <code>\</code> does this automatically.</div>
-        <p class="note-src">Source: Gaussian Elimination lecture &amp; <code>Gausssian_Elimination.m</code>.</p>
         <div class="gen-practice" data-gen="gauss"></div>
+
+        <h3 id="gauss-sym" style="margin-top:.4rem">🎞 Lecture animation: Gaussian elimination</h3>
+        <p>Everything is symbolic, so it holds for any system and any size <i>n</i>. Use <b>Step</b> / <b>Back</b>, <b>Auto</b>, or drag the progress bar; change <i>n</i> to see the pattern generalise.</p>
+        <div class="demo sd-demo" data-sd="gauss" data-n="4"></div>
+        <div class="callout idea"><div class="h">📌 What to remember</div><ul><li><b>Three row operations</b> (swap, scale, add a multiple) never change the solution; elimination uses only “add a multiple”, plus swaps for pivoting.</li><li>Cost: ≈ <i>2n³/3</i> operations to eliminate, ≈ <i>n²</i> to back-substitute.</li><li>A zero or tiny pivot breaks the method or amplifies rounding error — <b>partial pivoting</b> (swap in the largest entry) fixes this.</li></ul></div>
+
+        <p class="note-src">Source: Gaussian Elimination lecture &amp; <code>Gausssian_Elimination.m</code>.</p>
 
         <h2 id="gauss-demo" style="margin-top:1.6rem">🎛 Demo: forward elimination, row by row</h2>
         <p>Follow the augmented matrix \([A\,|\,\mathbf b]\) as it is driven to upper-triangular form. Each step picks a pivot, computes the multiplier \(m = a_{ik}/a_{kk}\) for a row below it, and subtracts \(m\times(\text{pivot row})\) to plant a zero under the pivot. Press <b>Step</b> to do one row operation.</p>
@@ -981,18 +1030,14 @@ X_builtin = A \ B;</textarea>
       <div class="panel">
         <h2>2.7 LU factorization</h2>
         <div class="voicebar"><span class="vlabel">🔊 Listen to this section</span><audio controls preload="metadata" src="assets/audio/m2_lu.mp3"></audio></div>
-        <h3 id="lu-sym" style="margin-top:.4rem">🎞 Lecture animation: LU factorization</h3>
-        <p>It picks up exactly where Gaussian elimination stopped: same steps, but the multipliers are <b>kept</b>. Use <b>Step</b> / <b>Back</b>, <b>Auto</b>, or drag the progress bar; change <i>n</i> to see the pattern generalise.</p>
-        <div class="demo sd-demo" data-sd="lu" data-n="4"></div>
-        <div class="callout idea"><div class="h">📌 What to remember</div><ul><li><i>A</i> = <i>L U</i>, with <i>L</i> unit lower-triangular (multipliers) and <i>U</i> upper-triangular (eliminated matrix).</li><li>Factor once (≈ <i>2n³/3</i>), then each new right-hand side costs only ≈ <i>2n²</i> — two triangular solves.</li><li>With pivoting the factorization is <i>P A = L U</i>; MATLAB’s <code>[L,U,P] = lu(A)</code> returns the permutation too.</li></ul></div>
-        <h3>Reference: definitions, example &amp; code</h3>
+        <h3>Definitions</h3>
         <p>LU decomposition factors a square matrix into a <b>lower</b>-triangular \(L\) (ones on the diagonal) times an <b>upper</b>-triangular \(U\):</p>
         <div class="eqn">\[ A = L\,U. \]</div>
         <p>This is Gaussian elimination's bookkeeping made reusable. Once you have \(L\) and \(U\), solving \(A\mathbf{x}=\mathbf{b}\) is two cheap triangular solves:</p>
         <div class="eqn">\[ L\mathbf{y} = \mathbf{b}\ \text{(forward)},\qquad U\mathbf{x} = \mathbf{y}\ \text{(backward)}. \]</div>
         <div class="callout idea"><div class="h">💡 Why factor?</div>The expensive elimination is done <b>once</b>. To solve the same \(A\) against many right-hand sides \(\mathbf{b}\), you reuse \(L\) and \(U\) — only the two fast triangular solves repeat. Hugely efficient for repeated solves.</div>
         <h3 id="lu-numeric">Worked numerical examples</h3>
-        <p>The animation above can show the same numbers: choose <b>size</b> 3 and <b>values → numbers</b>. Here they are written out by hand.</p>
+        <p>The animation below can show the same numbers: choose <b>size</b> 3 and <b>values → numbers</b>. Here they are written out by hand.</p>
 
         <div class="callout def"><div class="h">Example 1 — factor, then solve (3 × 3)</div>
           <p style="margin:.2rem 0">Solve \(A\mathbf{x}=\mathbf{b}\) with</p>
@@ -1044,6 +1089,11 @@ disp('Solution x ='); disp(x)</textarea>
 
 
         <div class="gen-practice" data-gen="lu"></div>
+        <h3 id="lu-sym" style="margin-top:.4rem">🎞 Lecture animation: LU factorization</h3>
+        <p>It picks up exactly where Gaussian elimination stopped: same steps, but the multipliers are <b>kept</b>. Use <b>Step</b> / <b>Back</b>, <b>Auto</b>, or drag the progress bar; change <i>n</i> to see the pattern generalise.</p>
+        <div class="demo sd-demo" data-sd="lu" data-n="4"></div>
+        <div class="callout idea"><div class="h">📌 What to remember</div><ul><li><i>A</i> = <i>L U</i>, with <i>L</i> unit lower-triangular (multipliers) and <i>U</i> upper-triangular (eliminated matrix).</li><li>Factor once (≈ <i>2n³/3</i>), then each new right-hand side costs only ≈ <i>2n²</i> — two triangular solves.</li><li>With pivoting the factorization is <i>P A = L U</i>; MATLAB’s <code>[L,U,P] = lu(A)</code> returns the permutation too.</li></ul></div>
+
         <p class="note-src">Source: LU Factorization lecture (slides).</p>
       </div>
     </section>
@@ -1053,8 +1103,11 @@ disp('Solution x ='); disp(x)</textarea>
       <div class="panel">
         <h2>2.8 Cholesky factorization</h2>
         <div class="voicebar"><span class="vlabel">🔊 Listen to this section</span><audio controls preload="metadata" src="assets/audio/m2_chol.mp3"></audio></div>
-        <h3 id="chol-sym" style="margin-top:.4rem">🎞 Lecture animation: Cholesky factorization</h3>
-        <p>Watch how symmetry lets us compute only half of everything. Use <b>Step</b> / <b>Back</b>, <b>Auto</b>, or drag the progress bar; change <i>n</i> to see the pattern generalise.</p>
+        <h3>Definitions</h3>
+        <p>When \(A\) is <b>symmetric and positive definite</b> (all eigenvalues positive), it has a special, cheaper factorization into a lower-triangular matrix times its own transpose:</p>
+        <div class="eqn">\[ A = L\,L^{\mathsf{T}}. \]</div>
+        <p>Cholesky is about <b>twice as fast</b> as LU and numerically very stable — the method of choice for the symmetric positive-definite systems that arise in least-squares (Module 3) and many engineering problems. Solving uses the same two-step idea:</p>
+        <div class="eqn">\[ L\mathbf{y} = \mathbf{b}, \qquad L^{\mathsf{T}}\mathbf{x} = \mathbf{y}. \]</div>
         <div class="callout def"><div class="h">📐 What does “symmetric” mean? An example</div>
           <p style="margin:.2rem 0 .5rem">A matrix is <b>symmetric</b> when it is a mirror image across its main diagonal: \(a_{ij}=a_{ji}\), i.e. \(A=A^T\). The entry in row 1, column 3 equals the entry in row 3, column 1, and so on.</p>
           <div style="display:flex;flex-wrap:wrap;gap:1.2rem 2.4rem;align-items:center">
@@ -1063,38 +1116,62 @@ disp('Solution x ='); disp(x)</textarea>
           </div>
           <p style="margin:.4rem 0 0">Because the upper triangle just repeats the lower one, only <b>half</b> of a symmetric matrix carries information — this is what Cholesky exploits. (For <i>n</i> = 3 this same \(A\) is the numeric example in the animation below: set <b>size</b> to 3 and <b>values</b> to <i>numbers</i>.)</p>
         </div>
-        <div class="demo sd-demo" data-sd="chol" data-n="4"></div>
-        <div class="callout idea"><div class="h">📌 What to remember</div><ul><li>Requires <i>A</i> symmetric <b>and</b> positive definite; then <i>A</i> = <i>L L</i><sup>T</sup> with positive diagonal in <i>L</i>.</li><li>About half the cost of LU (≈ <i>n³/3</i>) and half the storage; stable without pivoting.</li><li>The algorithm doubles as a test: a non-positive value under a square root means <i>A</i> is <b>not</b> positive definite.</li></ul></div>
-        <h3>Reference: definitions, example &amp; code</h3>
-        <p>When \(A\) is <b>symmetric and positive definite</b> (all eigenvalues positive), it has a special, cheaper factorization into a lower-triangular matrix times its own transpose:</p>
-        <div class="eqn">\[ A = L\,L^{\mathsf{T}}. \]</div>
-        <p>Cholesky is about <b>twice as fast</b> as LU and numerically very stable — the method of choice for the symmetric positive-definite systems that arise in least-squares (Module 3) and many engineering problems. Solving uses the same two-step idea:</p>
-        <div class="eqn">\[ L\mathbf{y} = \mathbf{b}, \qquad L^{\mathsf{T}}\mathbf{x} = \mathbf{y}. \]</div>
-        <h3>Worked example</h3>
-        <p>Solve the symmetric system</p>
-        <div class="eqn">\[ \begin{aligned} 6x + 15y + 55z &= 76\\ 15x + 55y + 225z &= 295\\ 55x + 225y + 979z &= 1259 \end{aligned} \]</div>
+        <div class="callout def"><div class="h">📐 Positive definite?</div>A symmetric matrix is positive definite iff every pivot in Cholesky is real and positive. If <code>chol</code> errors, \(A\) is not positive definite — fall back to LU.</div>
+        <h3>Worked example — by hand</h3>
+        <p>Solve \(A\mathbf{x}=\mathbf{b}\) for the symmetric matrix from the box above:</p>
+        <div class="eqn">\[ A=\begin{bmatrix}4&-2&4\\-2&2&-4\\4&-4&12\end{bmatrix},\qquad \mathbf{b}=\begin{bmatrix}-4\\6\\-16\end{bmatrix}. \]</div>
+        <div class="callout def"><div class="h">Step 1 — build \(L\) column by column</div>
+          <p style="margin:.2rem 0">Write \(A=LL^{\mathsf T}\) with \(L\) lower triangular and match entries, working down each column of \(A\):</p>
+          <div class="eqn">\[ \begin{aligned}
+            l_{11}&=\sqrt{a_{11}}=\sqrt{4}=2 \\
+            l_{21}&=\frac{a_{21}}{l_{11}}=\frac{-2}{2}=-1, \qquad l_{31}=\frac{a_{31}}{l_{11}}=\frac{4}{2}=2 \\
+            l_{22}&=\sqrt{a_{22}-l_{21}^{2}}=\sqrt{2-(-1)^{2}}=\sqrt{1}=1 \\
+            l_{32}&=\frac{a_{32}-l_{31}l_{21}}{l_{22}}=\frac{-4-(2)(-1)}{1}=-2 \\
+            l_{33}&=\sqrt{a_{33}-l_{31}^{2}-l_{32}^{2}}=\sqrt{12-(2)^{2}-(-2)^{2}}=\sqrt{4}=2
+          \end{aligned} \]</div>
+          <p style="margin:.2rem 0">Every square root was of a <b>positive</b> number, so \(A\) is positive definite and the factorization exists:</p>
+          <div class="eqn">\[ L=\begin{bmatrix}2&0&0\\-1&1&0\\2&-2&2\end{bmatrix},\qquad L^{\mathsf T}=\begin{bmatrix}2&-1&2\\0&1&-2\\0&0&2\end{bmatrix} \]</div>
+          <div class="eqn">\[ LL^{\mathsf T}=\begin{bmatrix}2&0&0\\-1&1&0\\2&-2&2\end{bmatrix}\begin{bmatrix}2&-1&2\\0&1&-2\\0&0&2\end{bmatrix}=\begin{bmatrix}4&-2&4\\-2&2&-4\\4&-4&12\end{bmatrix}=A.\ ✓ \]</div>
+        </div>
+        <div class="callout def"><div class="h">Step 2 — forward solve \(L\mathbf{y}=\mathbf{b}\)</div>
+          <div class="eqn">\[ \begin{aligned} 2y_1&=-4 &&\Rightarrow\ y_1=-2\\ -y_1+y_2&=6 &&\Rightarrow\ y_2=6+y_1=6+(-2)=4\\ 2y_1-2y_2+2y_3&=-16 &&\Rightarrow\ y_3=\frac{-16-2(-2)+2(4)}{2}=\frac{-4}{2}=-2 \end{aligned} \]</div>
+        </div>
+        <div class="callout def"><div class="h">Step 3 — backward solve \(L^{\mathsf T}\mathbf{x}=\mathbf{y}\)</div>
+          <div class="eqn">\[ L^{\mathsf T}=\begin{bmatrix}2&-1&2\\0&1&-2\\0&0&2\end{bmatrix}:\qquad \begin{aligned} 2x_3&=-2 &&\Rightarrow\ x_3=-1\\ x_2-2x_3&=4 &&\Rightarrow\ x_2=4+2(-1)=2\\ 2x_1-x_2+2x_3&=-2 &&\Rightarrow\ x_1=\frac{-2+2-2(-1)}{2}=\frac{2}{2}=1 \end{aligned} \]</div>
+          <p style="margin:.2rem 0">So \(\mathbf{x}=(1,\,2,\,-1)^T\). Check in the original system: \(4(1)-2(2)+4(-1)=-4\) ✓, \(-2(1)+2(2)-4(-1)=6\) ✓, \(4(1)-4(2)+12(-1)=-16\) ✓.</p>
+        </div>
         <div class="codewrap editable has-output">
           <div class="codehead"><span class="lang"><span class="dot"></span>MATLAB · editable</span><button class="copybtn">Copy</button></div>
-          <textarea spellcheck="false" rows="12">A = [ 6  15  55;
-     15  55 225;
-     55 225 979];
-b = [76; 295; 1259];
+          <textarea spellcheck="false" rows="13">% Solve the SAME system as the hand example via Cholesky
+A = [ 4 -2  4;
+     -2  2 -4;
+      4 -4 12];
+b = [-4; 6; -16];
 
 L = chol(A, 'lower');   % A = L * L'
+disp('L ='); disp(L)
 
 y = L  \ b;             % L y = b
 x = L' \ y;             % L' x = y
-
 disp('Solution x ='); disp(x)</textarea>
         </div>
-<div class="mout"><div class="mout-head">Command Window output</div><pre>Solution x =
+<div class="mout"><div class="mout-head">Command Window output</div><pre>L =
+     2     0     0
+    -1     1     0
+     2    -2     2
+Solution x =
      1
-     1
-     1</pre></div>
+     2
+    -1</pre></div>
+        <div class="callout tip"><div class="h">🔬 Two ways, one answer</div>MATLAB's <code>chol(A,'lower')</code> returns exactly the \(L\) we built by hand, and the two triangular solves give the same \(\mathbf{x}=(1,2,-1)^T\).</div>
 
-
-        <div class="callout def"><div class="h">📐 Positive definite?</div>A symmetric matrix is positive definite iff every pivot in Cholesky is real and positive. If <code>chol</code> errors, \(A\) is not positive definite — fall back to LU.</div>
         <div class="gen-practice" data-gen="chol"></div>
+
+        <h3 id="chol-sym" style="margin-top:.4rem">🎞 Lecture animation: Cholesky factorization</h3>
+        <p>Watch how symmetry lets us compute only half of everything. Use <b>Step</b> / <b>Back</b>, <b>Auto</b>, or drag the progress bar; change <i>n</i> to see the pattern generalise.</p>
+        <div class="demo sd-demo" data-sd="chol" data-n="4"></div>
+        <div class="callout idea"><div class="h">📌 What to remember</div><ul><li>Requires <i>A</i> symmetric <b>and</b> positive definite; then <i>A</i> = <i>L L</i><sup>T</sup> with positive diagonal in <i>L</i>.</li><li>About half the cost of LU (≈ <i>n³/3</i>) and half the storage; stable without pivoting.</li><li>The algorithm doubles as a test: a non-positive value under a square root means <i>A</i> is <b>not</b> positive definite.</li></ul></div>
+
         <p class="note-src">Source: Cholesky Factorization lecture (slides).</p>
       </div>
     </section>
@@ -1128,14 +1205,14 @@ disp('Solution x ='); disp(x)</textarea>
             <div class="tablewrap"><table class="data">
               <thead><tr><th>n</th><th>a</th><th>b</th><th>c</th><th>f(c)</th><th>\(E_n=\tfrac{b-a}{2}\)</th><th>\(E_n<\varepsilon?\)</th></tr></thead>
               <tbody>
-                <tr><td>0</td><td>1.000</td><td>2.000</td><td>1.500</td><td>+0.250</td><td>0.500</td><td>no</td></tr>
-                <tr><td>1</td><td>1.000</td><td>1.500</td><td>1.250</td><td>−0.438</td><td>0.250</td><td>no</td></tr>
-                <tr><td>2</td><td>1.250</td><td>1.500</td><td>1.375</td><td>−0.109</td><td>0.125</td><td>no</td></tr>
-                <tr><td>3</td><td>1.375</td><td>1.500</td><td>1.438</td><td>+0.066</td><td>0.063</td><td>no</td></tr>
-                <tr class="converged"><td>4</td><td>1.375</td><td>1.438</td><td>1.406</td><td>−0.023</td><td>0.031</td><td>✓ stop</td></tr>
+                <tr><td>1</td><td>1.000</td><td>2.000</td><td>1.500</td><td>+0.250</td><td>0.500</td><td>no</td></tr>
+                <tr><td>2</td><td>1.000</td><td>1.500</td><td>1.250</td><td>−0.438</td><td>0.250</td><td>no</td></tr>
+                <tr><td>3</td><td>1.250</td><td>1.500</td><td>1.375</td><td>−0.109</td><td>0.125</td><td>no</td></tr>
+                <tr><td>4</td><td>1.375</td><td>1.500</td><td>1.438</td><td>+0.066</td><td>0.063</td><td>no</td></tr>
+                <tr class="converged"><td>5</td><td>1.375</td><td>1.438</td><td>1.406</td><td>−0.023</td><td>0.031</td><td>✓ stop</td></tr>
               </tbody>
             </table></div>
-            <span class="final">E₄ = 0.031 &lt; 0.05 → stop at n = 4,   x ≈ 1.406   (keep the half where f changes sign; true \(\sqrt2=1.41421\))</span>
+            <span class="final">E₅ = 0.031 &lt; 0.05 → stop at n = 5,   x ≈ 1.406   (keep the half where f changes sign; true \(\sqrt2=1.41421\))</span>
           </div></details>
         </div>
 
@@ -1271,7 +1348,7 @@ const FNS = [
   let st, timer=null;
   function reset(){ const F=FNS[+sel.value]; st={a:F.br[0],b:F.br[1],n:0,log:[]}; stop(); render(); }
   function step(){ const F=FNS[+sel.value]; const {a,b}=st; const c=(a+b)/2; const fc=F.f(c);
-    st.log.unshift(`iter ${st.n}:  a=${a.toFixed(6)}  b=${b.toFixed(6)}  c=${c.toFixed(6)}  f(c)=${fc.toFixed(6)}`);
+    st.log.unshift(`iter ${st.n+1}:  a=${a.toFixed(6)}  b=${b.toFixed(6)}  c=${c.toFixed(6)}  f(c)=${fc.toFixed(6)}`);
     if(F.f(a)*fc<0){st.b=c;}else{st.a=c;} st.c=c; st.n++;
     if(Math.abs(b-a)<1e-6||Math.abs(fc)<1e-12) stop();
     render();
