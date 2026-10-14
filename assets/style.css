@@ -496,3 +496,23 @@ details.section-collapse[open] > summary.sec-toggle{margin-bottom:.6rem}
 .sd-sysn{font-size:.84rem;color:var(--ink-soft);margin-top:.5rem;line-height:1.5}
 .sd-arr2{margin:0 .5em;color:var(--accent);font-weight:700}
 .sd-numi{color:#7a3e05;font-family:'Cambria Math',Georgia,serif;background:#fff1dd;border-radius:6px;padding:.05rem .4rem}
+
+/* ---------- Random practice generators (practice-gen.js) ---------- */
+.genp{background:#fff;border:1px solid var(--line);border-left:5px solid var(--brand);border-radius:12px;padding:1rem 1.3rem 1.15rem;margin:1.3rem 0}
+.genp-head{display:flex;align-items:center;justify-content:space-between;gap:.6rem;flex-wrap:wrap}
+.genp .ptag{display:inline-flex;align-items:center;gap:.4rem;font-size:.72rem;font-weight:800;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--brand-dark);background:var(--brand-soft);border:1px solid #bfe3e6;border-radius:20px;padding:.2rem .7rem}
+.genp-hint{color:var(--muted);font-size:.88rem;margin:.5rem 0 .4rem}
+.genp .given{font-family:var(--mono);font-size:.88rem;color:var(--ink);background:#f7f9fc;border:1px solid var(--line);border-radius:8px;padding:.55rem .85rem;margin:.5rem 0;line-height:1.8}
+.genp .given b{color:var(--brand-dark)}
+.genp-table{margin:.8rem 0 .2rem}
+.genp-step{border:1px solid var(--line);border-radius:10px;padding:.65rem .95rem;margin:.55rem 0;background:#fbfcfe;animation:genpIn .22s ease}
+.genp-step .t{display:flex;align-items:center;gap:.55rem;font-weight:700;color:var(--brand-dark);font-size:.9rem;margin-bottom:.3rem}
+.genp-step .t .k{background:var(--brand);color:#fff;border-radius:6px;padding:.12rem .5rem;font-size:.7rem;letter-spacing:.06em;white-space:nowrap}
+.genp-step .b{font-size:.93rem;line-height:1.8;overflow-x:auto}
+.genp-step .b mjx-container[display="true"]{margin:.4rem 0 !important}
+.genp-step.final{background:#e7f7ee;border-color:#bfe8cf}
+.genp-step.final .t{color:var(--ok)}
+.genp-step.final .t .k{background:var(--ok)}
+.genp .btnrow{margin-top:.8rem}
+@keyframes genpIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}

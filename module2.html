@@ -6,7 +6,7 @@
 <title>Module 2 · Linear & Non-linear Systems — BCS 311</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/style.css?v=1791791205">
+<link rel="stylesheet" href="assets/style.css?v=1791800001">
 <script>window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['\\[','\\]']]},svg:{fontCache:'global'}};</script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" async></script>
 </head>
@@ -72,6 +72,7 @@
     </section>
 
     <div class="callout tip" style="margin-top:1.2rem"><div class="h">📝 Self-study hour</div>After this week's class, work through the <a href="module2_selfstudy.html"><b>Root-finding self-study page</b></a> — a one-hour, self-paced session on fixed-point iteration, bisection and Newton's method with worked examples, MATLAB exercises and a self-check quiz.</div>
+    <div class="callout idea" style="margin-top:.8rem"><div class="h">🎲 Random practice boxes</div>Every numerical example in this module is followed by a <b>Random practice</b> box. Press <b>New numbers</b> for a fresh problem, solve it on paper, then press <b>Check next step</b> to reveal one step at a time — the later steps stay hidden until you ask, so you can check each step honestly before moving on.</div>
 
     <section class="section" id="intro">
       <div class="panel">
@@ -223,6 +224,7 @@ MATLAB fzero             = 1.600599</pre></div>
           They agree to four decimals. The tiny gap is only the stopping rule: hand-work and the loop halt when \(E_n&lt;10^{-4}\), whereas <code>fzero</code> drives \(f\) to machine precision.
         </div>
 
+        <div class="gen-practice" data-gen="fixed"></div>
         <p class="note-src">Source: Root Finding lecture &amp; <code>Fixed_pont_iteration.m</code>.</p>
       </div>
     </section>
@@ -596,6 +598,7 @@ MATLAB fzero           = 1.414214</pre></div>
             </div>
           </details>
         </div>
+        <div class="gen-practice" data-gen="bisect"></div>
       </div>
     </section>
 
@@ -708,6 +711,7 @@ MATLAB fzero        = 0.739085</pre></div>
             </div>
           </details>
         </div>
+        <div class="gen-practice" data-gen="newton"></div>
       </div>
     </section>
 
@@ -824,6 +828,7 @@ MATLAB fzero        = 1.414214</pre></div>
           </details>
         </div>
 
+        <div class="gen-practice" data-gen="secant"></div>
         <h2 id="secant-demo" style="margin-top:1.6rem">🎛 Demo: the secant sweep</h2>
         <p>The secant method draws a straight line through the two most recent points on the curve and takes its \(x\)-intercept as the next guess. Watch each secant line (orange) pivot toward the root — no derivative required.</p>
         <div class="demo">
@@ -945,6 +950,7 @@ X_builtin = A \ B;</textarea>
 
         <div class="callout warn"><div class="h">⚠️ Numerical limitation</div>If a pivot is zero (or tiny), the multiplier blows up. <b>Partial pivoting</b> — swapping in the row with the largest pivot — keeps elimination stable. MATLAB's <code>\</code> does this automatically.</div>
         <p class="note-src">Source: Gaussian Elimination lecture &amp; <code>Gausssian_Elimination.m</code>.</p>
+        <div class="gen-practice" data-gen="gauss"></div>
 
         <h2 id="gauss-demo" style="margin-top:1.6rem">🎛 Demo: forward elimination, row by row</h2>
         <p>Follow the augmented matrix \([A\,|\,\mathbf b]\) as it is driven to upper-triangular form. Each step picks a pivot, computes the multiplier \(m = a_{ik}/a_{kk}\) for a row below it, and subtracts \(m\times(\text{pivot row})\) to plant a zero under the pivot. Press <b>Step</b> to do one row operation.</p>
@@ -1037,6 +1043,7 @@ disp('Solution x ='); disp(x)</textarea>
      -1</pre></div>
 
 
+        <div class="gen-practice" data-gen="lu"></div>
         <p class="note-src">Source: LU Factorization lecture (slides).</p>
       </div>
     </section>
@@ -1087,6 +1094,7 @@ disp('Solution x ='); disp(x)</textarea>
 
 
         <div class="callout def"><div class="h">📐 Positive definite?</div>A symmetric matrix is positive definite iff every pivot in Cholesky is real and positive. If <code>chol</code> errors, \(A\) is not positive definite — fall back to LU.</div>
+        <div class="gen-practice" data-gen="chol"></div>
         <p class="note-src">Source: Cholesky Factorization lecture (slides).</p>
       </div>
     </section>
@@ -1095,7 +1103,7 @@ disp('Solution x ='); disp(x)</textarea>
     <section class="section" id="quiz">
       <div class="panel">
         <h2>More practice examples</h2>
-        <p class="section-sub">One example per topic (2.1–2.8). The four root-finding methods (2.1–2.4) show the <b>complete process</b> — every iteration with the error \(E_n\) compared against the tolerance \(\varepsilon\) — each with its initial value(s), tolerance, and a maximum iteration count stated up front.</p>
+        <p class="section-sub">One example per topic (2.1–2.8). The four root-finding methods (2.1–2.4) show the <b>complete process</b> — every iteration with the error \(E_n\) compared against the tolerance \(\varepsilon\) — each with its initial value(s), tolerance, and a maximum iteration count stated up front. After each fixed example you will find a <b>🎲 Random practice</b> box that generates unlimited new problems of the same kind, revealed one step at a time.</p>
 
         <div class="practice"><span class="ptag">✏️ 2.1 Fixed-point iteration</span>
           <div class="given">Solve \(x^{2}-3=0\) as \(x=g(x)=\tfrac12\!\left(x+3/x\right)\).   initial value x₀ = 1,   tolerance ε = 0.001,   max 5 iterations.   Stop when \(E_n=|x_{n+1}-x_n|<\varepsilon\).</div>
@@ -1113,6 +1121,7 @@ disp('Solution x ='); disp(x)</textarea>
           </div></details>
         </div>
 
+        <div class="gen-practice" data-gen="fixed"></div>
         <div class="practice"><span class="ptag">✏️ 2.2 Bisection</span>
           <div class="given">Solve \(f(x)=x^{2}-2=0\).   initial interval [a, b] = [1, 2],   c = (a+b)/2,   tolerance ε = 0.05,   max 5 iterations.   Stop when \(E_n=\tfrac{b-a}{2}<\varepsilon\).</div>
           <details class="reveal"><summary>Reveal answer</summary><div class="answer">
@@ -1130,6 +1139,7 @@ disp('Solution x ='); disp(x)</textarea>
           </div></details>
         </div>
 
+        <div class="gen-practice" data-gen="bisect"></div>
         <div class="practice"><span class="ptag">✏️ 2.3 Newton's method</span>
           <div class="given">Solve \(f(x)=x^{2}-2=0\),   \(f'(x)=2x\),   \(x_{n+1}=x_n-\tfrac{f(x_n)}{f'(x_n)}\).   initial value x₀ = 1,   tolerance ε = 0.001,   max 5 iterations.   Stop when \(E_n=|x_{n+1}-x_n|<\varepsilon\).</div>
           <details class="reveal"><summary>Reveal answer</summary><div class="answer">
@@ -1146,6 +1156,7 @@ disp('Solution x ='); disp(x)</textarea>
           </div></details>
         </div>
 
+        <div class="gen-practice" data-gen="newton"></div>
         <div class="practice"><span class="ptag">✏️ 2.4 The secant method</span>
           <div class="given">Solve \(f(x)=x^{2}-2=0\),   \(x_{k+1}=x_k-\dfrac{f(x_k)\,(x_k-x_{k-1})}{f(x_k)-f(x_{k-1})}\).   initial values x₀ = 1, x₁ = 2,   tolerance ε = 0.001,   max 5 iterations.   Stop when \(E_k=|x_k-x_{k-1}|<\varepsilon\).</div>
           <details class="reveal"><summary>Reveal answer</summary><div class="answer">
@@ -1164,6 +1175,7 @@ disp('Solution x ='); disp(x)</textarea>
           </div></details>
         </div>
 
+        <div class="gen-practice" data-gen="secant"></div>
         <div class="practice"><span class="ptag">✏️ 2.5 Choosing a method</span>
           <div class="given">You need a root faster than bisection, but the derivative is expensive to evaluate. Which method fits, and how do the four methods rank by speed?</div>
           <details class="reveal"><summary>Reveal answer</summary><div class="answer">
@@ -1184,6 +1196,7 @@ disp('Solution x ='); disp(x)</textarea>
           </div></details>
         </div>
 
+        <div class="gen-practice" data-gen="gauss"></div>
         <div class="practice"><span class="ptag">✏️ 2.7 LU factorization</span>
           <div class="given">Once A = LU is known, how do you solve A x = b for many different b?</div>
           <details class="reveal"><summary>Reveal answer</summary><div class="answer">
@@ -1193,6 +1206,7 @@ disp('Solution x ='); disp(x)</textarea>
           </div></details>
         </div>
 
+        <div class="gen-practice" data-gen="lu"></div>
         <div class="practice"><span class="ptag">✏️ 2.8 Cholesky</span>
           <div class="given">When can you use A = L·Lᵀ instead of LU, and what do you gain?</div>
           <details class="reveal"><summary>Reveal answer</summary><div class="answer">
@@ -1201,6 +1215,7 @@ disp('Solution x ='); disp(x)</textarea>
             <span class="final">symmetric + positive definite ⇒ Cholesky</span>
           </div></details>
         </div>
+        <div class="gen-practice" data-gen="chol"></div>
       </div>
 
       <div class="complete-bar" id="completeBar"><span class="txt"></span><button class="btn"></button></div>
@@ -1218,6 +1233,7 @@ disp('Solution x ='); disp(x)</textarea>
 
 <script src="assets/app.js"></script>
 <script src="assets/symdemo.js?v=1791791205"></script>
+<script src="assets/practice-gen.js?v=1791800001"></script>
 <script>
 /* ===== shared plot helper ===== */
 function makePlotter(cv){
