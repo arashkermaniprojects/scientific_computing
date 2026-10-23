@@ -584,17 +584,17 @@ MATLAB fzero             = 1.600599</pre></div>
 
         <div class="codewrap editable has-output">
           <div class="codehead"><span class="lang"><span class="dot"></span>MATLAB · editable · Bisection.m</span><button class="copybtn">Copy</button></div>
-          <textarea spellcheck="false" rows="16">% Solve the SAME equation as the table:  x^2 - 2 = 0  on [1, 2]
+          <textarea spellcheck="false" rows="15">% Solve the SAME equation as the table:  x^2 - 2 = 0  on [1, 2]
 f   = @(x) x.^2 - 2;
 a = 1;  b = 2;  tol = 1e-4;  nmax = 20;   % initial interval, tolerance, max iterations
-n = 1;
-while (b - a)/2 >= tol && n <= nmax
-    c = (a + b)/2;
-    fprintf('n=%d  a=%.4f  b=%.4f  c=%.4f  f(c)=%+.4f  err=%.4f\n', n, a, b, c, f(c), (b-a)/2);
+for n = 1:nmax
+    c   = (a + b)/2;
+    err = (b - a)/2;                                  % error bound E_n of this c
+    fprintf('n=%d  a=%.4f  b=%.4f  c=%.4f  f(c)=%+.4f  err=%.4f\n', n, a, b, c, f(c), err);
     if f(a)*f(c) < 0,  b = c;  else  a = c;  end     % keep the half with the sign change
-    n = n + 1;
+    if err < tol,  break;  end                       % stop AFTER printing the row, as in the table
 end
-fprintf('self-written bisection = %.6f\n', (a + b)/2);
+fprintf('self-written bisection = %.6f\n', c);
 
 % MATLAB built-in for comparison
 fprintf('MATLAB fzero           = %.6f\n', fzero(f, [1 2]));</textarea>
@@ -612,11 +612,12 @@ n=10 a=1.4141  b=1.4160  c=1.4150  f(c)=+0.0023  err=0.0010
 n=11 a=1.4141  b=1.4150  c=1.4146  f(c)=+0.0010  err=0.0005
 n=12 a=1.4141  b=1.4146  c=1.4143  f(c)=+0.0003  err=0.0002
 n=13 a=1.4141  b=1.4143  c=1.4142  f(c)=-0.0001  err=0.0001
+n=14 a=1.4142  b=1.4143  c=1.4142  f(c)=+0.0001  err=0.0001
 self-written bisection = 1.414246
 MATLAB fzero           = 1.414214</pre></div>
         <div class="callout tip"><div class="h">🔬 Three ways, one root</div>
           <b>By hand</b> (7 iterations, ε=0.01): 1.414 &nbsp;·&nbsp; <b>self-written program</b> (ε=10⁻⁴): 1.414246 &nbsp;·&nbsp; <b>MATLAB </b><code>fzero</code>: 1.414214.
-          All bracket \(\sqrt2=1.41421\). Bisection is <b>slow</b> — the hand-work stops after 7 halvings (error ≤ 0.008), the program needs 13, and only the digits guaranteed by the error bound are trustworthy.
+          All bracket \(\sqrt2=1.41421\). Bisection is <b>slow</b> — the hand-work stops after 7 halvings (error ≤ 0.008), the program needs 14, and only the digits guaranteed by the error bound are trustworthy.
         </div>
 
         <p class="note-src">Source: <code>Bisection.m</code> (Lab 4 solutions).</p>
