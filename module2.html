@@ -1125,11 +1125,36 @@ disp('Solution x ='); disp(x)</textarea>
         </div>
         <div class="callout def"><div class="h">📐 Positive definite?</div>A symmetric matrix is positive definite iff every pivot in Cholesky is real and positive. If <code>chol</code> errors, \(A\) is not positive definite — fall back to LU.</div>
         <h3>Worked example — by hand</h3>
-        <div class="voicebar"><span class="vlabel">🔊 Listen to this example</span><audio controls preload="metadata" src="assets/audio/m2_chol_example.mp3"></audio></div>
+        <div class="voicebar"><span class="vlabel">🔊 Listen to this example</span><audio controls preload="metadata" src="assets/audio/m2_chol_example.mp3?v=2"></audio></div>
         <p>Solve \(A\mathbf{x}=\mathbf{b}\) for the symmetric matrix from the box above:</p>
         <div class="eqn">\[ A=\begin{bmatrix}4&-2&4\\-2&2&-4\\4&-4&12\end{bmatrix},\qquad \mathbf{b}=\begin{bmatrix}-4\\6\\-16\end{bmatrix}. \]</div>
+        <div class="callout def"><div class="h">Step 0 — where the formulas come from</div>
+          <p style="margin:.2rem 0 .5rem">Nothing is memorised: the formulas come from <b>multiplying out \(LL^{\mathsf T}\) and matching it to \(A\)</b>. Take a general \(3\times3\) lower-triangular \(L\); its transpose is upper triangular:</p>
+          <div class="eqn">\[ L=\begin{bmatrix}l_{11}&0&0\\l_{21}&l_{22}&0\\l_{31}&l_{32}&l_{33}\end{bmatrix},\qquad L^{\mathsf T}=\begin{bmatrix}l_{11}&l_{21}&l_{31}\\0&l_{22}&l_{32}\\0&0&l_{33}\end{bmatrix}. \]</div>
+          <p style="margin:.2rem 0 .5rem">Entry \((i,j)\) of \(LL^{\mathsf T}\) is (row \(i\) of \(L\)) · (row \(j\) of \(L\)), because column \(j\) of \(L^{\mathsf T}\) is row \(j\) of \(L\). Zeros kill every term with index above \(\min(i,j)\), so</p>
+          <div class="eqn">\[ a_{ij}=\sum_{k=1}^{\min(i,j)} l_{ik}\,l_{jk}. \]</div>
+          <p style="margin:.2rem 0 .5rem">Write this out for the lower triangle (\(i\ge j\); the upper half is the same by symmetry), <b>one column of \(A\) at a time</b>:</p>
+          <div class="eqn">\[ \begin{aligned}
+            a_{11}&=l_{11}^{2} \\
+            a_{21}&=l_{21}l_{11}, \qquad a_{31}=l_{31}l_{11} \\
+            a_{22}&=l_{21}^{2}+l_{22}^{2} \\
+            a_{32}&=l_{31}l_{21}+l_{32}l_{22} \\
+            a_{33}&=l_{31}^{2}+l_{32}^{2}+l_{33}^{2}
+          \end{aligned} \]</div>
+          <p style="margin:.2rem 0 .5rem">Now solve each equation for its <b>one new unknown</b> — everything else in it was already found in an earlier line:</p>
+          <ul style="margin:.2rem 0 .5rem">
+            <li>\(a_{11}=l_{11}^2\ \Rightarrow\ l_{11}=\sqrt{a_{11}}\). Only \(l_{11}\) appears, so we can start here.</li>
+            <li>\(a_{21}=l_{21}l_{11}\ \Rightarrow\ l_{21}=a_{21}/l_{11}\), and likewise \(l_{31}=a_{31}/l_{11}\). Now column 1 of \(L\) is known.</li>
+            <li>\(a_{22}=l_{21}^2+l_{22}^2\ \Rightarrow\ l_{22}=\sqrt{a_{22}-l_{21}^2}\). Move the known \(l_{21}^2\) across, then take the root.</li>
+            <li>\(a_{32}=l_{31}l_{21}+l_{32}l_{22}\ \Rightarrow\ l_{32}=\dfrac{a_{32}-l_{31}l_{21}}{l_{22}}\). Move the known product across, then divide by \(l_{22}\).</li>
+            <li>\(a_{33}=l_{31}^2+l_{32}^2+l_{33}^2\ \Rightarrow\ l_{33}=\sqrt{a_{33}-l_{31}^2-l_{32}^2}\).</li>
+          </ul>
+          <p style="margin:.2rem 0 .5rem">These are exactly the formulas used below. The pattern for any size \(n\) is:</p>
+          <div class="eqn">\[ l_{jj}=\sqrt{a_{jj}-\sum_{k=1}^{j-1} l_{jk}^{2}},\qquad l_{ij}=\frac{a_{ij}-\sum_{k=1}^{j-1} l_{ik}l_{jk}}{l_{jj}}\quad(i>j). \]</div>
+          <p style="margin:.2rem 0"><b>Diagonal</b> entries come from a sum of squares (so a root); <b>off-diagonal</b> entries come from a dot product of two rows (so a division by the diagonal above them). If \(a_{jj}-\sum l_{jk}^2\le 0\) the square root fails — that is precisely the “not positive definite” test.</p>
+        </div>
         <div class="callout def"><div class="h">Step 1 — build \(L\) column by column</div>
-          <p style="margin:.2rem 0">Write \(A=LL^{\mathsf T}\) with \(L\) lower triangular and match entries, working down each column of \(A\):</p>
+          <p style="margin:.2rem 0">Now apply those formulas to our numbers, working down each column of \(A\):</p>
           <div class="eqn">\[ \begin{aligned}
             l_{11}&=\sqrt{a_{11}}=\sqrt{4}=2 \\
             l_{21}&=\frac{a_{21}}{l_{11}}=\frac{-2}{2}=-1, \qquad l_{31}=\frac{a_{31}}{l_{11}}=\frac{4}{2}=2 \\
