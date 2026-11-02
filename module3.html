@@ -62,6 +62,7 @@
     <section class="section" id="intro">
       <div class="panel">
         <h2>Curve fitting vs. interpolation</h2>
+        <div class="voicebar"><span class="vlabel">🔊 Listen to this section</span><audio controls preload="metadata" src="assets/audio/m3_intro.mp3"></audio></div>
         <p><b>Curve fitting</b> constructs a function that captures the <em>trend</em> of noisy, scattered data — it does not have to pass through every point. This contrasts with interpolation (Module 4), which insists on hitting every data point exactly. When measurements carry error, forcing the curve through each point is a mistake; we want the best overall trend instead.</p>
         <p>The dominant approach is <b>least-squares regression</b>, which chooses the curve that minimizes the total squared distance between the curve and the data.</p>
         <div class="callout idea"><div class="h">💡 Two uses</div><b>Trend analysis</b> (predict values between or beyond the data — interpolation/extrapolation) and <b>hypothesis testing</b> (compare a theoretical model with measurements and estimate its coefficients).</div>
@@ -71,6 +72,7 @@
     <section class="section" id="best">
       <div class="panel">
         <h2>3.1 What makes a fit "best"?</h2>
+        <div class="voicebar"><span class="vlabel">🔊 Listen to this section</span><audio controls preload="metadata" src="assets/audio/m3_best.mp3"></audio></div>
         <p>For each data point \((x_i,y_i)\) the model \(y = a_0 + a_1 x\) leaves a <b>residual</b> — the vertical gap between the data and the line:</p>
         <div class="eqn">\[ e_i = y_i - a_0 - a_1 x_i. \]</div>
         <p>We could minimize the sum of residuals, but positive and negative gaps cancel. We could minimize the sum of <em>absolute</em> residuals, but that is awkward mathematically and not unique. The least-squares criterion minimizes the <b>sum of squared residuals</b>:</p>
@@ -82,16 +84,20 @@
     <section class="section" id="linear">
       <div class="panel">
         <h2>3.2 Linear least-squares regression</h2>
+        <div class="voicebar"><span class="vlabel">🔊 Listen to this section</span><audio controls preload="metadata" src="assets/audio/m3_linear.mp3"></audio></div>
         <p>Setting the partial derivatives \(\partial S_r/\partial a_0 = 0\) and \(\partial S_r/\partial a_1 = 0\) gives the <b>normal equations</b>, whose solution is</p>
         <div class="eqn">\[ a_1 = \frac{n\sum x_i y_i - \sum x_i \sum y_i}{n\sum x_i^2 - \left(\sum x_i\right)^2}, \qquad a_0 = \bar y - a_1 \bar x, \]</div>
         <p>where \(\bar x\) and \(\bar y\) are the means. The slope \(a_1\) uses the cross-products; the intercept \(a_0\) then forces the line through the centroid \((\bar x, \bar y)\).</p>
 
         <h3>Worked example</h3>
+        <div class="voicebar"><span class="vlabel">🔊 Listen to this example</span><audio controls preload="metadata" src="assets/audio/m3_linear_example.mp3"></audio></div>
         <p>Fit a straight line to the seven points \(x=[1,2,3,4,5,6,7]\), \(y=[0.5,\,2.5,\,2,\,4,\,3.5,\,6,\,5.5]\). The required sums are</p>
         <div class="eqn">\[ \textstyle\sum x_i = 28,\quad \sum y_i = 24,\quad \sum x_i y_i = 119.5,\quad \sum x_i^2 = 140,\quad n = 7. \]</div>
         <p>So \(\bar x = 4\), \(\bar y = 3.428571\), and</p>
         <div class="eqn">\[ a_1 = \frac{7(119.5) - 28(24)}{7(140) - 28^2} = 0.8392857, \qquad a_0 = 3.428571 - 0.8392857(4) = 0.0714286. \]</div>
         <div class="callout idea"><div class="h">✅ Result</div>\( y = 0.0714 + 0.8393\,x \). Try it in the live demo below — the default data set is exactly this example.</div>
+
+        <div class="gen-practice" data-gen="linreg"></div>
       </div>
     </section>
 
@@ -127,18 +133,22 @@
     <section class="section" id="error">
       <div class="panel">
         <h2>3.3 How good is the fit?</h2>
+        <div class="voicebar"><span class="vlabel">🔊 Listen to this section</span><audio controls preload="metadata" src="assets/audio/m3_error.mp3"></audio></div>
         <p>Two sums quantify the quality of the regression:</p>
         <div class="eqn">\[ S_t = \sum (y_i - \bar y)^2 \quad\text{(spread about the mean)}, \qquad S_r = \sum (y_i - a_0 - a_1 x_i)^2 \quad\text{(spread about the line)}. \]</div>
         <p>\(S_t - S_r\) is the error reduction achieved by describing the data with a line rather than just its average. Normalizing gives the <b>coefficient of determination</b> \(r^2\):</p>
         <div class="eqn">\[ r^2 = \frac{S_t - S_r}{S_t}, \qquad 0 \le r^2 \le 1. \]</div>
         <p>An \(r^2\) near 1 means the line explains almost all the variation; near 0 means the line is no better than the mean. Its square root \(r\) is the <b>correlation coefficient</b>. The <b>standard error of the estimate</b>, \(s_{y/x} = \sqrt{S_r/(n-2)}\), measures the typical scatter of the data about the line.</p>
         <div class="callout warn"><div class="h">⚠️ r² is not everything</div>A high \(r^2\) does not prove the model is <em>right</em> — always plot the residuals. Structure in the residuals (a curve, a fan shape) signals that a different model is needed.</div>
+
+        <div class="gen-practice" data-gen="rsq"></div>
       </div>
     </section>
 
     <section class="section" id="linz">
       <div class="panel">
         <h2>3.4 Linearizing non-linear models</h2>
+        <div class="voicebar"><span class="vlabel">🔊 Listen to this section</span><audio controls preload="metadata" src="assets/audio/m3_linz.mp3"></audio></div>
         <p>Many physical relationships are non-linear, but we can <b>transform</b> them into a straight line, fit with ordinary linear regression, then transform back. Two of the most common:</p>
 
         <h3>Exponential model \(y = a\,e^{bx}\)</h3>
@@ -152,6 +162,7 @@
         <p>Plot \(\log y\) against \(\log x\): a straight line with slope \(b\) and intercept \(\log a\).</p>
 
         <h3>Worked example (power)</h3>
+        <div class="voicebar"><span class="vlabel">🔊 Listen to this example</span><audio controls preload="metadata" src="assets/audio/m3_linz_example.mp3"></audio></div>
         <p>Fitting \(y = a\,x^{b}\) to a data set, the log-log linear fit is</p>
         <div class="eqn">\[ \log y = -0.5620 + 1.9842\,\log x \;\Longrightarrow\; a = 10^{-0.5620} = 0.2741,\ b = 1.9842, \]</div>
         <div class="eqn">\[ y = 0.2741\,x^{1.9842}. \]</div>
@@ -175,6 +186,8 @@ plot(x, y, 'o', xf, a*xf.^b, '-'); grid on;</textarea>
 <div class="mout"><div class="mout-head">Command Window output</div><pre>y = 0.2741 * x^1.9842</pre></div>
 <div class="figout"><div class="mout-head" style="background:#eef3f9">Figure output</div><img src="assets/figs/m3_power.png" alt="figure: data points with fitted power curve y = 0.2741 x^1.9842"><div class="cap">figure: data points with fitted power curve y = 0.2741 x^1.9842</div></div>
 
+        
+        <div class="gen-practice" data-gen="linz"></div>
         <p class="note-src">Source: Least-Squares (Nonlinear Functions) lecture.</p>
       </div>
     </section>
@@ -182,21 +195,26 @@ plot(x, y, 'o', xf, a*xf.^b, '-'); grid on;</textarea>
     <section class="section" id="poly">
       <div class="panel">
         <h2>3.5 Polynomial regression</h2>
+        <div class="voicebar"><span class="vlabel">🔊 Listen to this section</span><audio controls preload="metadata" src="assets/audio/m3_poly.mp3"></audio></div>
         <p>Some data is poorly described by a straight line but well described by a curve. We extend least-squares to a degree-\(m\) polynomial</p>
         <div class="eqn">\[ y = a_0 + a_1 x + a_2 x^2 + \cdots + a_m x^m. \]</div>
         <p>Minimizing \(S_r = \sum (y_i - a_0 - a_1 x_i - a_2 x_i^2)^2\) (shown here for a quadratic) gives the <b>normal equations</b> in matrix form \(\mathbf{a} = X^{-1}B\):</p>
         <div class="eqn">\[ \underbrace{\begin{bmatrix} n & \sum x_i & \sum x_i^2 \\ \sum x_i & \sum x_i^2 & \sum x_i^3 \\ \sum x_i^2 & \sum x_i^3 & \sum x_i^4 \end{bmatrix}}_{X} \begin{bmatrix} a_0 \\ a_1 \\ a_2 \end{bmatrix} = \underbrace{\begin{bmatrix} \sum y_i \\ \sum x_i y_i \\ \sum x_i^2 y_i \end{bmatrix}}_{B}. \]</div>
         <h3>Worked example</h3>
+        <div class="voicebar"><span class="vlabel">🔊 Listen to this example</span><audio controls preload="metadata" src="assets/audio/m3_poly_example.mp3"></audio></div>
         <p>For the data \(x=[1,2,3,4]\), \(y=[1,4,9,15]\), the sums build the system</p>
         <div class="eqn">\[ X = \begin{bmatrix} 4 & 10 & 30 \\ 10 & 30 & 100 \\ 30 & 100 & 354 \end{bmatrix},\quad B = \begin{bmatrix} 29 \\ 96 \\ 338 \end{bmatrix} \;\Rightarrow\; \mathbf{a} = X^{-1}B. \]</div>
         <div class="eqn">\[ a_0 = -0.75,\quad a_1 = 0.95,\quad a_2 = 0.75 \;\Rightarrow\; y = -0.75 + 0.95x + 0.75x^2. \]</div>
         <div class="callout def"><div class="h">📐 Note</div>This is still a <b>linear</b> least-squares problem — linear in the unknown coefficients \(a_0,a_1,a_2\), even though the model is a curve in \(x\). That is why a single matrix solve gives the answer.</div>
+
+        <div class="gen-practice" data-gen="quad"></div>
       </div>
     </section>
 
     <section class="section" id="matlab">
       <div class="panel">
         <h2>3.6 In MATLAB: <code>polyfit</code> and <code>polyval</code></h2>
+        <div class="voicebar"><span class="vlabel">🔊 Listen to this section</span><audio controls preload="metadata" src="assets/audio/m3_matlab.mp3"></audio></div>
         <p>You rarely build the normal equations by hand. <code>polyfit(x,y,m)</code> returns the coefficients of the best degree-\(m\) fit; <code>polyval(p,x)</code> evaluates that polynomial. The same code fits a line (\(m=1\)) or a curve (\(m=2,3,\dots\)) by changing one number.</p>
         <div class="codewrap editable has-output">
           <div class="codehead"><span class="lang"><span class="dot"></span>MATLAB · editable · linear &amp; polynomial fit</span><button class="copybtn">Copy</button></div>
@@ -226,6 +244,8 @@ legend('data','linear','quadratic'); grid on;</textarea>
 r^2 = 0.8683</pre></div>
 <div class="figout"><div class="mout-head" style="background:#eef3f9">Figure output</div><img src="assets/figs/m3_linquad.png" alt="figure: data with linear (blue) and quadratic (red dashed) least-squares fits"><div class="cap">figure: data with linear (blue) and quadratic (red dashed) least-squares fits</div></div>
 
+        
+        <div class="gen-practice" data-gen="polyfit"></div>
         <p class="note-src">Source: Least-Squares (Linear &amp; Nonlinear) lectures.</p>
       </div>
     </section>
@@ -234,7 +254,7 @@ r^2 = 0.8683</pre></div>
     <section class="section" id="quiz">
       <div class="panel">
         <h2>Practice examples</h2>
-        <p class="section-sub">One example per topic (3.1–3.6). Work it on paper, then reveal.</p>
+        <p class="section-sub">One worked example per topic (3.1–3.6), each followed by an endless supply of random problems: work it on paper, then press <b>Check next step</b>. Press 🎲 <b>New numbers</b> for a fresh one.</p>
 
         <div class="practice"><span class="ptag">✏️ 3.1 What makes a fit "best"?</span>
           <div class="given">A line does not pass through every data point. What single quantity does least-squares make as small as possible, and why square the residuals instead of just adding them?</div>
@@ -257,6 +277,9 @@ r^2 = 0.8683</pre></div>
           </div></details>
         </div>
 
+        <div class="gen-practice" data-gen="linreg"></div>
+
+
         <div class="practice"><span class="ptag">✏️ 3.3 How good is the fit?</span>
           <div class="given">For that line, find SSE and r².</div>
           <details class="reveal"><summary>Reveal answer</summary><div class="answer">
@@ -268,6 +291,9 @@ r^2 = 0.8683</pre></div>
           </div></details>
         </div>
 
+        <div class="gen-practice" data-gen="rsq"></div>
+
+
         <div class="practice"><span class="ptag">✏️ 3.4 Linearizing a non-linear model</span>
           <div class="given">Turn y = a·xᵇ into a straight-line fit.</div>
           <details class="reveal"><summary>Reveal answer</summary><div class="answer">
@@ -276,6 +302,9 @@ r^2 = 0.8683</pre></div>
             <span class="final">fit is linear in the transformed variables \(X=\log x,\ Y=\log y\)</span>
           </div></details>
         </div>
+
+        <div class="gen-practice" data-gen="linz"></div>
+
 
         <div class="practice"><span class="ptag">✏️ 3.5 Polynomial regression</span>
           <div class="given">Find y = a₀ + a₁x + a₂x² through (0,1), (1,4), (2,11).</div>
@@ -288,6 +317,9 @@ r^2 = 0.8683</pre></div>
           </div></details>
         </div>
 
+        <div class="gen-practice" data-gen="quad"></div>
+
+
         <div class="practice"><span class="ptag">✏️ 3.6 In MATLAB</span>
           <div class="given">Which built-in fits a straight line to vectors <code>x</code>, <code>y</code>? What does it return, and how do you evaluate the fit at new points <code>xq</code>?</div>
           <details class="reveal"><summary>Reveal answer</summary><div class="answer">
@@ -297,6 +329,9 @@ yq = polyval(p, xq);    % evaluate the fitted line</code></pre>
             <span class="final">polyfit finds the coefficients; polyval uses them</span>
           </div></details>
         </div>
+
+        <div class="gen-practice" data-gen="polyfit"></div>
+
       </div>
 
       <div class="complete-bar" id="completeBar"><span class="txt"></span><button class="btn"></button></div>
@@ -313,6 +348,7 @@ yq = polyval(p, xq);    % evaluate the fitted line</code></pre>
 <footer class="site">BCS 311 · Scientific Computing — Module 3 of 5 · Dr. Arash Kermani Kolankeh.</footer>
 
 <script src="assets/app.js"></script>
+<script src="assets/practice-gen.js?v=1793570503"></script>
 <script>
 /* ===== Least-squares demo ===== */
 (function(){
@@ -383,6 +419,16 @@ yq = polyval(p, xq);    % evaluate the fitted line</code></pre>
 })();
 
 wireCompleteBar('m3');
+</script>
+
+<script>
+/* voice tracks: players stay hidden until their MP3 actually loads. */
+document.querySelectorAll('.voicebar audio').forEach(a=>{
+  const bar = a.closest('.voicebar');
+  a.addEventListener('loadedmetadata', ()=>{ if(bar) bar.classList.add('vready'); });
+  a.addEventListener('error', ()=>{ if(bar) bar.classList.remove('vready'); });
+  try { a.load(); } catch(e){}
+});
 </script>
 </body>
 </html>

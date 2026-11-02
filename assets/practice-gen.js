@@ -1,8 +1,9 @@
 /* ===========================================================
-   BCS 311 — Module 2 | practice-gen.js
+   BCS 311 — Modules 2 & 3 | practice-gen.js
    Random, step-by-step practice problems.
    Usage:  <div class="gen-practice" data-gen="newton"></div>
-   Keys:   fixed · bisect · newton · secant · gauss · lu · chol
+   Keys:   fixed · bisect · newton · secant · gauss · lu · chol   (Module 2)
+           linreg · rsq · linz · quad · polyfit                (Module 3)
    Every displayed intermediate value is the one carried forward,
    so a student rounding to the stated decimals reproduces it exactly.
    =========================================================== */
@@ -384,7 +385,253 @@
   }
   genChol.title = "Cholesky factorization";
 
-  const GEN = { fixed: genFixed, bisect: genBisect, newton: genNewton, secant: genSecant, gauss: genGauss, lu: genLU, chol: genChol };
+  /* =====================================================================
+     MODULE 3 — least-squares curve fitting
+     Keys: linreg · rsq · linz · quad · polyfit
+     ===================================================================== */
+  const tbl = (head, rows, foot) =>
+    "\\[\\begin{array}{" + "r".repeat(head.length) + "}" + head.join("&") + "\\\\\\hline " +
+    rows.map(r => r.join("&")).join("\\\\") + (foot ? "\\\\\\hline " + foot.join("&") : "") + "\\end{array}\\]";
+  const dataGiven = (xs, ys, xl, yl) =>
+    "\\[\\begin{array}{c|" + "r".repeat(xs.length) + "}" + xl + "&" + xs.join("&") + "\\\\" + yl + "&" + ys.join("&") + "\\end{array}\\]";
+  const sum = a => a.reduce((s, v) => s + v, 0);
+  const lineTex = (a0, a1, d) => `${F(a0, d)}${a1 < 0 ? "-" : "+"}${F(Math.abs(a1), d)}\\,x`;
+
+  /* ========== 3.2 LINEAR REGRESSION ========== */
+  function genLinReg() {
+    const d = 6;
+    const T = v => String(parseFloat(F(v, d)));   // trimmed: 8, 1.714286
+    let n, xs, ys, a1, num, den;
+    for (;;) {
+      n = rnd(5, 7); const x0 = pick([0, 1, 1, 2]), dx = pick([1, 1, 2]);
+      xs = Array.from({ length: n }, (_, i) => x0 + dx * i);
+      const m = pick([0.5, 1, 1.5, 2, 3, -1, -1.5]), c = m > 0 ? rnd(0, 5) : rnd(12, 18);
+      ys = xs.map(x => Math.round(c + m * x + rnd(-2, 2)));
+      num = n * sum(xs.map((x, i) => x * ys[i])) - sum(xs) * sum(ys);
+      den = n * sum(xs.map(x => x * x)) - sum(xs) ** 2;
+      a1 = R(num / den, d);
+      if (ys.every(y => y >= 0) && new Set(ys).size > 2 && Math.abs(a1) >= 0.3) break;
+    }
+    const Sx = sum(xs), Sy = sum(ys), Sxy = sum(xs.map((x, i) => x * ys[i])), Sxx = sum(xs.map(x => x * x));
+    const given = `Fit a straight line \\(y=a_0+a_1x\\) to the data by <b>linear least squares</b> (normal-equation formulas), working to ${d} decimals (round \\(a_1\\), \\(\\bar x\\), \\(\\bar y\\), \\(a_0\\) and carry the rounded values). Then predict \\(y\\) at \\(x=${xs[n - 1] + (xs[1] - xs[0])}\\).
+      ${dataGiven(xs, ys, "x", "y")}`;
+    const steps = [];
+    steps.push({ title: "Tabulate the four sums", html:
+      tbl(["i", "x_i", "y_i", "x_iy_i", "x_i^2"], xs.map((x, i) => [i + 1, x, ys[i], x * ys[i], x * x]), ["", Sx, Sy, Sxy, Sxx]) +
+      `\\(n=${n},\\ \\sum x_i=${Sx},\\ \\sum y_i=${Sy},\\ \\sum x_iy_i=${Sxy},\\ \\sum x_i^2=${Sxx}\\).` });
+    steps.push({ title: "Slope a₁", html:
+      `\\(a_1=\\dfrac{n\\sum x_iy_i-\\sum x_i\\sum y_i}{n\\sum x_i^2-\\left(\\sum x_i\\right)^2}=\\dfrac{${n}(${Sxy})-(${Sx})(${Sy})}{${n}(${Sxx})-(${Sx})^2}=\\dfrac{${num}}{${den}}=${F(a1, d)}\\)` });
+    const xb = R(Sx / n, d), yb = R(Sy / n, d), a0 = R(yb - a1 * xb, d);
+    steps.push({ title: "Means and intercept a₀", html:
+      `\\(\\bar x=\\dfrac{${Sx}}{${n}}=${T(xb)}\\),  \\(\\bar y=\\dfrac{${Sy}}{${n}}=${T(yb)}\\)<br>
+       \\(a_0=\\bar y-a_1\\bar x=${T(yb)}-(${F(a1, d)})(${T(xb)})=${F(a0, d)}\\)` });
+    const xq = xs[n - 1] + (xs[1] - xs[0]), yq = R(a0 + a1 * xq, 4);
+    steps.push({ title: "Answer and prediction", html:
+      `<b>\\(y=${lineTex(a0, a1, d)}\\)</b>.<br>
+       Sanity check: the line passes through the centroid, \\(a_0+a_1\\bar x=${F(a0, d)}+(${F(a1, d)})(${T(xb)})=${T(R(a0 + a1 * xb, d))}\\approx\\bar y=${T(yb)}\\). ✓<br>
+       Prediction: \\(y(${xq})=${F(a0, d)}+(${F(a1, d)})(${xq})=${F(yq, 4)}\\).` });
+    return { given, steps };
+  }
+  genLinReg.title = "linear regression";
+
+  /* ========== 3.3 HOW GOOD IS THE FIT? ========== */
+  function genRsq() {
+    const d = 4;
+    let n, xs, ys, a0, a1, yh, e, e2, Sr, St, yb, r2, s;
+    for (;;) {
+      n = pick([4, 5]); const x0 = pick([0, 1]);
+      xs = Array.from({ length: n }, (_, i) => x0 + i);
+      const m = pick([1, 1.5, 2, 3, -1, -2]), c = m > 0 ? rnd(0, 4) : rnd(10, 14);
+      ys = xs.map(x => Math.round(c + m * x + rnd(-2, 2)));
+      const Sx = sum(xs), Sy = sum(ys), Sxy = sum(xs.map((x, i) => x * ys[i])), Sxx = sum(xs.map(x => x * x));
+      a1 = R((n * Sxy - Sx * Sy) / (n * Sxx - Sx * Sx), 2);        // exact: den is 20 or 50
+      a0 = R((Sy - a1 * Sx) / n, d);
+      yh = xs.map(x => R(a0 + a1 * x, d));
+      e = ys.map((y, i) => R(y - yh[i], d)); e2 = e.map(v => R(v * v, d)); Sr = R(sum(e2), d);
+      yb = R(Sy / n, 4); const dv = ys.map(y => R(y - yb, d)), dv2 = dv.map(v => R(v * v, d));
+      St = R(sum(dv2), d); r2 = R((St - Sr) / St, d);
+      if (St > 0 && Sr > 0 && r2 >= 0.6 && r2 < 0.999 && ys.every(y => y >= 0)) { var DV = dv, DV2 = dv2; break; }
+    }
+    s = R(Math.sqrt(R(Sr / (n - 2), d)), d);
+    const given = `For the data below, the least-squares line is \\(\\hat y=${lineTex(a0, a1, 4)}\\). Find the sum of squared residuals \\(S_r\\), the spread about the mean \\(S_t\\), the coefficient of determination \\(r^2\\) and the standard error \\(s_{y/x}\\). Work to ${d} decimals and carry the rounded values.
+      ${dataGiven(xs, ys, "x", "y")}`;
+    const steps = [];
+    steps.push({ title: "Predictions and residuals about the line", html:
+      tbl(["x_i", "y_i", "\\hat y_i=" + F(a0, d) + (a1 < 0 ? "-" : "+") + F(Math.abs(a1), d) + "x_i", "e_i=y_i-\\hat y_i", "e_i^2"],
+          xs.map((x, i) => [x, ys[i], F(yh[i], d), F(e[i], d), F(e2[i], d)]), ["", "", "", "", F(Sr, d)]) +
+      `<b>\\(S_r=\\sum e_i^2=${F(Sr, d)}\\)</b>` });
+    steps.push({ title: "Spread about the mean — S_t", html:
+      `\\(\\bar y=\\dfrac{${sum(ys)}}{${n}}=${F(yb, d)}\\)<br>` +
+      tbl(["y_i", "y_i-\\bar y", "(y_i-\\bar y)^2"], ys.map((y, i) => [y, F(DV[i], d), F(DV2[i], d)]), ["", "", F(St, d)]) +
+      `<b>\\(S_t=\\sum (y_i-\\bar y)^2=${F(St, d)}\\)</b>` });
+    steps.push({ title: "Coefficient of determination r²", html:
+      `\\(r^2=\\dfrac{S_t-S_r}{S_t}=\\dfrac{${F(St, d)}-${F(Sr, d)}}{${F(St, d)}}=${F(r2, d)}\\)<br>
+       The line explains ${F(r2 * 100, 2)}% of the variation in \\(y\\); correlation \\(r=\\sqrt{r^2}=${F(Math.sqrt(r2), d)}\\).` });
+    steps.push({ title: "Standard error of the estimate", html:
+      `\\(s_{y/x}=\\sqrt{\\dfrac{S_r}{n-2}}=\\sqrt{\\dfrac{${F(Sr, d)}}{${n - 2}}}=\\sqrt{${F(R(Sr / (n - 2), d), d)}}=${F(s, d)}\\)<br>
+       <b>Answer:</b> \\(S_r=${F(Sr, d)}\\), \\(S_t=${F(St, d)}\\), \\(r^2=${F(r2, d)}\\), \\(s_{y/x}=${F(s, d)}\\). A typical point lies about ${F(s, 2)} units from the line.` });
+    return { given, steps };
+  }
+  genRsq.title = "r² and standard error";
+
+  /* ========== 3.4 LINEARIZING (power / exponential) ========== */
+  function genLinz() {
+    const d = 4, pow = Math.random() < 0.5;
+    let xs, ys, X, Y, XY, XX, a, b;
+    const yfmt = v => v >= 100 ? Math.round(v) : v >= 10 ? R(v, 1) : R(v, 2);
+    for (;;) {
+      if (pow) {
+        const A = pick([0.5, 1, 2, 3, 5]), B = pick([0.5, 1, 1.5, 2, 2.5]); xs = pick([[1, 2, 3, 4, 5], [2, 4, 6, 8, 10], [10, 20, 30, 40, 50]]);
+        ys = xs.map(x => yfmt(A * x ** B * (1 + rnd(-10, 10) / 100)));
+      } else {
+        const A = pick([2, 3, 5, 8]), B = pick([0.2, 0.3, 0.4, -0.2, -0.3]); xs = pick([[0, 1, 2, 3, 4], [1, 2, 3, 4, 5]]);
+        ys = xs.map(x => yfmt(A * Math.exp(B * x) * (1 + rnd(-10, 10) / 100)));
+      }
+      if (!ys.every(y => y >= 0.5)) continue;
+      /* reject draws where carrying 4-decimal values drifts from the exact least-squares fit (ill-conditioned rounding) */
+      const n0 = xs.length, lg0 = pow ? Math.log10 : Math.log, X0 = pow ? xs.map(Math.log10) : xs, Y0 = ys.map(lg0);
+      const mx = sum(X0) / n0, my = sum(Y0) / n0;
+      const bx = sum(X0.map((v, i) => (v - mx) * (Y0[i] - my))) / sum(X0.map(v => (v - mx) ** 2)), ax = pow ? Math.pow(10, my - bx * mx) : Math.exp(my - bx * mx);
+      const Xr = pow ? xs.map(x => R(Math.log10(x), d)) : xs, Yr = ys.map(y => R(lg0(y), d));
+      const sX = R(sum(Xr), d), sY = R(sum(Yr), d), sXY = R(sum(Xr.map((v, i) => R(v * Yr[i], d))), d), sXX = R(sum(Xr.map(v => R(v * v, d))), d);
+      const bb = R(R(n0 * sXY - sX * sY, d) / R(n0 * sXX - sX * sX, d), d);
+      const aa = R(pow ? Math.pow(10, R(R(sY / n0, d) - bb * R(sX / n0, d), d)) : Math.exp(R(R(sY / n0, d) - bb * R(sX / n0, d), d)), d);
+      if (Math.abs(bb - bx) < 5e-4 && Math.abs(aa - ax) < 1e-3 * Math.max(1, ax)) break;
+    }
+    const n = xs.length, lg = pow ? Math.log10 : Math.log;
+    X = pow ? xs.map(x => R(Math.log10(x), d)) : xs.slice();
+    Y = ys.map(y => R(lg(y), d));
+    XY = X.map((v, i) => R(v * Y[i], d)); XX = X.map(v => R(v * v, d));
+    const SX = R(sum(X), d), SY = R(sum(Y), d), SXY = R(sum(XY), d), SXX = R(sum(XX), d);
+    const num = R(n * SXY - SX * SY, d), den = R(n * SXX - SX * SX, d);
+    b = R(num / den, d);
+    const Xb = R(SX / n, d), Yb = R(SY / n, d), A0 = R(Yb - b * Xb, d);
+    a = R(pow ? Math.pow(10, A0) : Math.exp(A0), d);
+    const L = pow ? "\\log_{10}" : "\\ln", Xn = pow ? "X" : "x", base = pow ? "10" : "e";
+    const model = pow ? "y=a\\,x^{b}" : "y=a\\,e^{bx}";
+    const given = `Fit the model \\(${model}\\) to the data by <b>linearizing</b> it and using straight-line least squares. Work to ${d} decimals (round every log, product and sum to ${d} decimals and carry the rounded values). Then predict \\(y\\) at \\(x=${pow ? xs[n - 1] + (xs[1] - xs[0]) : xs[n - 1] + 1}\\).
+      ${dataGiven(xs, ys, "x", "y")}`;
+    const steps = [];
+    steps.push({ title: "Linearize: take logs", html: pow
+      ? `\\(y=ax^{b}\\Rightarrow \\log_{10}y=\\log_{10}a+b\\,\\log_{10}x\\). Put \\(X=\\log_{10}x\\), \\(Y=\\log_{10}y\\): a straight line \\(Y=A+bX\\) with slope \\(b\\) and intercept \\(A=\\log_{10}a\\).`
+      : `\\(y=ae^{bx}\\Rightarrow \\ln y=\\ln a+b\\,x\\). Put \\(Y=\\ln y\\): a straight line \\(Y=A+bx\\) in the original \\(x\\), with slope \\(b\\) and intercept \\(A=\\ln a\\).` });
+    steps.push({ title: "Transform the data and tabulate", html: pow
+      ? tbl(["x_i", "y_i", "X_i=\\log x_i", "Y_i=\\log y_i", "X_iY_i", "X_i^2"], xs.map((x, i) => [x, ys[i], F(X[i], d), F(Y[i], d), F(XY[i], d), F(XX[i], d)]), ["", "", F(SX, d), F(SY, d), F(SXY, d), F(SXX, d)])
+      : tbl(["x_i", "y_i", "Y_i=\\ln y_i", "x_iY_i", "x_i^2"], xs.map((x, i) => [x, ys[i], F(Y[i], d), F(XY[i], d), F(XX[i], d)]), [F(SX, 0), "", F(SY, d), F(SXY, d), F(SXX, d)]) });
+    steps.push({ title: "Slope b", html:
+      `\\(b=\\dfrac{n\\sum ${Xn}Y-\\sum ${Xn}\\sum Y}{n\\sum ${Xn}^2-\\left(\\sum ${Xn}\\right)^2}=\\dfrac{${n}(${F(SXY, d)})-(${F(SX, d)})(${F(SY, d)})}{${n}(${F(SXX, d)})-(${F(SX, d)})^2}=\\dfrac{${F(num, d)}}{${F(den, d)}}=${F(b, d)}\\)` });
+    steps.push({ title: "Intercept A, then undo the log to get a", html:
+      `\\(\\bar ${Xn}=${F(Xb, d)}\\),  \\(\\bar Y=${F(Yb, d)}\\) ⇒ \\(A=\\bar Y-b\\bar ${Xn}=${F(Yb, d)}-(${F(b, d)})(${F(Xb, d)})=${F(A0, d)}\\)<br>
+       \\(a=${base}^{A}=${base}^{${F(A0, d)}}=${F(a, d)}\\)` });
+    const xq = pow ? xs[n - 1] + (xs[1] - xs[0]) : xs[n - 1] + 1;
+    const yq = pow ? a * xq ** b : a * Math.exp(b * xq);
+    steps.push({ title: "Answer and prediction", html:
+      `<b>\\(y=${F(a, d)}\\,${pow ? `x^{${F(b, d)}}` : `e^{${F(b, d)}x}`}\\)</b><br>
+       Prediction: \\(y(${xq})=${F(a, d)}${pow ? `(${xq})^{${F(b, d)}}` : `\\,e^{${F(b, d)}\\cdot ${xq}}`}\\approx ${F(yq, 2)}\\).<br>
+       Note the fit is least-squares on \\(\\${pow ? "log" : "ln"}\\,y\\), not on \\(y\\) itself, so it weights small and large \\(y\\) differently from a direct fit.` });
+    return { given, steps };
+  }
+  genLinz.title = "linearizing a non-linear model";
+
+  /* ========== 3.5 POLYNOMIAL (QUADRATIC) REGRESSION ========== */
+  function genQuad() {
+    const d = 4, dc = 6, n = 5;
+    let xs, ys;
+    for (;;) {
+      const s = pick([-2, 0, 1, 2]);
+      xs = Array.from({ length: n }, (_, i) => s + i);
+      const c2 = pick([1, 1, 2, -1, -2, 0.5]), c1 = rnd(-3, 3), c0 = rnd(0, 6);
+      ys = xs.map(x => Math.round(c0 + c1 * x + c2 * x * x + rnd(-1, 1)));
+      const Sx = sum(xs), Sxx = sum(xs.map(x => x * x));
+      if (new Set(ys).size >= 4 && Sx % n === 0 && Sxx % n === 0) break;
+    }
+    const S = k => sum(xs.map(x => x ** k)), SY = sum(ys), SXY = sum(xs.map((x, i) => x * ys[i])), SXXY = sum(xs.map((x, i) => x * x * ys[i]));
+    const M = [[n, S(1), S(2)], [S(1), S(2), S(3)], [S(2), S(3), S(4)]], B = [SY, SXY, SXXY];
+    const given = `Fit a parabola \\(y=a_0+a_1x+a_2x^2\\) to the data by <b>polynomial least squares</b>: build the normal equations, solve them by Gaussian elimination, and give \\(a_0,a_1,a_2\\) to ${d} decimals (carry ${dc} decimals through the back-substitution, then round the answer). Then find the sum of squared residuals \\(S_r\\) and \\(r^2\\).
+      ${dataGiven(xs, ys, "x", "y")}`;
+    const steps = [];
+    steps.push({ title: "Tabulate the sums", html:
+      tbl(["x_i", "y_i", "x_i^2", "x_i^3", "x_i^4", "x_iy_i", "x_i^2y_i"], xs.map((x, i) => [x, ys[i], x ** 2, x ** 3, x ** 4, x * ys[i], x * x * ys[i]]),
+          [S(1), SY, S(2), S(3), S(4), SXY, SXXY]) });
+    steps.push({ title: "Write the normal equations", html:
+      `\\[${bm([[n, S(1), S(2)], [S(1), S(2), S(3)], [S(2), S(3), S(4)]])}\\begin{bmatrix}a_0\\\\a_1\\\\a_2\\end{bmatrix}=${col(B)}\\]
+       (Linear in the unknowns \\(a_0,a_1,a_2\\) — a 3×3 system exactly like Module 2.)` });
+    const m21 = M[1][0] / M[0][0], m31 = M[2][0] / M[0][0];
+    const r2 = [0, M[1][1] - m21 * M[0][1], M[1][2] - m21 * M[0][2]], b2 = B[1] - m21 * B[0];
+    const r3 = [0, M[2][1] - m31 * M[0][1], M[2][2] - m31 * M[0][2]], b3 = B[2] - m31 * B[0];
+    steps.push({ title: "Eliminate column 1", html:
+      `\\(m_{21}=\\dfrac{${M[1][0]}}{${n}}=${m21}\\),  \\(m_{31}=\\dfrac{${M[2][0]}}{${n}}=${m31}\\)<br>
+       \\(R_2\\leftarrow R_2-(${m21})R_1:\\ [0,\\ ${r2[1]},\\ ${r2[2]}\\ |\\ ${b2}]\\)<br>
+       \\(R_3\\leftarrow R_3-(${m31})R_1:\\ [0,\\ ${r3[1]},\\ ${r3[2]}\\ |\\ ${b3}]\\)` });
+    const m32 = r3[1] / r2[1], u33 = r3[2] - m32 * r2[2], c3 = b3 - m32 * b2;
+    steps.push({ title: "Eliminate column 2", html:
+      `\\(m_{32}=\\dfrac{${r3[1]}}{${r2[1]}}=${m32}\\)<br>
+       \\(R_3\\leftarrow R_3-(${m32})R_2:\\ [0,\\ 0,\\ ${u33}\\ |\\ ${c3}]\\)` });
+    const a2c = R(c3 / u33, dc), a1c = R((b2 - r2[2] * a2c) / r2[1], dc), a0c = R((B[0] - M[0][1] * a1c - M[0][2] * a2c) / n, dc);
+    const a2 = R(a2c, d), a1 = R(a1c, d), a0 = R(a0c, d);
+    steps.push({ title: "Back-substitution", html:
+      `\\(a_2=\\dfrac{${c3}}{${u33}}=${F(a2c, dc)}\\)<br>
+       \\(a_1=\\dfrac{${b2}-(${r2[2]})(${F(a2c, dc)})}{${r2[1]}}=${F(a1c, dc)}\\)<br>
+       \\(a_0=\\dfrac{${B[0]}-(${M[0][1]})(${F(a1c, dc)})-(${M[0][2]})(${F(a2c, dc)})}{${n}}=${F(a0c, dc)}\\)<br>
+       Rounded to ${d} decimals: \\(a_0=${F(a0, d)},\\ a_1=${F(a1, d)},\\ a_2=${F(a2, d)}\\).` });
+    const yh = xs.map(x => R(a0c + a1c * x + a2c * x * x, d)), e = ys.map((y, i) => R(y - yh[i], d)), e2 = e.map(v => R(v * v, d));
+    const Sr = R(sum(e2), d), yb = R(SY / n, d), dv2 = ys.map(y => R((y - yb) ** 2, d)), St = R(sum(dv2), d), r2v = R((St - Sr) / St, d);
+    const poly = `${F(a0, d)}${a1 < 0 ? "-" : "+"}${F(Math.abs(a1), d)}x${a2 < 0 ? "-" : "+"}${F(Math.abs(a2), d)}x^{2}`;
+    steps.push({ title: "Answer, residuals and r²", html:
+      `<b>\\(y=${poly}\\)</b><br>` +
+      tbl(["x_i", "y_i", "\\hat y_i", "e_i=y_i-\\hat y_i", "e_i^2"], xs.map((x, i) => [x, ys[i], F(yh[i], d), F(e[i], d), F(e2[i], d)]), ["", "", "", "", F(Sr, d)]) +
+      `\\(\\bar y=${F(yb, d)}\\), \\(S_t=\\sum(y_i-\\bar y)^2=${F(St, d)}\\), so \\(r^2=\\dfrac{S_t-S_r}{S_t}=\\dfrac{${F(St, d)}-${F(Sr, d)}}{${F(St, d)}}=${F(r2v, d)}\\).` });
+    return { given, steps };
+  }
+  genQuad.title = "polynomial regression";
+
+  /* ========== 3.6 MATLAB polyfit / polyval ========== */
+  function genPolyfit() {
+    const m = pick([1, 2]);
+    let xs, c;
+    const x0 = pick([0, 1]);
+    xs = Array.from({ length: 5 }, (_, i) => x0 + i);
+    if (m === 1) c = [pick([1, 2, 3, -1, -2, 4]), rnd(-4, 6)];                      // [a1 a0]
+    else c = [pick([1, 2, -1, -2, 3]), rnd(-3, 3), rnd(-4, 6)];                     // [a2 a1 a0]
+    const ev = x => c.reduce((s, v) => s * x + v, 0);
+    const ys = xs.map(ev);
+    const xq = x0 + 6;
+    const vec = a => "[" + a.join(" ") + "]";
+    const pname = m === 1 ? "line" : "parabola";
+    const given = `A student runs this MATLAB code. The data lie <em>exactly</em> on a ${pname}, so there is no scatter.
+      <pre><code>x = ${vec(xs)};
+y = ${vec(ys)};
+p  = polyfit(x, y, ${m});
+yq = polyval(p, ${xq});</code></pre>
+      What is the vector <code>p</code> (in MATLAB's order), what does <code>yq</code> equal, and what would the sum of squared residuals \\(S_r\\) be?`;
+    const dif = a => a.slice(1).map((v, i) => v - a[i]);
+    const d1 = dif(ys), d2 = dif(d1);
+    const steps = [];
+    steps.push({ title: "What kind of curve is it? (finite differences)", html: m === 1
+      ? `First differences of \\(y\\): \\(${d1.join(",\\ ")}\\) — constant ⇒ the data are a straight line, slope \\(a_1=${d1[0]}\\) per unit \\(x\\).`
+      : `First differences: \\(${d1.join(",\\ ")}\\) (not constant). Second differences: \\(${d2.join(",\\ ")}\\) — constant ⇒ a parabola with \\(2a_2=${d2[0]}\\), so \\(a_2=${d2[0] / 2}\\).` });
+    if (m === 1) {
+      steps.push({ title: "Intercept from one point", html:
+        `At \\(x=${xs[0]}\\): \\(y=${ys[0]}=a_0+${P(c[0])}(${xs[0]})\\) ⇒ \\(a_0=${c[1]}\\).<br>So \\(y=${c[1]}${c[0] < 0 ? "-" : "+"}${Math.abs(c[0])}x\\).` });
+    } else {
+      const a2 = c[0], r = x => ev(x) - a2 * x * x;
+      steps.push({ title: "Peel off the x² term, then read the line", html:
+        `Subtract \\(${P(a2)}x^2\\): at \\(x=${xs[0]}\\) get \\(${ys[0]}-${P(a2)}(${xs[0] ** 2})=${r(xs[0])}\\); at \\(x=${xs[1]}\\) get \\(${ys[1]}-${P(a2)}(${xs[1] ** 2})=${r(xs[1])}\\).<br>
+         Those two values fix the line \\(a_0+a_1x\\): slope \\(a_1=${r(xs[1]) - r(xs[0])}\\), then \\(a_0=${c[2]}\\).<br>So \\(y=${c[2]}${c[1] < 0 ? "-" : "+"}${Math.abs(c[1])}x${c[0] < 0 ? "-" : "+"}${Math.abs(c[0])}x^2\\).` });
+    }
+    steps.push({ title: "MATLAB's order: highest power first", html:
+      `<code>polyfit</code> returns <b>highest power first</b>: <code>p = ${m === 1 ? "[a1 a0]" : "[a2 a1 a0]"} = ${vec(c)}</code>.<br>
+       (MATLAB may print it as <code>${c.map(v => v.toFixed(4)).join("  ")}</code> because floating-point rounding leaves tiny errors around exact integers.)` });
+    const yq = ev(xq);
+    steps.push({ title: "polyval and S<sub>r</sub>", html:
+      `<code>polyval(p, ${xq})</code> evaluates \\(${m === 1 ? `${c[0]}(${xq})+${P(c[1])}` : `${c[0]}(${xq})^2+${P(c[1])}(${xq})+${P(c[2])}`}=${yq}\\).<br>
+       <b>Answer:</b> <code>p = ${vec(c)}</code>, <code>yq = ${yq}</code>, and \\(S_r=0\\) (up to floating-point round-off) because every point lies exactly on the fitted ${pname}, so \\(r^2=1\\).` });
+    return { given, steps };
+  }
+  genPolyfit.title = "MATLAB polyfit / polyval";
+
+  const GEN = { fixed: genFixed, bisect: genBisect, newton: genNewton, secant: genSecant, gauss: genGauss, lu: genLU, chol: genChol,
+                 linreg: genLinReg, rsq: genRsq, linz: genLinz, quad: genQuad, polyfit: genPolyfit };
   window.BCS311_GEN = GEN;   // exposed for testing
 
   /* ---------- MathJax (loaded async) ---------- */
