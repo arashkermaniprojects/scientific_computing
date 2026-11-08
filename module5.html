@@ -64,6 +64,7 @@
     <section class="section" id="intro">
       <div class="panel">
         <h2>The definite integral as area</h2>
+        <div class="voicebar"><span class="vlabel">🔊 Listen to this section</span><audio controls preload="metadata" src="assets/audio/m5_intro.mp3"></audio></div>
         <p>A definite integral is the <b>area under the curve</b> between two limits:</p>
         <div class="eqn">\[ I = \int_a^b f(x)\,dx. \]</div>
         <p>For complicated or non-elementary functions there is often no analytic antiderivative. Numerical integration (<b>quadrature</b>) approximates the area by breaking \([a,b]\) into subintervals and summing the areas of simple shapes — rectangles, trapezoids, or parabola-capped strips — that hug the curve.</p>
@@ -75,6 +76,7 @@
     <section class="section" id="mid">
       <div class="panel">
         <h2>5.1 The midpoint rule</h2>
+        <div class="voicebar"><span class="vlabel">🔊 Listen to this section</span><audio controls preload="metadata" src="assets/audio/m5_mid.mp3"></audio></div>
         <p>Approximate each strip by a rectangle whose height is the function value at the <b>midpoint</b> of that strip:</p>
         <div class="eqn">\[ I \approx \Delta x \sum_{k} f(m_k), \qquad m_k = \text{midpoint of strip } k. \]</div>
         <ol>
@@ -83,6 +85,7 @@
           <li>Evaluate \(f\) at every midpoint, sum, and multiply by \(\Delta x\).</li>
         </ol>
         <h3>Worked example</h3>
+        <div class="voicebar"><span class="vlabel">🔊 Listen to this example</span><audio controls preload="metadata" src="assets/audio/m5_mid_example.mp3"></audio></div>
         <p>Approximate \(\int_0^{10} x^3\,dx\) with \(n=5\). Then \(\Delta x = 2\) and the midpoints are \(1,3,5,7,9\):</p>
         <div class="eqn">\[ S = 1^3+3^3+5^3+7^3+9^3 = 1+27+125+343+729 = 1225, \]</div>
         <div class="eqn">\[ I \approx \Delta x \cdot S = 2(1225) = 2450 \quad(\text{exact } 2500,\ \text{error } 2\%). \]</div>
@@ -92,9 +95,11 @@
     <section class="section" id="trap">
       <div class="panel">
         <h2>5.2 The trapezoidal rule</h2>
+        <div class="voicebar"><span class="vlabel">🔊 Listen to this section</span><audio controls preload="metadata" src="assets/audio/m5_trap.mp3"></audio></div>
         <p>Connect adjacent points with straight lines and sum the resulting <b>trapezoids</b>. The interior points are counted twice (each is shared by two trapezoids), giving the weighting \(1,2,2,\dots,2,1\):</p>
         <div class="eqn">\[ I \approx \frac{\Delta x}{2}\Bigl[\,f(x_0) + 2\sum_{i=1}^{n-1} f(x_i) + f(x_n)\,\Bigr]. \]</div>
         <h3>Worked example</h3>
+        <div class="voicebar"><span class="vlabel">🔊 Listen to this example</span><audio controls preload="metadata" src="assets/audio/m5_trap_example.mp3"></audio></div>
         <p>Approximate \(\int_0^{8} x^2\,dx\) with \(n=4\), so \(\Delta x = 2\) and grid points \(0,2,4,6,8\):</p>
         <div class="eqn">\[ S = f(0)+f(8) + 2\bigl[f(2)+f(4)+f(6)\bigr] = 0 + 64 + 2(4+16+36) = 176, \]</div>
         <div class="eqn">\[ I \approx \frac{\Delta x}{2}\,S = \frac{2}{2}(176) = 176 \quad(\text{exact } 170.67). \]</div>
@@ -122,6 +127,7 @@ I_builtin = trapz(x, y);</textarea>
     <section class="section" id="simp">
       <div class="panel">
         <h2>5.3 Simpson's 1/3 rule</h2>
+        <div class="voicebar"><span class="vlabel">🔊 Listen to this section</span><audio controls preload="metadata" src="assets/audio/m5_simp.mp3"></audio></div>
         <p>Instead of straight lines, fit a <b>parabola</b> through each pair of strips. This is far more accurate for smooth functions. With an <b>even</b> number of segments, the weighting pattern is \(1,4,2,4,\dots,4,1\):</p>
         <div class="eqn">\[ I \approx \frac{\Delta x}{3}\Bigl[\,f(x_0) + 4\!\!\sum_{i\,\text{odd}}\!\! f(x_i) + 2\!\!\sum_{i\,\text{even}}\!\! f(x_i) + f(x_n)\,\Bigr]. \]</div>
         <div class="callout idea"><div class="h">💡 Accuracy ladder</div>Midpoint &amp; trapezoid are exact for straight lines (low order). Simpson is exact for cubics — for the same number of points it is typically far more accurate. That extra accuracy comes free, just from smarter weights.</div>
@@ -182,6 +188,7 @@ fprintf('Simpson estimate = %.4f\n', I);   % exact for x^2</textarea>
     <section class="section" id="quad">
       <div class="panel">
         <h2>5.4 Gaussian &amp; adaptive quadrature</h2>
+        <div class="voicebar"><span class="vlabel">🔊 Listen to this section</span><audio controls preload="metadata" src="assets/audio/m5_quad.mp3"></audio></div>
         <p><b>Gaussian quadrature</b> drops the requirement of equally spaced points. By choosing both the sample locations <em>and</em> their weights optimally, an \(n\)-point Gauss rule integrates polynomials up to degree \(2n-1\) exactly — remarkable accuracy from very few evaluations.</p>
         <p><b>Adaptive quadrature</b> puts the effort where the function is hard: it subdivides only the regions where the estimate is still changing, using many small strips on wiggly parts and few large strips on smooth parts. MATLAB's <code>integral</code> is adaptive.</p>
         <div class="codewrap editable has-output">
@@ -199,6 +206,7 @@ fprintf('integral = %.8f\n', I);</textarea>
     <section class="section" id="ode">
       <div class="panel">
         <h2>5.5 Ordinary differential equations</h2>
+        <div class="voicebar"><span class="vlabel">🔊 Listen to this section</span><audio controls preload="metadata" src="assets/audio/m5_ode.mp3"></audio></div>
         <p>A differential equation relates an unknown function to its derivatives. A first-order <b>initial-value problem</b> has the form</p>
         <div class="eqn">\[ \frac{dy}{dx} = f(x,y), \qquad y(x_0) = y_0. \]</div>
         <p>The derivative tells us the <b>slope</b> of the solution at every point; the initial condition pins down which specific curve we are on. Integrating \(dy/dx\) alone gives a family of curves differing by a constant \(c\); the initial value selects one.</p>
@@ -210,6 +218,7 @@ fprintf('integral = %.8f\n', I);</textarea>
     <section class="section" id="euler">
       <div class="panel">
         <h2>5.6 Euler's method</h2>
+        <div class="voicebar"><span class="vlabel">🔊 Listen to this section</span><audio controls preload="metadata" src="assets/audio/m5_euler.mp3"></audio></div>
         <p>The simplest one-step method. From the current point, follow the slope \(f(x_i,y_i)\) in a straight line for one step of width \(h\):</p>
         <div class="eqn">\[ y_{i+1} = y_i + h\,f(x_i, y_i), \qquad x_{i+1} = x_i + h. \]</div>
         <p>Each step uses a tangent-line approximation, so Euler accumulates error: it is <b>first-order</b> (halving \(h\) roughly halves the error). Smaller steps are more accurate but cost more evaluations.</p>
@@ -290,6 +299,7 @@ exact y(2.0) = 7.389056</pre></div>
     <section class="section" id="rk">
       <div class="panel">
         <h2>5.7 Runge–Kutta &amp; higher-order methods</h2>
+        <div class="voicebar"><span class="vlabel">🔊 Listen to this section</span><audio controls preload="metadata" src="assets/audio/m5_rk.mp3"></audio></div>
         <p>Euler uses the slope only at the start of each step. <b>Runge–Kutta</b> methods sample the slope several times across the step and combine them, capturing curvature Euler misses. The classic <b>RK4</b> averages four slope estimates:</p>
         <div class="eqn">\[ y_{i+1} = y_i + \frac{h}{6}\bigl(k_1 + 2k_2 + 2k_3 + k_4\bigr), \]</div>
         <div class="eqn">\[ k_1 = f(x_i,y_i),\ \ k_2 = f\!\left(x_i+\tfrac{h}{2}, y_i+\tfrac{h}{2}k_1\right),\ \ k_3 = f\!\left(x_i+\tfrac{h}{2}, y_i+\tfrac{h}{2}k_2\right),\ \ k_4 = f(x_i+h, y_i+hk_3). \]</div>
@@ -496,6 +506,15 @@ legend('ode45','exact e^x'); grid on;</textarea>
 })();
 
 wireCompleteBar('m5');
+</script>
+<script>
+/* voice tracks: players stay hidden until their MP3 actually loads. */
+document.querySelectorAll('.voicebar audio').forEach(a=>{
+  const bar = a.closest('.voicebar');
+  a.addEventListener('loadedmetadata', ()=>{ if(bar) bar.classList.add('vready'); });
+  a.addEventListener('error', ()=>{ if(bar) bar.classList.remove('vready'); });
+  try { a.load(); } catch(e){}
+});
 </script>
 </body>
 </html>

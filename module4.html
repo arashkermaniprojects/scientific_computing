@@ -62,6 +62,7 @@
     <section class="section" id="intro">
       <div class="panel">
         <h2>Interpolation vs. extrapolation</h2>
+        <div class="voicebar"><span class="vlabel">🔊 Listen to this section</span><audio controls preload="metadata" src="assets/audio/m4_intro.mp3"></audio></div>
         <p><b>Interpolation</b> estimates values <em>between</em> known data points; <b>extrapolation</b> estimates <em>outside</em> the data range. Unlike least-squares fitting (Module 3), interpolation assumes the data is exact and requires the curve to pass through <b>every</b> point.</p>
         <div class="two-col">
           <div class="callout idea"><div class="h">Interpolation (Module 4)</div>Data assumed exact · curve hits every point · use when points come from a precise table or formula.</div>
@@ -74,6 +75,7 @@
     <section class="section" id="poly">
       <div class="panel">
         <h2>4.1 Polynomial interpolation</h2>
+        <div class="voicebar"><span class="vlabel">🔊 Listen to this section</span><audio controls preload="metadata" src="assets/audio/m4_poly.mp3"></audio></div>
         <p>Through any \(n\) data points with distinct \(x\)-values, there is exactly <b>one</b> polynomial of degree at most \(n-1\) that passes through all of them. Two points define a unique line; three points a unique parabola; and so on.</p>
         <div class="eqn">\[ P(x) = a_0 + a_1 x + a_2 x^2 + \cdots + a_{n-1} x^{n-1}. \]</div>
         <p>You <em>could</em> find the coefficients by solving a linear system (a Vandermonde system), but that matrix is often ill-conditioned. The Lagrange and Newton forms construct the same unique polynomial more reliably.</p>
@@ -83,10 +85,12 @@
     <section class="section" id="lagrange">
       <div class="panel">
         <h2>4.2 Lagrange interpolating polynomials</h2>
+        <div class="voicebar"><span class="vlabel">🔊 Listen to this section</span><audio controls preload="metadata" src="assets/audio/m4_lagrange.mp3"></audio></div>
         <p>The Lagrange form writes the interpolant as a weighted sum of the data values:</p>
         <div class="eqn">\[ P(x) = \sum_{i=1}^{n} y_i\, L_i(x), \qquad L_i(x) = \prod_{\substack{j=1 \\ j\neq i}}^{n} \frac{x - x_j}{x_i - x_j}. \]</div>
         <p>Each <b>basis polynomial</b> \(L_i(x)\) is cleverly built to equal \(1\) at its own node \(x_i\) and \(0\) at every other node. So at \(x=x_k\) only the \(k\)-th term survives and \(P(x_k)=y_k\) — the curve hits every point by construction.</p>
         <h3>Worked example</h3>
+        <div class="voicebar"><span class="vlabel">🔊 Listen to this example</span><audio controls preload="metadata" src="assets/audio/m4_lagrange_example.mp3"></audio></div>
         <p>Interpolate the three points \((1,1),(2,4),(3,9)\):</p>
         <div class="eqn">\[ L_1=\frac{(x-2)(x-3)}{(1-2)(1-3)},\ \ L_2=\frac{(x-1)(x-3)}{(2-1)(2-3)},\ \ L_3=\frac{(x-1)(x-2)}{(3-1)(3-2)}. \]</div>
         <div class="eqn">\[ P(x) = 1\cdot L_1 + 4\cdot L_2 + 9\cdot L_3 = x^2. \]</div>
@@ -122,6 +126,7 @@ plot(x, y, 'ro', xq, yq, 'b-'); grid on;   % recovers y = x^2</textarea>
     <section class="section" id="newton">
       <div class="panel">
         <h2>4.3 Newton's divided-difference form</h2>
+        <div class="voicebar"><span class="vlabel">🔊 Listen to this section</span><audio controls preload="metadata" src="assets/audio/m4_newton.mp3"></audio></div>
         <p>Newton's form builds the same polynomial incrementally, which makes it cheap to <b>add a new data point</b> without recomputing everything:</p>
         <div class="eqn">\[ P(x) = b_0 + b_1(x-x_0) + b_2(x-x_0)(x-x_1) + \cdots \]</div>
         <p>The coefficients \(b_k\) are <b>divided differences</b>, computed from a triangular table:</p>
@@ -133,6 +138,7 @@ plot(x, y, 'ro', xq, yq, 'b-'); grid on;   % recovers y = x^2</textarea>
     <section class="section" id="runge">
       <div class="panel">
         <h2>4.4 The danger of high-degree interpolation</h2>
+        <div class="voicebar"><span class="vlabel">🔊 Listen to this section</span><audio controls preload="metadata" src="assets/audio/m4_runge.mp3"></audio></div>
         <p>It is tempting to fit many points with one high-degree polynomial. But high-degree interpolants <b>oscillate wildly</b> between equally spaced points — especially near the ends of the interval. This is <b>Runge's phenomenon</b>, classically shown with</p>
         <div class="eqn">\[ f(x) = \frac{1}{1+25x^2} \quad\text{on}\quad [-1,1]. \]</div>
         <p>As you add equally spaced nodes, the interpolating polynomial fits the nodes exactly yet swings further and further from \(f\) between them. The demo below lets you watch this happen.</p>
@@ -174,6 +180,7 @@ plot(x, y, 'ro', xq, yq, 'b-'); grid on;   % recovers y = x^2</textarea>
     <section class="section" id="spline">
       <div class="panel">
         <h2>4.5 Piecewise &amp; spline interpolation</h2>
+        <div class="voicebar"><span class="vlabel">🔊 Listen to this section</span><audio controls preload="metadata" src="assets/audio/m4_spline.mp3"></audio></div>
         <p>Instead of one global polynomial, a <b>spline</b> joins many low-degree polynomials, one per interval between data points.</p>
         <ul>
           <li><b>Linear spline:</b> connect adjacent points with straight segments. Simple, but kinked (the slope jumps at each node).</li>
@@ -186,6 +193,7 @@ plot(x, y, 'ro', xq, yq, 'b-'); grid on;   % recovers y = x^2</textarea>
     <section class="section" id="matlab">
       <div class="panel">
         <h2>4.6 MATLAB's built-in interpolation</h2>
+        <div class="voicebar"><span class="vlabel">🔊 Listen to this section</span><audio controls preload="metadata" src="assets/audio/m4_matlab.mp3"></audio></div>
         <p>MATLAB ships fast, robust interpolation functions — you rarely write your own in practice:</p>
         <div class="codewrap editable has-output">
           <div class="codehead"><span class="lang"><span class="dot"></span>MATLAB · editable · interp1, spline, polyfit</span><button class="copybtn">Copy</button></div>
@@ -366,6 +374,15 @@ yq = interp1(x, y, xq, 'pchip');    % shape-preserving cubic</code></pre>
 })();
 
 wireCompleteBar('m4');
+</script>
+<script>
+/* voice tracks: players stay hidden until their MP3 actually loads. */
+document.querySelectorAll('.voicebar audio').forEach(a=>{
+  const bar = a.closest('.voicebar');
+  a.addEventListener('loadedmetadata', ()=>{ if(bar) bar.classList.add('vready'); });
+  a.addEventListener('error', ()=>{ if(bar) bar.classList.remove('vready'); });
+  try { a.load(); } catch(e){}
+});
 </script>
 </body>
 </html>
