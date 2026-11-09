@@ -226,7 +226,7 @@ fprintf('Simpson estimate = %.4f\n', I);   % exact for x^2</textarea>
           <svg class="mini-svg" viewBox="0 0 560 300" role="img" aria-label="Animation: adaptive quadrature repeatedly splitting the strips where the estimate is still changing" font-family="Inter,Arial,sans-serif" style="max-width:560px"></svg>
           <div class="anim-read" aria-live="off"></div>
           <div class="anim-ctl"><button type="button" class="btn ghost anim-play">&#9654; Play</button><input type="range" class="anim-scrub" min="0" max="1000" value="0" aria-label="Scrub the animation"></div>
-          <figcaption><b>Adaptive quadrature in action</b> (illustration with \(f(x)=e^{-x/3}\sin(0.9x^2)\)). Press <b>Play</b> or drag the slider. Each strip compares one Simpson estimate with two half-width ones; if they still disagree (<span style="color:#d97a1e"><b>orange</b></span>) the strip is split in two, if they agree (<span style="color:#0e7c86"><b>teal</b></span>) it is kept. Effort ends up where \(f\) bends sharply, so far fewer strips are needed than with a uniform grid.</figcaption>
+          <figcaption><b>How adaptive quadrature decides where to refine</b> (illustration with \(f(x)=e^{-x/3}\sin(0.9x^2)\)). Press <b>Play</b> or drag the slider. On every strip we compute the area twice: with <b>one</b> Simpson parabola (blue dashed) and with <b>two</b> parabolas, one per half (solid). If the two areas nearly agree, halving the strip changes nothing, so the strip is <b>settled</b> (<span style="color:#0e7c86"><b>teal</b></span>). If they disagree (you can see the dashed parabola missing the curve), the estimate is <b>still changing</b> (<span style="color:#d97a1e"><b>orange</b></span>) and the strip is split. The bars below measure that disagreement; any bar above the red limit line gets split. Effort ends up where \(f\) bends sharply.</figcaption>
         </figure>
         <div class="codewrap editable has-output">
           <div class="codehead"><span class="lang"><span class="dot"></span>MATLAB · editable · adaptive quadrature</span><button class="copybtn">Copy</button></div>
@@ -454,7 +454,7 @@ legend('ode45','exact e^x'); grid on;</textarea>
 <footer class="site">BCS 311 · Scientific Computing — Module 5 of 5 · Dr. Arash Kermani Kolankeh.</footer>
 
 <script src="assets/app.js"></script>
-<script src="assets/anim5.js?v=1794193182"></script>
+<script src="assets/anim5.js?v=1794195144"></script>
 <script>
 /* ===== Integration demo ===== */
 (function(){

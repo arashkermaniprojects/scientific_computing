@@ -4,10 +4,11 @@
 'use strict';
 var NS='http://www.w3.org/2000/svg';
 var C={teal:'#0e7c86',org:'#f0913a',ink:'#1d2b3a',grid:'#c9d4e3',soft:'#7b8aa0',red:'#d8553b'};
-var W=560,H=300,L=48,R=20,T=16,B=40;
+var W=560,H0=300,L=48,R=20,T=16;
 function el(tag,attrs,parent){var e=document.createElementNS(NS,tag);for(var k in attrs)e.setAttribute(k,attrs[k]);if(parent)parent.appendChild(e);return e;}
 function halo(a){a['stroke']='#fff';a['stroke-width']=3;a['paint-order']='stroke';return a;}
-function axes(svg,x0,x1,y0,y1,xt,yt){
+function axes(svg,x0,x1,y0,y1,xt,yt,hh,bb){
+  var H=hh||H0, B=(bb===undefined?40:bb);
   var X=function(x){return L+(x-x0)/(x1-x0)*(W-L-R);}, Y=function(y){return H-B-(y-y0)/(y1-y0)*(H-B-T);};
   el('rect',{width:W,height:H,rx:10,fill:'#fff'},svg);
   el('line',{x1:L,y1:H-B,x2:W-R,y2:H-B,stroke:C.ink,'stroke-width':1.4},svg);
@@ -49,8 +50,9 @@ function initQuad(fig){
   for(var lvl=0;lvl<12;lvl++){
     var est=0,open=0;
     ivs.forEach(function(v){var m=(v.a+v.b)/2,S1=simp(v.a,v.b),S2=simp(v.a,m)+simp(m,v.b);
-      v.err=Math.abs(S2-S1)/15; v.est=S2; v.split=v.err>tol*(v.b-v.a)/(b-a); est+=S2; if(v.split)open++;});
-    frames.push({ivs:ivs.map(function(v){return {a:v.a,b:v.b,born:v.born,split:v.split};}),est:est,open:open});
+      var allowed=tol*(v.b-v.a)/(b-a);
+      v.ratio=(Math.abs(S2-S1)/15)/allowed; v.est=S2; v.split=v.ratio>1; est+=S2; if(v.split)open++;});
+    frames.push({ivs:ivs.map(function(v){return {a:v.a,b:v.b,born:v.born,split:v.split,ratio:v.ratio};}),est:est,open:open});
     if(!open)break;
     var next=[];
     ivs.forEach(function(v){if(v.split){var m=(v.a+v.b)/2;next.push({a:v.a,b:m,born:true},{a:m,b:v.b,born:true});}
@@ -58,39 +60,63 @@ function initQuad(fig){
     ivs=next;
   }
   var svg=fig.querySelector('svg'), rd=fig.querySelector('.anim-read');
-  var ax=axes(svg,0,4.2,-1.2,1.3,[[0,'a'],[4,'b']],[]);
+  var HH=390, BB=140, PB=HH-BB;                         /* function panel bottom edge */
+  svg.setAttribute('viewBox','0 0 '+W+' '+HH);
+  var ax=axes(svg,0,4.2,-1.2,1.9,[[0,'a'],[4,'b']],[],HH,BB);
   var fills=el('g',{},svg);
   el('line',{x1:ax.X(0),y1:ax.Y(0),x2:ax.X(4.2),y2:ax.Y(0),stroke:C.grid,'stroke-width':1},svg);
-  var divs=el('g',{},svg);
+  var fine=el('g',{},svg), coarse=el('g',{},svg), divs=el('g',{},svg);
   var d='';for(var i=0;i<=240;i++){var x=4*i/240;d+=(i?'L':'M')+ax.X(x).toFixed(1)+','+ax.Y(f(x)).toFixed(1);}
-  el('path',{d:d,fill:'none',stroke:C.ink,'stroke-width':2.4,'stroke-linejoin':'round'},svg);
-  var lg=el('g',{},svg);
-  el('rect',{x:L+10,y:T+4,width:12,height:12,rx:2,fill:C.org,'fill-opacity':.45,stroke:C.org},lg);
-  el('text',halo({x:L+27,y:T+14,'font-size':11.5,fill:C.ink,'font-weight':600}),lg).textContent='still changing → will be split';
-  el('rect',{x:L+10,y:T+22,width:12,height:12,rx:2,fill:C.teal,'fill-opacity':.35,stroke:C.teal},lg);
-  el('text',halo({x:L+27,y:T+32,'font-size':11.5,fill:C.ink,'font-weight':600}),lg).textContent='settled → kept';
+  el('path',{d:d,fill:'none',stroke:C.ink,'stroke-width':1.6,'stroke-linejoin':'round',opacity:.55},svg);
+  /* legend (function panel) */
+  var lg=el('g',{},svg), ly=T+6;
+  el('line',{x1:L+10,y1:ly+4,x2:L+34,y2:ly+4,stroke:C.blue||'#2563a8','stroke-width':2.4,'stroke-dasharray':'5 3'},lg);
+  el('text',halo({x:L+40,y:ly+8,'font-size':11.5,fill:C.ink,'font-weight':600}),lg).textContent='ONE parabola over the whole strip';
+  el('line',{x1:L+10,y1:ly+22,x2:L+34,y2:ly+22,stroke:C.ink,'stroke-width':2.4},lg);
+  el('text',halo({x:L+40,y:ly+26,'font-size':11.5,fill:C.ink,'font-weight':600}),lg).textContent='TWO parabolas, one per half (colour = verdict)';
+  el('text',halo({x:L+10,y:ly+44,'font-size':11.5,fill:C.ink,'font-weight':700}),lg).textContent='Do the two agree? yes \u2192 settled (teal)   no \u2192 still changing (orange)';
+  /* bar panel */
+  var bt=PB+46, bb=HH-14, bh=bb-bt;                    /* bars from baseline bb up to bt */
+  el('text',{x:L,y:PB+40,'font-size':11.5,fill:C.ink,'font-weight':700},svg).textContent='Change when each strip is halved';
+  el('line',{x1:L,y1:bb,x2:W-R,y2:bb,stroke:C.ink,'stroke-width':1.2},svg);
+  var thr=bb-bh*0.5;
+  var bars=el('g',{},svg);
+  el('line',{x1:L,y1:thr,x2:W-R,y2:thr,stroke:C.red,'stroke-width':1.4,'stroke-dasharray':'6 4'},svg);
+  el('line',{x1:W-R-118,y1:PB+36,x2:W-R-98,y2:PB+36,stroke:C.red,'stroke-width':1.6,'stroke-dasharray':'5 3'},svg);
+  el('text',{x:W-R-94,y:PB+40,'font-size':11,fill:C.red,'font-weight':700},svg).textContent='allowed change';
   var minw=b-a;frames[frames.length-1].ivs.forEach(function(v){minw=Math.min(minw,v.b-v.a);});
   var uniform=Math.round((b-a)/minw);
+  function para(x0,x1,x2,steps){var X=[x0,x1,x2],Y=X.map(f),d='';
+    for(var j=0;j<=steps;j++){var x=x0+(x2-x0)*j/steps,y=0;
+      for(var i=0;i<3;i++){var l=1;for(var k=0;k<3;k++)if(k!==i)l*=(x-X[k])/(X[i]-X[k]);y+=Y[i]*l;}
+      d+=(j?'L':'M')+ax.X(x).toFixed(1)+','+ax.Y(y).toFixed(1);}
+    return d;}
   function draw(t){
     var n=frames.length, s=t*(n-1), k=Math.min(n-1,Math.floor(s+1e-9)), fr=Math.min(1,s-k);
     if(t>=1){k=n-1;fr=1;}
-    var F=frames[k]; fills.textContent='';divs.textContent='';
-    F.ivs.forEach(function(v,i){
-      var p='M'+ax.X(v.a).toFixed(1)+','+ax.Y(0).toFixed(1);
-      var m=Math.max(4,Math.ceil((v.b-v.a)*40));
+    var F=frames[k]; fills.textContent='';fine.textContent='';coarse.textContent='';divs.textContent='';bars.textContent='';
+    F.ivs.forEach(function(v){
+      var col=v.split?C.org:C.teal, flash=v.born?.3*(1-Math.min(1,fr*2.5)):0;
+      var p='M'+ax.X(v.a).toFixed(1)+','+ax.Y(0).toFixed(1), m=Math.max(4,Math.ceil((v.b-v.a)*40));
       for(var j=0;j<=m;j++){var x=v.a+(v.b-v.a)*j/m;p+='L'+ax.X(x).toFixed(1)+','+ax.Y(f(x)).toFixed(1);}
       p+='L'+ax.X(v.b).toFixed(1)+','+ax.Y(0).toFixed(1)+'Z';
-      var col=v.split?C.org:C.teal, base=v.split?.42:.3, flash=v.born?.35*(1-Math.min(1,fr*2.5)):0;
-      el('path',{d:p,fill:col,'fill-opacity':base+flash,stroke:'none'},fills);
-      el('line',{x1:ax.X(v.a),y1:ax.Y(0),x2:ax.X(v.a),y2:ax.Y(f(v.a)),stroke:col,'stroke-width':1.2,opacity:v.born?Math.min(1,fr*3):1},divs);
+      el('path',{d:p,fill:col,'fill-opacity':(v.split?.22:.14)+flash,stroke:'none'},fills);
+      var mid=(v.a+v.b)/2, q1=(v.a+mid)/2, q3=(mid+v.b)/2;
+      el('path',{d:para(v.a,mid,v.b,24),fill:'none',stroke:'#2563a8','stroke-width':2.2,'stroke-dasharray':'5 3','stroke-linecap':'round'},coarse);
+      el('path',{d:para(v.a,q1,mid,12)+para(mid,q3,v.b,12).replace('M','L'),fill:'none',stroke:col,'stroke-width':2.2},fine);
+      el('line',{x1:ax.X(v.a),y1:ax.Y(0),x2:ax.X(v.a),y2:ax.Y(f(v.a)),stroke:col,'stroke-width':1,opacity:v.born?Math.min(1,fr*3):.8},divs);
+      /* bar: log scale, limit (ratio 1) sits at half height */
+      var h=Math.max(0.03,Math.min(1,(Math.log(Math.max(v.ratio,1e-9))/Math.LN10+2)/4));
+      var x0=ax.X(v.a)+1, w=Math.max(1.5,ax.X(v.b)-ax.X(v.a)-2);
+      el('rect',{x:x0,y:bb-bh*h,width:w,height:bh*h,fill:col,'fill-opacity':.85,rx:1.5},bars);
     });
     var last=F.ivs[F.ivs.length-1];
-    el('line',{x1:ax.X(last.b),y1:ax.Y(0),x2:ax.X(last.b),y2:ax.Y(f(last.b)),stroke:C.teal,'stroke-width':1.2},divs);
-    var msg='Stage '+k+' of '+(n-1)+' · '+F.ivs.length+' strip'+(F.ivs.length>1?'s':'')+' · estimate '+F.est.toFixed(6)+' (reference '+exact.toFixed(6)+')';
-    msg+= F.open? ' · '+F.open+' still changing → split next' : ' · every strip has settled — a uniform grid this fine would need '+uniform+' strips';
+    el('line',{x1:ax.X(last.b),y1:ax.Y(0),x2:ax.X(last.b),y2:ax.Y(f(last.b)),stroke:C.teal,'stroke-width':1,opacity:.8},divs);
+    var msg='Stage '+k+' of '+(n-1)+' \u00B7 '+F.ivs.length+' strip'+(F.ivs.length>1?'s':'')+' \u00B7 estimate '+F.est.toFixed(6)+' (reference '+exact.toFixed(6)+')';
+    msg+= F.open? ' \u00B7 '+F.open+' strip'+(F.open>1?'s':'')+' above the limit (orange bars) \u2192 split next' : ' \u00B7 every bar is below the limit \u2014 done. A uniform grid this fine would need '+uniform+' strips.';
     rd.textContent=msg;
   }
-  var p=player(fig,draw,Math.max(6,frames.length*1.1));
+  var p=player(fig,draw,Math.max(6,frames.length*1.3));
   p.frames=frames;p.exact=exact;
   return p;
 }
