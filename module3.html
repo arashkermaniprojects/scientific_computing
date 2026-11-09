@@ -6,7 +6,7 @@
 <title>Module 3 · Least-Squares Curve Fitting — BCS 311</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/style.css?v=1791791205">
+<link rel="stylesheet" href="assets/style.css?v=1794210937">
 <script>window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['\\[','\\]']]},svg:{fontCache:'global'}};</script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" async></script>
 </head>
@@ -163,9 +163,34 @@
 
         <h3>Worked example (power)</h3>
         <div class="voicebar"><span class="vlabel">🔊 Listen to this example</span><audio controls preload="metadata" src="assets/audio/m3_linz_example.mp3"></audio></div>
-        <p>Fitting \(y = a\,x^{b}\) to a data set, the log-log linear fit is</p>
+        <p>Data: \(x=[10,20,\dots,80]\), \(y=[25,70,380,550,610,1220,830,1450]\), so \(n=8\). Fitting \(y=a\,x^{b}\) is a straight-line fit once we work with logarithms. Follow the steps:</p>
+        <div class="steps">
+          <p><b>Step 1 &mdash; Linearize.</b> Take \(\log_{10}\) of every \(x\) and \(y\): put \(X=\log x\), \(Y=\log y\), so the model becomes the line \(Y=\log a+b\,X\). Then tabulate \(X\), \(Y\), \(XY\) and \(X^2\):</p>
+          <div class="tablewrap"><table class="data">
+            <thead><tr><th>\(x\)</th><th>\(y\)</th><th>\(X=\log x\)</th><th>\(Y=\log y\)</th><th>\(XY\)</th><th>\(X^2\)</th></tr></thead>
+            <tbody>
+              <tr><td>10</td><td>25</td><td>1.0000</td><td>1.3979</td><td>1.3979</td><td>1.0000</td></tr>
+              <tr><td>20</td><td>70</td><td>1.3010</td><td>1.8451</td><td>2.4005</td><td>1.6927</td></tr>
+              <tr><td>30</td><td>380</td><td>1.4771</td><td>2.5798</td><td>3.8107</td><td>2.1819</td></tr>
+              <tr><td>40</td><td>550</td><td>1.6021</td><td>2.7404</td><td>4.3902</td><td>2.5666</td></tr>
+              <tr><td>50</td><td>610</td><td>1.6990</td><td>2.7853</td><td>4.7322</td><td>2.8865</td></tr>
+              <tr><td>60</td><td>1220</td><td>1.7782</td><td>3.0864</td><td>5.4880</td><td>3.1618</td></tr>
+              <tr><td>70</td><td>830</td><td>1.8451</td><td>2.9191</td><td>5.3860</td><td>3.4044</td></tr>
+              <tr><td>80</td><td>1450</td><td>1.9031</td><td>3.1614</td><td>6.0164</td><td>3.6218</td></tr>
+              <tr style="font-weight:700"><td colspan="2">\(\Sigma\)</td><td>12.6055</td><td>20.5153</td><td>33.6219</td><td>20.5156</td></tr>
+            </tbody></table></div>
+          <p><b>Step 2 &mdash; Means.</b> \(\bar X=12.6055/8=1.5757\), \(\bar Y=20.5153/8=2.5644\).</p>
+          <p><b>Step 3 &mdash; Slope</b> (the same least-squares formula as Section 3.2, applied to \(X,Y\); the products are computed from unrounded values, so they can differ from the 4-decimal table in the last digit):</p>
+          <div class="eqn">\[ b=\frac{n\sum XY-\sum X\sum Y}{n\sum X^2-\left(\sum X\right)^2}=\frac{8(33.6219)-(12.6055)(20.5153)}{8(20.5156)-(12.6055)^2}=\frac{10.369}{5.2258}=1.9842. \]</div>
+          <p><b>Step 4 &mdash; Intercept.</b> The line passes through the centroid \((\bar X,\bar Y)\), so</p>
+          <div class="eqn">\[ \log a=\bar Y-b\,\bar X=2.5644-1.9842(1.5757)=-0.5620. \]</div>
+          <p><b>Step 5 &mdash; Undo the logarithm.</b> \(a=10^{\log a}\) and \(b\) stays as it is:</p>
+        </div>
         <div class="eqn">\[ \log y = -0.5620 + 1.9842\,\log x \;\Longrightarrow\; a = 10^{-0.5620} = 0.2741,\ b = 1.9842, \]</div>
         <div class="eqn">\[ y = 0.2741\,x^{1.9842}. \]</div>
+        <div class="callout tip"><div class="h">&#10003; Sanity check</div>At \(x=40\): \(0.2741\cdot 40^{1.9842}\approx 414\), against the measured \(550\). The data are scattered (note the dip at \(x=70\)), so we expect misses like this; what matters is that the curve follows the trend. Also \(b\approx 2\), so \(y\) grows roughly like \(x^2\).</div>
+        <div class="callout warn"><div class="h">&#9888;&#65039; Keep full precision</div>Round only at the end. Rounding \(X,Y\) to 4 decimals in the table is fine, but if you use fewer digits the slope can drift in the third decimal (the numerator \(10.369\) is a small difference of large products).</div>
+        <p>The MATLAB code below does exactly these steps in a few lines:</p>
         <div class="codewrap editable has-output">
           <div class="codehead"><span class="lang"><span class="dot"></span>MATLAB · editable · linearize a power model</span><button class="copybtn">Copy</button></div>
           <textarea spellcheck="false" rows="14">x = [10 20 30 40 50 60 70 80];

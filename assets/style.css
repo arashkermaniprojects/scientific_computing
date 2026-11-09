@@ -522,3 +522,6 @@ details.section-collapse[open] > summary.sec-toggle{margin-bottom:.6rem}
 .figblock.anim .anim-ctl{display:flex;align-items:center;gap:.8rem;margin:.5rem auto 0;max-width:560px}
 .figblock.anim .anim-ctl .btn{padding:.3rem .8rem;font-size:.85rem;white-space:nowrap;min-width:6.5rem}
 .figblock.anim .anim-scrub{flex:1;accent-color:var(--brand)}
+/* numbered worked-solution steps */
+.steps{margin:.6rem 0 1rem;padding:.4rem 1rem .2rem;border-left:4px solid var(--brand);background:#f7fafc;border-radius:0 10px 10px 0}
+.steps>p{margin:.7rem 0}
