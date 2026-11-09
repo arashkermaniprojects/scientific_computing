@@ -516,3 +516,9 @@ details.section-collapse[open] > summary.sec-toggle{margin-bottom:.6rem}
 .genp-step.final .t .k{background:var(--ok)}
 .genp .btnrow{margin-top:.8rem}
 @keyframes genpIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+/* animated figures (Module 5) */
+.figblock.anim .anim-read{margin:.5rem auto 0;max-width:560px;min-height:2.9em;font-size:.88rem;line-height:1.45;color:#2b3b4e;font-weight:600}
+.figblock.anim .anim-ctl{display:flex;align-items:center;gap:.8rem;margin:.5rem auto 0;max-width:560px}
+.figblock.anim .anim-ctl .btn{padding:.3rem .8rem;font-size:.85rem;white-space:nowrap;min-width:6.5rem}
+.figblock.anim .anim-scrub{flex:1;accent-color:var(--brand)}
