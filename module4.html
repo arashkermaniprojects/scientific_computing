@@ -76,9 +76,16 @@
       <div class="panel">
         <h2>4.1 Polynomial interpolation</h2>
         <div class="voicebar"><span class="vlabel">🔊 Listen to this section</span><audio controls preload="metadata" src="assets/audio/m4_poly.mp3"></audio></div>
+        <div class="callout def"><div class="h">📐 Key words, in plain language</div>
+          <b>Data points</b> are measured or tabulated pairs \((x_i, y_i)\). <b>Interpolation</b> means finding a function that passes <em>exactly</em> through all of them, so we can estimate \(y\) at an \(x\) that was not measured. That function is called the <b>interpolant</b> (here, an <em>interpolating polynomial</em>). A <b>polynomial</b> is a sum of powers of \(x\), such as \(2+3x-x^2\); its <b>degree</b> is the highest power.</div>
         <p>Through any \(n\) data points with distinct \(x\)-values, there is exactly <b>one</b> polynomial of degree at most \(n-1\) that passes through all of them. Two points define a unique line; three points a unique parabola; and so on.</p>
         <div class="eqn">\[ P(x) = a_0 + a_1 x + a_2 x^2 + \cdots + a_{n-1} x^{n-1}. \]</div>
+        <div class="figout" style="margin:1rem 0;border-top:1px solid #cfd9e6;border-radius:12px"><img src="assets/figs/m4_unique.png" alt="Each extra point raises the degree by one: 2 points fix a line, 3 a parabola, 4 a cubic. In every case exactly one polynomial passes through all the points."><div class="cap">Each extra point raises the degree by one: 2 points fix a line, 3 a parabola, 4 a cubic. In every case exactly one polynomial passes through all the points.</div></div>
+<p>The unknowns here are the \(n\) coefficients \(a_0,\dots,a_{n-1}\). Each data point gives one equation, \(P(x_i)=y_i\), so we get \(n\) equations for \(n\) unknowns, a linear system we can solve.</p>
         <p>You <em>could</em> find the coefficients by solving a linear system (a Vandermonde system), but that matrix is often ill-conditioned. The Lagrange and Newton forms construct the same unique polynomial more reliably.</p>
+        <div class="callout idea"><div class="h">💡 What does "ill-conditioned" mean?</div>A problem is <b>ill-conditioned</b> when tiny changes in the input (a rounding error, a slightly noisy \(y\)-value) cause huge changes in the answer. The Vandermonde matrix is a classic example: its columns \(1, x, x^2, \dots, x^{n-1}\) look almost identical to each other as the degree grows, so the system is nearly singular. Computers store numbers with limited precision, so the computed coefficients \(a_i\) can be badly wrong — even though the equations were "solved" correctly — and the resulting curve may miss the data points. <b>Lagrange and Newton avoid this</b> because they never build or solve that matrix: Lagrange writes the answer directly as a sum of basis polynomials, and Newton builds it step by step from divided differences. They need only simple additions, multiplications and divisions, which keeps rounding errors small and is also cheaper than solving a full linear system.</div>
+        <div class="figout" style="margin:1rem 0;border-top:1px solid #cfd9e6;border-radius:12px"><img src="assets/figs/m4_illcond.png" alt="Why the Vandermonde matrix is ill-conditioned: its columns are \(1,x,x^2,\dots\). For high powers these curves are nearly indistinguishable, so the computer cannot tell the columns apart reliably."><div class="cap">Why the Vandermonde matrix is ill-conditioned: its columns are \(1,x,x^2,\dots\). For high powers these curves are nearly indistinguishable, so the computer cannot tell the columns apart reliably.</div></div>
+<div class="callout tip"><div class="h">🧮 An everyday analogy</div>Imagine trying to find where two almost-parallel lines cross. Nudge one line by a hair and the crossing point jumps far away. Nearly identical columns make the Vandermonde system behave the same way.</div>
       </div>
     </section>
 
@@ -86,10 +93,13 @@
       <div class="panel">
         <h2>4.2 Lagrange interpolating polynomials</h2>
         <div class="voicebar"><span class="vlabel">🔊 Listen to this section</span><audio controls preload="metadata" src="assets/audio/m4_lagrange.mp3"></audio></div>
-        <p>The Lagrange form writes the interpolant as a weighted sum of the data values:</p>
+        <p><b>Big idea:</b> instead of solving for coefficients, build the answer from simple "switch" pieces. Each piece is 1 at one data point and 0 at all the others, so multiplying it by that point's \(y\)-value "switches on" exactly one data point.</p>
+        <p>The Lagrange form writes the <b>interpolant</b> (the interpolating polynomial \(P(x)\) that passes through every data point) as a weighted sum of the data values:</p>
         <div class="eqn">\[ P(x) = \sum_{i=1}^{n} y_i\, L_i(x), \qquad L_i(x) = \prod_{\substack{j=1 \\ j\neq i}}^{n} \frac{x - x_j}{x_i - x_j}. \]</div>
         <p>Each <b>basis polynomial</b> \(L_i(x)\) is cleverly built to equal \(1\) at its own node \(x_i\) and \(0\) at every other node. So at \(x=x_k\) only the \(k\)-th term survives and \(P(x_k)=y_k\) — the curve hits every point by construction.</p>
-        <h3>Worked example</h3>
+        <div class="callout idea"><div class="h">🔎 How to read \(L_i(x)\)</div>The numerator \(\prod (x-x_j)\) contains a factor that is <b>zero at every other node</b>, so \(L_i\) vanishes there. The denominator \(\prod (x_i-x_j)\) is just a number that rescales the piece so that \(L_i(x_i)=1\). The symbol \(\prod\) means "multiply all of these", just as \(\sum\) means "add all of these".</div>
+        <div class="figout" style="margin:1rem 0;border-top:1px solid #cfd9e6;border-radius:12px"><img src="assets/figs/m4_basis.png" alt="Left: the three basis polynomials for the nodes 1, 2, 3. Right: multiply each by its \(y\)-value (1, 4, 9) and add. The sum is \(x^2\) and passes through all three red points."><div class="cap">Left: the three basis polynomials for the nodes 1, 2, 3. Right: multiply each by its \(y\)-value (1, 4, 9) and add. The sum is \(x^2\) and passes through all three red points.</div></div>
+<h3>Worked example</h3>
         <div class="voicebar"><span class="vlabel">🔊 Listen to this example</span><audio controls preload="metadata" src="assets/audio/m4_lagrange_example.mp3"></audio></div>
         <p>Interpolate the three points \((1,1),(2,4),(3,9)\):</p>
         <div class="eqn">\[ L_1=\frac{(x-2)(x-3)}{(1-2)(1-3)},\ \ L_2=\frac{(x-1)(x-3)}{(2-1)(2-3)},\ \ L_3=\frac{(x-1)(x-2)}{(3-1)(3-2)}. \]</div>
@@ -129,8 +139,23 @@ plot(x, y, 'ro', xq, yq, 'b-'); grid on;   % recovers y = x^2</textarea>
         <div class="voicebar"><span class="vlabel">🔊 Listen to this section</span><audio controls preload="metadata" src="assets/audio/m4_newton.mp3"></audio></div>
         <p>Newton's form builds the same polynomial incrementally, which makes it cheap to <b>add a new data point</b> without recomputing everything:</p>
         <div class="eqn">\[ P(x) = b_0 + b_1(x-x_0) + b_2(x-x_0)(x-x_1) + \cdots \]</div>
-        <p>The coefficients \(b_k\) are <b>divided differences</b>, computed from a triangular table:</p>
+        <p><b>Big idea:</b> start with a constant that matches the first point, then add a line to also match the second, then a parabola to also match the third, and so on. Each new term is multiplied by factors that are zero at the earlier nodes, so it does not disturb the points already matched.</p>
+        <div class="figout" style="margin:1rem 0;border-top:1px solid #cfd9e6;border-radius:12px"><img src="assets/figs/m4_newton_build.png" alt="Newton's form for the points (0,1), (1,3), (2,2): each added term fixes one more point (red) and leaves the earlier ones unchanged."><div class="cap">Newton's form for the points (0,1), (1,3), (2,2): each added term fixes one more point (red) and leaves the earlier ones unchanged.</div></div>
+<p>The coefficients \(b_k\) are <b>divided differences</b>, computed from a triangular table. A first divided difference is just a <b>slope</b>; a second divided difference is the <b>change in slope</b>, divided by the width. Higher ones are slopes of slopes.</p>
         <div class="eqn">\[ f[x_i,x_j] = \frac{f(x_j)-f(x_i)}{x_j-x_i}, \qquad f[x_i,x_j,x_k] = \frac{f[x_j,x_k]-f[x_i,x_j]}{x_k-x_i}, \ \dots \]</div>
+        <h3>Worked example: the table, step by step</h3>
+        <p>Points \((0,1),(1,3),(2,2)\). Fill the first column with the \(y\)-values, then each next column from the column to its left:</p>
+        <table class="data" style="text-align:center">
+          <thead><tr><th>\(x_i\)</th><th>\(f[x_i]\)</th><th>1st difference</th><th>2nd difference</th></tr></thead>
+          <tbody>
+            <tr><td>0</td><td><b>1</b></td><td></td><td></td></tr>
+            <tr><td></td><td></td><td><b>2</b> = (3−1)/(1−0)</td><td></td></tr>
+            <tr><td>1</td><td>3</td><td></td><td><b>−1.5</b> = (−1−2)/(2−0)</td></tr>
+            <tr><td></td><td></td><td>−1 = (2−3)/(2−1)</td><td></td></tr>
+            <tr><td>2</td><td>2</td><td></td><td></td></tr>
+          </tbody>
+        </table>
+        <p>The coefficients are the <b>bold numbers along the top edge</b>: \(b_0=1,\ b_1=2,\ b_2=-1.5\), so \(P(x)=1+2x-1.5\,x(x-1)\). Adding a fourth point only adds one new diagonal to the table; nothing already computed changes. That is why Newton's form is cheap to extend.</p>
         <p>Lagrange and Newton give <em>identical</em> polynomials — they are just two ways to write the unique interpolant. Newton is preferred when points arrive one at a time; Lagrange is conceptually cleaner.</p>
       </div>
     </section>
@@ -141,7 +166,9 @@ plot(x, y, 'ro', xq, yq, 'b-'); grid on;   % recovers y = x^2</textarea>
         <div class="voicebar"><span class="vlabel">🔊 Listen to this section</span><audio controls preload="metadata" src="assets/audio/m4_runge.mp3"></audio></div>
         <p>It is tempting to fit many points with one high-degree polynomial. But high-degree interpolants <b>oscillate wildly</b> between equally spaced points — especially near the ends of the interval. This is <b>Runge's phenomenon</b>, classically shown with</p>
         <div class="eqn">\[ f(x) = \frac{1}{1+25x^2} \quad\text{on}\quad [-1,1]. \]</div>
-        <p>As you add equally spaced nodes, the interpolating polynomial fits the nodes exactly yet swings further and further from \(f\) between them. The demo below lets you watch this happen.</p>
+        <div class="figout" style="margin:1rem 0;border-top:1px solid #cfd9e6;border-radius:12px"><img src="assets/figs/m4_runge.png" alt="Runge's phenomenon. The polynomial (red) passes through every node (black dots) but, with 11 nodes, it oscillates wildly near the ends of the interval while the true function (grey) stays smooth."><div class="cap">Runge's phenomenon. The polynomial (red) passes through every node (black dots) but, with 11 nodes, it oscillates wildly near the ends of the interval while the true function (grey) stays smooth.</div></div>
+<p>As you add equally spaced nodes, the interpolating polynomial fits the nodes exactly yet swings further and further from \(f\) between them. The demo below lets you watch this happen.</p>
+        <div class="callout warn"><div class="h">⚠️ Why does this happen?</div>A polynomial of degree \(n-1\) can have up to \(n-2\) bends. To thread through many points it must bend a lot, and the bends are largest near the ends. "Passing through the points" does not mean "staying close to the true curve in between".</div>
         <div class="callout idea"><div class="h">💡 The fix</div>Don't raise the degree — lower it and use <b>many low-degree pieces</b>. That is exactly what splines do.</div>
       </div>
     </section>
@@ -186,6 +213,8 @@ plot(x, y, 'ro', xq, yq, 'b-'); grid on;   % recovers y = x^2</textarea>
           <li><b>Linear spline:</b> connect adjacent points with straight segments. Simple, but kinked (the slope jumps at each node).</li>
           <li><b>Cubic spline:</b> a separate cubic on each interval, chosen so the pieces meet smoothly — matching value, first derivative, and second derivative at every interior node. The result is smooth and avoids Runge oscillation.</li>
         </ul>
+        <div class="figout" style="margin:1rem 0;border-top:1px solid #cfd9e6;border-radius:12px"><img src="assets/figs/m4_pieces.png" alt="The same six points (from \(1/(1+25x^2)\), dashed) interpolated three ways. The linear version has corners, the cubic spline is smooth and stays close to the curve, and a single polynomial starts to wiggle near the ends."><div class="cap">The same six points (from \(1/(1+25x^2)\), dashed) interpolated three ways. The linear version has corners, the cubic spline is smooth and stays close to the curve, and a single polynomial starts to wiggle near the ends.</div></div>
+<div class="callout idea"><div class="h">🔎 What "smooth" means here</div>"Matching the first derivative" means the slopes of two neighbouring pieces agree at the joint, so there is no corner. "Matching the second derivative" means the curvature agrees too, so the bending does not suddenly change. Think of a flexible ruler pinned at the data points: it bends smoothly, and that shape is a cubic spline.</div>
         <div class="callout def"><div class="h">📐 Why cubic?</div>Cubic is the lowest degree that can match position and curvature smoothly at the joints. That is why cubic splines are the standard for smooth interpolation of tabulated data.</div>
       </div>
     </section>
