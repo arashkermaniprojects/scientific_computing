@@ -143,8 +143,10 @@ plot(x, y, 'ro', xq, yq, 'b-'); grid on;   % recovers y = x^2</textarea>
         <div class="figout" style="margin:1rem 0;border-top:1px solid #cfd9e6;border-radius:12px"><img src="assets/figs/m4_newton_build.png" alt="Newton's form for the points (0,1), (1,3), (2,2): each added term fixes one more point (red) and leaves the earlier ones unchanged."><div class="cap">Newton's form for the points (0,1), (1,3), (2,2): each added term fixes one more point (red) and leaves the earlier ones unchanged.</div></div>
 <p>The coefficients \(b_k\) are <b>divided differences</b>, computed from a triangular table. A first divided difference is just a <b>slope</b>; a second divided difference is the <b>change in slope</b>, divided by the width. Higher ones are slopes of slopes.</p>
         <div class="eqn">\[ f[x_i,x_j] = \frac{f(x_j)-f(x_i)}{x_j-x_i}, \qquad f[x_i,x_j,x_k] = \frac{f[x_j,x_k]-f[x_i,x_j]}{x_k-x_i}, \ \dots \]</div>
-        <h3>Worked example: the table, step by step</h3>
-        <p>Points \((0,1),(1,3),(2,2)\). Fill the first column with the \(y\)-values, then each next column from the column to its left:</p>
+        <h3>Worked example</h3>
+        <div class="voicebar"><span class="vlabel">🔊 Listen to this example</span><audio controls preload="metadata" src="assets/audio/m4_newton_example.mp3"></audio></div>
+        <p><b>Problem.</b> Find the interpolating polynomial through \((0,1),\ (1,3),\ (2,2)\) using Newton's form, then estimate \(P(0.5)\).</p>
+        <p><b>Step 1: build the divided-difference table.</b> Write the \(y\)-values in the first column. Each next column is computed from the column to its left: (difference of neighbours) divided by (the \(x\)-distance they span).</p>
         <table class="data" style="text-align:center">
           <thead><tr><th>\(x_i\)</th><th>\(f[x_i]\)</th><th>1st difference</th><th>2nd difference</th></tr></thead>
           <tbody>
@@ -155,7 +157,35 @@ plot(x, y, 'ro', xq, yq, 'b-'); grid on;   % recovers y = x^2</textarea>
             <tr><td>2</td><td>2</td><td></td><td></td></tr>
           </tbody>
         </table>
-        <p>The coefficients are the <b>bold numbers along the top edge</b>: \(b_0=1,\ b_1=2,\ b_2=-1.5\), so \(P(x)=1+2x-1.5\,x(x-1)\). Adding a fourth point only adds one new diagonal to the table; nothing already computed changes. That is why Newton's form is cheap to extend.</p>
+        <p><b>Step 2: read off the coefficients.</b> They are the bold numbers along the top edge: \(b_0=1,\ b_1=2,\ b_2=-1.5\). So</p>
+        <div class="eqn">\[ P(x)=1+2(x-0)-1.5\,(x-0)(x-1). \]</div>
+        <p><b>Step 3: check it.</b> At \(x=0\) only \(b_0\) survives: \(P(0)=1\) ✓. At \(x=1\): \(1+2(1)-1.5(1)(0)=3\) ✓. At \(x=2\): \(1+4-1.5(2)(1)=2\) ✓. The curve hits all three points.</p>
+        <p><b>Step 4: estimate \(P(0.5)\).</b></p>
+        <div class="eqn">\[ P(0.5)=1+2(0.5)-1.5(0.5)(0.5-1)=1+1+0.375=\mathbf{2.375}. \]</div>
+        <p><b>Step 5: add a new point cheaply.</b> Suppose a fourth point \((3,5)\) arrives. Keep everything above and add one term \(b_3(x-0)(x-1)(x-2)\). Currently \(P(3)=1+6-1.5(3)(2)=-2\), but we need 5, so the gap is \(7\). The new factor equals \(3\cdot2\cdot1=6\) at \(x=3\), hence \(b_3=7/6\approx1.167\). Nothing already computed had to change, which is exactly why Newton's form is convenient when data arrive one at a time.</p>
+        <div class="codewrap editable has-output">
+          <div class="codehead"><span class="lang"><span class="dot"></span>MATLAB · editable · Newton divided differences</span><button class="copybtn">Copy</button></div>
+          <textarea spellcheck="false" rows="22">x = [0 1 2];   y = [1 3 2];
+n = length(x);
+
+% divided-difference table (column k holds the k-th differences)
+D = zeros(n, n);
+D(:,1) = y(:);
+for k = 2:n
+    for i = 1:n-k+1
+        D(i,k) = (D(i+1,k-1) - D(i,k-1)) / (x(i+k-1) - x(i));
+    end
+end
+b = D(1,:)          % Newton coefficients: 1  2  -1.5
+
+% evaluate P at xq using nested (Horner-like) form
+xq = 0.5;
+P = b(n);
+for k = n-1:-1:1
+    P = P .* (xq - x(k)) + b(k);
+end
+P                   % 2.375</textarea>
+        </div>
         <p>Lagrange and Newton give <em>identical</em> polynomials — they are just two ways to write the unique interpolant. Newton is preferred when points arrive one at a time; Lagrange is conceptually cleaner.</p>
       </div>
     </section>
