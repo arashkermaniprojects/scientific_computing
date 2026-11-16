@@ -554,3 +554,4 @@ details.section-collapse[open] > summary.sec-toggle{margin-bottom:.6rem}
 /* layout modes */
 body.lay-text img, body.lay-text .figout, body.lay-text .demo, body.lay-text canvas, body.lay-text .mini-svg, body.lay-text svg.fig{display:none}
 body.lay-diagram .panel > p, body.lay-diagram .panel > ul, body.lay-diagram .panel > ol, body.lay-diagram .callout.def, body.lay-diagram .lec-idea ~ p{display:none}
+.lec-focus{box-shadow:-6px 0 0 0 var(--brand);background:rgba(14,124,134,.06);border-radius:6px}

@@ -66,6 +66,45 @@
       if (tail.innerHTML) { panel.appendChild(tail); typeset(tail); }
     });
 
+    /* ---------- follow-along: keep the page focused on what is being said ---------- */
+    const TOP = 90;                                   // sticky top bar clearance
+    let userScrollAt = 0;
+    ["wheel", "touchmove", "keydown"].forEach(ev => window.addEventListener(ev, () => { userScrollAt = Date.now(); }, { passive: true }));
+    const weight = el => {
+      if (el.matches("img,figure,.figout,.mini-svg") || el.querySelector("img,canvas,.mini-svg")) return 160;
+      if (el.matches(".demo") || el.querySelector(".demo")) return 120;
+      if (el.matches(".codewrap,pre,.tablewrap,table,.eqn")) return 70;
+      return Math.max(40, (el.textContent || "").trim().length);
+    };
+    function blocksFor(a) {
+      const bar = a.closest(".voicebar"), panel = bar.closest(".panel") || bar.parentElement, out = [];
+      let top = bar; while (top.parentElement && top.parentElement !== panel) top = top.parentElement;
+      for (let e = top.nextElementSibling; e; e = e.nextElementSibling) {
+        if (e.matches(".voicebar,.lec-tail,.practice,.gen-practice") || e.querySelector(".voicebar")) break;
+        if (e.hidden || getComputedStyle(e).display === "none") continue;
+        out.push(e);
+      }
+      return out.length ? out : [bar];
+    }
+    const clearFocus = () => $$(".lec-focus").forEach(x => x.classList.remove("lec-focus"));
+    narr.forEach(a => {
+      let blocks = [], cum = [], cur = -1;
+      a.addEventListener("play", () => {
+        blocks = blocksFor(a); let t = 0; cum = blocks.map(b => (t += weight(b))); cum = cum.map(v => v / t); cur = -1;
+      });
+      a.addEventListener("timeupdate", () => {
+        if (!a.duration || !blocks.length) return;
+        const p = a.currentTime / a.duration;
+        let i = cum.findIndex(v => p <= v); if (i < 0) i = blocks.length - 1;
+        if (i === cur) return; cur = i;
+        clearFocus(); blocks[i].classList.add("lec-focus");
+        if (Date.now() - userScrollAt < 4000) return;            // the reader is scrolling: do not fight them
+        const r = blocks[i].getBoundingClientRect();
+        if (r.top < TOP || r.top > innerHeight * .55 || r.bottom > innerHeight) scrollTo({ top: scrollY + r.top - TOP - 20, behavior: "smooth" });
+      });
+      a.addEventListener("pause", clearFocus); a.addEventListener("ended", clearFocus);
+    });
+
     /* ---------- narrate the whole chapter ---------- */
     const btn = $(".lec-narr", box), now = $(".lec-now", box);
     let idx = -1, running = false;
@@ -75,7 +114,7 @@
       idx = i; const a = narr[i], sec = a.closest("section");
       narr.forEach(x => { if (x !== a) x.pause(); });
       $$(".lec-playing").forEach(x => x.classList.remove("lec-playing")); sec.classList.add("lec-playing");
-      const bar = a.closest(".voicebar"); (bar || sec).scrollIntoView({ behavior: "smooth", block: "center" });
+      userScrollAt = 0; const bar = a.closest(".voicebar"); (bar || sec).scrollIntoView({ behavior: "smooth", block: "start" });
       now.hidden = false; now.textContent = "Playing part " + (i + 1) + " of " + narr.length + " · " + ((sec.querySelector("h2") || {}).textContent || "");
       a.currentTime = 0; a.play().catch(() => {});
     }
