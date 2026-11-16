@@ -1,0 +1,111 @@
+{
+ "minutes": 25,
+ "oneIdea": "You are given a few exact data points and need a smooth curve that passes through every one of them. A polynomial can do it, and Lagrange and Newton are two ways of writing the same polynomial. But one high-degree polynomial can swing wildly between points, so the practical fix is many small cubic pieces: a spline.",
+ "goals": [
+  "Say the difference between interpolation (exact data, curve hits every point) and regression (noisy data, curve follows the trend).",
+  "Explain why \\(n+1\\) points fix exactly one polynomial of degree \\(\\le n\\).",
+  "Build the Lagrange and Newton polynomials through 3 points by hand and use them to estimate a value.",
+  "Explain why a single high-degree polynomial oscillates (Runge's phenomenon) and what a spline does differently.",
+  "Use MATLAB's <code>interp1</code> to interpolate a data table."
+ ],
+ "sections": {
+  "intro": {
+   "idea": "Interpolation means <i>estimating between known points</i>. The data are trusted, so the curve must go through them.",
+   "mistake": "Using interpolation on noisy measurements. If the data contain errors, forcing the curve through every point also fits the errors; use regression (Module 3) instead.",
+   "check": {
+    "q": "A table of exact values of a physical constant at several temperatures is given. Which tool fits?",
+    "opts": [
+     "Regression (least squares)",
+     "Neither",
+     "Interpolation"
+    ],
+    "ans": 2,
+    "why": "Exact data means the curve should pass through every point, which is interpolation. Regression is for noisy measurements."
+   }
+  },
+  "poly": {
+   "idea": "Given \\(n+1\\) points there is exactly <b>one</b> polynomial of degree \\(\\le n\\) through them. Lagrange and Newton are different ways of writing that same polynomial.",
+   "mistake": "Thinking Lagrange and Newton give different curves. They give the same polynomial, only written differently.",
+   "check": {
+    "q": "How many points are needed to determine a unique parabola (degree 2)?",
+    "opts": [
+     "3",
+     "2",
+     "4"
+    ],
+    "ans": 0,
+    "why": "Degree \\(n\\) needs \\(n+1\\) points, so a parabola needs 3."
+   }
+  },
+  "lagrange": {
+   "idea": "Build one small polynomial \\(L_i\\) per data point that equals 1 at its own point and 0 at all the others, then add them up weighted by the \\(y\\)-values.",
+   "mistake": "Using the <i>y</i>-values inside \\(L_i\\). The \\(L_i\\) use only the \\(x\\)-values; the \\(y\\)-values are multiplied in afterwards.",
+   "check": {
+    "q": "For nodes \\(x=1,2,3\\), what is \\(L_1(2)\\) (the basis polynomial belonging to the node \\(x=1\\), evaluated at \\(x=2\\))?",
+    "opts": [
+     "1",
+     "0",
+     "2"
+    ],
+    "ans": 1,
+    "why": "\\(L_i\\) is 1 at its own node and 0 at every other node. Here \\(x=2\\) is a different node from \\(x=1\\), so the value is 0."
+   }
+  },
+  "newton": {
+   "idea": "Start with a constant, then add one new term per data point. Each new term is a divided difference times the product of the earlier \\((x-x_j)\\) factors, so adding a point never forces you to start over.",
+   "mistake": "Dividing by the wrong gap. Each divided difference divides by the difference of the <i>outermost</i> \\(x\\)-values of that column, not by the neighbouring gap.",
+   "check": {
+    "q": "You add a fourth point to a Newton polynomial built from three. What must you do?",
+    "opts": [
+     "Add one new term using one new divided difference",
+     "Recompute everything",
+     "Remove the last term"
+    ],
+    "ans": 0,
+    "why": "This is the main advantage of Newton's form: the old terms stay, and one new term is added."
+   }
+  },
+  "runge": {
+   "idea": "More points and a higher degree do <b>not</b> mean a better curve. Between the points a high-degree polynomial can oscillate strongly, especially near the ends.",
+   "mistake": "Believing that passing through all the points means being close to the true function in between.",
+   "check": {
+    "q": "You have 15 equally spaced data points. Which is the safer interpolation?",
+    "opts": [
+     "One degree-14 polynomial",
+     "A degree-30 polynomial",
+     "Piecewise low-degree pieces (a spline)"
+    ],
+    "ans": 2,
+    "why": "A single high-degree polynomial tends to oscillate (Runge's phenomenon). Low-degree pieces joined smoothly avoid this."
+   }
+  },
+  "spline": {
+   "idea": "Use many low-degree pieces, one per interval, and force neighbouring pieces to join smoothly. The cubic spline is the standard choice.",
+   "mistake": "Treating a spline as one formula. It is a different cubic on each interval, joined so that slope and curvature agree at the joints.",
+   "check": {
+    "q": "What does a cubic spline match at each interior joint between two pieces?",
+    "opts": [
+     "Only the value",
+     "Value, slope and curvature",
+     "Only the slope"
+    ],
+    "ans": 1,
+    "why": "Matching value, first derivative and second derivative makes the curve look smooth, with no corner and no sudden change in bending."
+   }
+  },
+  "matlab": {
+   "idea": "In practice you call a built-in. <code>interp1</code> does linear, spline and other interpolation of a data table.",
+   "mistake": "Passing the query points outside the data range and trusting the answer. MATLAB returns NaN or extrapolates, depending on the option.",
+   "check": {
+    "q": "Which call gives a smooth cubic spline through the data?",
+    "opts": [
+     "interp1(x,y,xq,'spline')",
+     "interp1(x,y,xq,'linear')",
+     "polyfit(x,y,1)"
+    ],
+    "ans": 0,
+    "why": "'spline' selects cubic spline interpolation; 'linear' joins points with straight segments; polyfit is regression."
+   }
+  }
+ }
+}

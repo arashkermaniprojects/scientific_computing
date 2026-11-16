@@ -525,3 +525,32 @@ details.section-collapse[open] > summary.sec-toggle{margin-bottom:.6rem}
 /* numbered worked-solution steps */
 .steps{margin:.6rem 0 1rem;padding:.4rem 1rem .2rem;border-left:4px solid var(--brand);background:#f7fafc;border-radius:0 10px 10px 0}
 .steps>p{margin:.7rem 0}
+
+/* ===== lecture layer (lecture.js) ===== */
+.lec-intro{background:#fff;border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow-sm);padding:1.2rem 1.5rem;margin:1.2rem 0}
+.lec-k{font-size:.72rem;font-weight:800;letter-spacing:.09em;color:var(--brand-dark);margin-bottom:.35rem}
+.lec-one{background:var(--brand-soft);border-left:5px solid var(--brand);border-radius:10px;padding:.8rem 1.1rem;margin-bottom:1rem}
+.lec-one p{margin:0;font-size:1.02rem}
+.lec-goals ul{margin:.2rem 0 0 1.1rem;padding:0}.lec-goals li{margin:.25rem 0}
+.lec-bar{display:flex;flex-wrap:wrap;align-items:center;gap:.8rem;margin-top:1rem}
+.lec-meta{color:var(--ink-soft);font-size:.88rem}
+.lec-layout{margin-left:auto;font-size:.82rem;color:var(--ink-soft);display:inline-flex;gap:.3rem;align-items:center}
+.lec-layout button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:.2rem .7rem;font:inherit;cursor:pointer}
+.lec-layout button.on{background:var(--brand);color:#fff;border-color:var(--brand)}
+.lec-now{margin-top:.7rem;font-size:.9rem;font-weight:600;color:var(--brand-dark)}
+.lec-idea{background:#f6f9fc;border-left:4px solid var(--blue);border-radius:8px;padding:.55rem .9rem;margin:.2rem 0 1rem;font-size:.97rem}
+.lec-tag{display:inline-block;background:var(--blue);color:#fff;border-radius:999px;font-size:.68rem;font-weight:800;letter-spacing:.06em;padding:.1rem .55rem;margin-right:.4rem;text-transform:uppercase}
+.lec-tail{display:grid;gap:1rem;margin-top:1.4rem}
+.lec-mistake{background:var(--accent-soft);border-left:5px solid var(--accent);border-radius:10px;padding:.7rem 1rem}
+.lec-mistake .lec-k{color:#a85a12}
+.lec-check{border:1px solid var(--line);border-radius:12px;padding:.9rem 1.1rem;background:#fff}
+.lec-q{margin:.2rem 0 .6rem;font-weight:600}
+.lec-opt{display:block;width:100%;text-align:left;margin:.3rem 0;padding:.5rem .8rem;border:1px solid var(--line);background:#fbfcfe;border-radius:8px;font:inherit;cursor:pointer}
+.lec-opt:hover{border-color:var(--brand)}
+.lec-opt.right{background:#e6f6ec;border-color:var(--ok)}
+.lec-opt.wrong{background:#fdeceb;border-color:var(--warn)}
+.lec-why{margin-top:.6rem;font-size:.95rem}
+.section.lec-playing .panel{outline:3px solid var(--brand);outline-offset:4px;transition:outline .2s}
+/* layout modes */
+body.lay-text img, body.lay-text .figout, body.lay-text .demo, body.lay-text canvas, body.lay-text .mini-svg, body.lay-text svg.fig{display:none}
+body.lay-diagram .panel > p, body.lay-diagram .panel > ul, body.lay-diagram .panel > ol, body.lay-diagram .callout.def, body.lay-diagram .lec-idea ~ p{display:none}

@@ -1,0 +1,126 @@
+{
+ "minutes": 25,
+ "oneIdea": "Real measurements are noisy, so we do not force a curve through every point. Instead we choose the curve whose squared gaps to the data, \\(S_r\\), add up to the smallest possible number. The same idea fits a straight line, a curve after a log trick, or a polynomial, and \\(r^2\\) tells you how good the result is.",
+ "goals": [
+  "Say the difference between regression (follow the trend of noisy data) and interpolation (hit every point).",
+  "Explain what the residual \\(e_i\\) and the sum of squares \\(S_r\\) are, and why we square the residuals.",
+  "Fit a straight line \\(y=a_0+a_1x\\) to a few points by hand using the slope and intercept formulas.",
+  "Compute \\(S_t\\), \\(S_r\\) and \\(r^2\\) and say what \\(r^2\\) does and does not tell you.",
+  "Turn \\(y=ae^{bx}\\) and \\(y=ax^b\\) into straight-line problems by taking logs, then undo the log.",
+  "Use MATLAB's <code>polyfit</code> and <code>polyval</code> to fit a line or a polynomial."
+ ],
+ "sections": {
+  "intro": {
+   "idea": "Curve fitting finds the <i>trend</i> in scattered data. The curve does not have to touch the points; it has to describe them well overall.",
+   "mistake": "Forcing a curve through every noisy point. That fits the measurement errors too and gives a wiggly, misleading curve.",
+   "check": {
+    "q": "Ten readings from a noisy sensor scatter around a rising trend. Which tool fits?",
+    "opts": [
+     "Interpolation through all ten points",
+     "Least-squares regression",
+     "Neither, the data are unusable"
+    ],
+    "ans": 1,
+    "why": "Noisy data call for regression, which follows the trend. Interpolation (Module 4) is for exact data."
+   }
+  },
+  "best": {
+   "idea": "A residual is the vertical gap \\(e_i=y_i-a_0-a_1x_i\\). Least squares picks the line with the smallest \\(S_r=\\sum e_i^2\\).",
+   "mistake": "Minimizing the plain sum of residuals. Positive and negative gaps cancel, so a terrible line can still give a sum of 0.",
+   "check": {
+    "q": "A line leaves residuals \\(3,\\,-3,\\,1,\\,-1\\). What is \\(S_r\\)?",
+    "opts": [
+     "0",
+     "4",
+     "20"
+    ],
+    "ans": 2,
+    "why": "Square first, then add: \\(9+9+1+1=20\\). The plain sum is 0, which is exactly why we square."
+   }
+  },
+  "linear": {
+   "idea": "Two formulas give the best line: the slope \\(a_1\\) from the sums, then \\(a_0=\\bar y-a_1\\bar x\\), which forces the line through the centroid \\((\\bar x,\\bar y)\\).",
+   "mistake": "Computing \\(a_0\\) before \\(a_1\\). You need the slope first, because the intercept uses it.",
+   "check": {
+    "q": "The best line has slope \\(a_1=3\\), and the data have \\(\\bar x=2\\), \\(\\bar y=5\\). What is \\(a_0\\)?",
+    "opts": [
+     "-1",
+     "5",
+     "11"
+    ],
+    "ans": 0,
+    "why": "\\(a_0=\\bar y-a_1\\bar x=5-3(2)=-1\\). Check: the line passes through \\((2,5)\\) since \\(-1+3(2)=5\\)."
+   }
+  },
+  "demo": {
+   "idea": "Drag or add points and watch the teal line move. The red stems are the residuals; the line settles where their squares add up to the least.",
+   "mistake": "Assuming one far-away point barely matters. Because gaps are squared, an outlier pulls the line toward itself a lot.",
+   "check": {
+    "q": "You switch the demo from a straight line to a quadratic on the same points. What happens to \\(S_r\\)?",
+    "opts": [
+     "It always goes up",
+     "It always stays the same",
+     "It can only go down or stay the same"
+    ],
+    "ans": 2,
+    "why": "A line is a quadratic with \\(a_2=0\\), so the best quadratic is at least as good as the best line."
+   }
+  },
+  "error": {
+   "idea": "\\(S_t\\) is the spread about the mean, \\(S_r\\) the spread about the line. \\(r^2=(S_t-S_r)/S_t\\) is the fraction of the variation the line explains.",
+   "mistake": "Treating a high \\(r^2\\) as proof the model is right. Always plot the residuals: a curve or fan shape in them means the model is wrong.",
+   "check": {
+    "q": "For some data \\(S_t=10\\) and \\(S_r=2\\). What is \\(r^2\\)?",
+    "opts": [
+     "0.8",
+     "0.2",
+     "8"
+    ],
+    "ans": 0,
+    "why": "\\(r^2=(10-2)/10=0.8\\). It must lie between 0 and 1, so 8 is impossible."
+   }
+  },
+  "linz": {
+   "idea": "A log turns a curved model into a straight line. Fit the line to the transformed data, then transform the coefficients back.",
+   "mistake": "Forgetting to undo the log. For \\(y=ax^b\\) the intercept is \\(\\log a\\), so \\(a=10^{\\text{intercept}}\\), while \\(b\\) is the slope as it is.",
+   "check": {
+    "q": "Data follow \\(y=3e^{2x}\\). You plot \\(\\ln y\\) against \\(x\\). What is the slope of the line?",
+    "opts": [
+     "3",
+     "2",
+     "\\(\\ln 3\\)"
+    ],
+    "ans": 1,
+    "why": "\\(\\ln y=\\ln 3+2x\\), so the slope is \\(b=2\\) and the intercept is \\(\\ln 3\\)."
+   }
+  },
+  "poly": {
+   "idea": "A polynomial fit is still <i>linear</i> in the unknown coefficients \\(a_0,a_1,\\dots,a_m\\), so one matrix solve gives the answer.",
+   "mistake": "Thinking a curved model needs a hard non-linear method. \\(y=a_0+a_1x+a_2x^2\\) is curved in \\(x\\) but linear in the \\(a\\)'s.",
+   "check": {
+    "q": "How big is the normal-equation matrix for a cubic fit (degree \\(m=3\\))?",
+    "opts": [
+     "3 by 3",
+     "2 by 2",
+     "4 by 4"
+    ],
+    "ans": 2,
+    "why": "Degree \\(m\\) has \\(m+1\\) coefficients \\(a_0,\\dots,a_m\\), so the matrix is \\((m+1)\\times(m+1)\\): 4 by 4 for a cubic."
+   }
+  },
+  "matlab": {
+   "idea": "<code>p = polyfit(x,y,m)</code> finds the coefficients and <code>polyval(p,xq)</code> evaluates the fit. Change <code>m</code> to change the degree.",
+   "mistake": "Reading the output backwards. <code>polyfit</code> returns the highest power first, so a line gives <code>[a1 a0]</code>, not <code>[a0 a1]</code>.",
+   "check": {
+    "q": "<code>p = polyfit(x,y,1)</code> returns <code>[1.6 -0.5]</code>. What does <code>polyval(p,3)</code> give?",
+    "opts": [
+     "-0.5",
+     "4.3",
+     "1.6"
+    ],
+    "ans": 1,
+    "why": "The line is \\(y=1.6x-0.5\\), so at \\(x=3\\) we get \\(4.8-0.5=4.3\\)."
+   }
+  }
+ }
+}

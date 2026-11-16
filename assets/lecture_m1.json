@@ -1,0 +1,111 @@
+{
+ "minutes": 30,
+ "oneIdea": "MATLAB is built around arrays. Numerical methods turn calculus and algebra into arithmetic on vectors and matrices, so the habit to build is: think in whole arrays, not one number at a time in a loop. Array code is shorter, closer to the maths, and much faster.",
+ "goals": [
+  "Create vectors and matrices with square brackets, <code>zeros</code>, <code>ones</code> and the colon operator.",
+  "Read and change elements, rows, columns and blocks with <code>A(rows, cols)</code>, <code>:</code> and <code>end</code>.",
+  "Tell element-wise operations (<code>.*</code>, <code>.^</code>) from matrix operations (<code>*</code>, <code>^</code>, <code>\\</code>) and use each correctly.",
+  "Write a script and a function with <code>if</code>, <code>for</code> and <code>while</code>, and print results with <code>disp</code> and <code>fprintf</code>.",
+  "Replace a loop by a vectorized expression or a logical mask such as <code>v(v &gt; 0)</code>."
+ ],
+ "sections": {
+  "intro": {
+   "idea": "MATLAB means <i>MATrix LABoratory</i>. Its basic data type is the matrix, which is exactly what numerical methods need. The theme of the whole module: think in arrays, not loops.",
+   "mistake": "Treating MATLAB like a language where every calculation needs a loop over single numbers. Most of the time one array expression does the whole job.",
+   "check": {
+    "q": "Why is MATLAB a natural fit for numerical methods?",
+    "opts": [
+     "Because it has no loops",
+     "Because almost everything in numerical methods reduces to operations on vectors and matrices, which are MATLAB's native data type",
+     "Because it only works with integers"
+    ],
+    "ans": 1,
+    "why": "Matrices are MATLAB's native type, and numerical methods are mostly vector and matrix operations. MATLAB does have loops, and it handles decimals too."
+   }
+  },
+  "env": {
+   "idea": "Four panels matter: Command Window (type and see results), Workspace (variables in memory), Editor (your .m files) and Current Folder. A semicolon hides the echo; <code>disp</code> and <code>fprintf</code> print on purpose.",
+   "mistake": "Forgetting the semicolon in finished code, so every line prints its result, or forgetting that <code>clear</code> wipes all your variables from the workspace.",
+   "check": {
+    "q": "What does <code>fprintf('b = %.2f\\n', 3.14159)</code> print?",
+    "opts": [
+     "b = 3.14",
+     "b = 3.1416",
+     "b = 3"
+    ],
+    "ans": 0,
+    "why": "<code>%.2f</code> means a decimal number with 2 digits after the point, so 3.14159 becomes 3.14. <code>\\n</code> starts a new line."
+   }
+  },
+  "arrays": {
+   "idea": "Everything is an array: a scalar is \\(1\\times 1\\), a row vector \\(1\\times n\\), a column vector \\(n\\times 1\\), a matrix \\(m\\times n\\). Spaces separate columns, semicolons separate rows, and <code>start:step:stop</code> builds evenly spaced vectors.",
+   "mistake": "Mixing up spaces and semicolons: <code>[1 2 3]</code> is a row, <code>[1; 2; 3]</code> is a column. They are different shapes.",
+   "check": {
+    "q": "What does <code>v = 10:-2:2</code> give?",
+    "opts": [
+     "[2 4 6 8 10]",
+     "[10 8 6 4 2]",
+     "[10 12 14 16]"
+    ],
+    "ans": 1,
+    "why": "The format is start:step:stop. Starting at 10 with step -2 and stopping at 2 gives 10 8 6 4 2."
+   }
+  },
+  "ops": {
+   "idea": "<code>A(row, col)</code> picks elements; <code>:</code> means all and <code>end</code> means last. A dot before <code>*</code>, <code>/</code> or <code>^</code> means element by element; without the dot you get true matrix algebra. To solve \\(A\\mathbf{x}=\\mathbf{b}\\) write <code>A\\b</code>.",
+   "mistake": "Forgetting the dot. With <code>x = [2 4 6]</code>, <code>x^2</code> and <code>x*x</code> give an error because a \\(1\\times3\\) vector is not a square matrix; you wanted <code>x.^2</code> or <code>x.*x</code>.",
+   "check": {
+    "q": "With <code>x = [2 4 6]</code> and <code>y = [1 2 3]</code>, what is <code>x .* y</code>?",
+    "opts": [
+     "[2 8 18]",
+     "28",
+     "An error"
+    ],
+    "ans": 0,
+    "why": "The dot means element by element: 2*1, 4*2, 6*3 gives [2 8 18]. The single number 28 would be a dot product, and plain <code>x*y</code> is the one that errors."
+   }
+  },
+  "prog": {
+   "idea": "A script is a list of commands sharing the workspace. A function has inputs and outputs and its own private workspace, so it is the right tool for any reusable computation. <code>if</code> chooses, <code>for</code> repeats a fixed number of times, <code>while</code> repeats until its condition fails.",
+   "mistake": "Expecting a function to see the variables of your script. A function has its own private workspace and only knows what you pass in as inputs.",
+   "check": {
+    "q": "Which statement about a loop is correct?",
+    "opts": [
+     "<code>for i = 1:5</code> runs the body 5 times, with i = 1, 2, 3, 4, 5",
+     "<code>while</code> always runs exactly once",
+     "<code>for i = 1:5</code> runs the body 4 times"
+    ],
+    "ans": 0,
+    "why": "The range 1:5 contains 5 values (both ends included), so the body runs 5 times. A <code>while</code> loop keeps going as long as its condition is true."
+   }
+  },
+  "vec": {
+   "idea": "Vectorization means working on whole arrays at once instead of looping. It is faster and reads like the maths. A condition like <code>v &gt; 0</code> creates a logical mask (true/false for every element), and <code>v(mask)</code> picks the marked elements.",
+   "mistake": "Thinking <code>A(A&gt;15)</code> on a matrix returns a matrix. Reading with a mask returns a column vector (in column-major order). Writing with a mask, such as <code>A(A&gt;15) = 15</code>, keeps the matrix shape.",
+   "check": {
+    "q": "With <code>v = [-3 -1 0 2 5 -7 8]</code>, what does <code>v(v &gt; 0)</code> return?",
+    "opts": [
+     "[0 0 0 1 1 0 1]",
+     "[2 5 8]",
+     "[4 5 7]"
+    ],
+    "ans": 1,
+    "why": "<code>v &gt; 0</code> is the mask [0 0 0 1 1 0 1], and <code>v(mask)</code> keeps the values where it is true: 2, 5, 8. The positions 4 5 7 would come from <code>find(v &gt; 0)</code>."
+   }
+  },
+  "slicing": {
+   "idea": "<code>A(rows, cols)</code> with a range in each position cuts out a block, for example <code>A(2:3, 2:4)</code>. Put the slice on the left of <code>=</code> to overwrite it, or assign <code>[]</code> to delete whole rows or columns.",
+   "mistake": "Assigning a block of the wrong size. If <code>A(2:3, 2:4)</code> is \\(2\\times3\\), the right-hand side must be \\(2\\times3\\) or a single number. Also, <code>= []</code> deletes only whole rows or whole columns, never a block in the middle.",
+   "check": {
+    "q": "A is \\(5\\times5\\). After <code>A(2, :) = [];</code>, what size is A?",
+    "opts": [
+     "\\(5\\times5\\) with a row of zeros",
+     "\\(5\\times4\\)",
+     "\\(4\\times5\\)"
+    ],
+    "ans": 2,
+    "why": "Assigning <code>[]</code> deletes the 2nd row, so A has 4 rows and still 5 columns. The rows below shift up."
+   }
+  }
+ }
+}

@@ -1,0 +1,94 @@
+{
+ "minutes": 35,
+ "oneIdea": "Many integrals have no neat formula, so we cut the area into thin strips and add up simple shapes (rectangles, trapezoids, parabolas). A differential equation only tells you the slope at each point, so we use the same add-up-small-pieces idea: start at the known point, step along the slope, repeat. Smarter shapes or smarter steps give more accuracy for the same work.",
+ "goals": [
+  "Explain a definite integral as an area and say why we approximate it by strips of width \\(\\Delta x=(b-a)/n\\).",
+  "Apply the midpoint, trapezoidal and Simpson 1/3 rules by hand, including the weights \\(1,2,\\dots,2,1\\) and \\(1,4,2,\\dots,4,1\\).",
+  "Say why Simpson's 1/3 rule needs an even \\(n\\) and why \\(1,4,4,1\\) is wrong.",
+  "Explain the idea of Gaussian quadrature (choose the points) and adaptive quadrature (split only where the function is hard).",
+  "Read \\(dy/dx=f(x,y)\\) as a slope rule and take Euler steps \\(y_{i+1}=y_i+h\\,f(x_i,y_i)\\) by hand.",
+  "Say why Runge-Kutta is more accurate than Euler and use MATLAB's <code>ode45</code> and <code>integral</code>."
+ ],
+ "sections": {
+  "intro": {
+   "idea": "An integral is an <i>area under a curve</i>. Numerical integration cuts \\([a,b]\\) into \\(n\\) equal strips of width \\(\\Delta x=(b-a)/n\\) and adds up the areas of simple shapes.",
+   "mistake": "Using \\(\\Delta x=(b-a)/(n+1)\\) or forgetting to multiply by \\(\\Delta x\\) at the end. With \\(n\\) strips the width is \\((b-a)/n\\), and every rule needs that factor.",
+   "check": {
+    "q": "You integrate over \\([0,6]\\) with \\(n=3\\) strips. What is \\(\\Delta x\\)?",
+    "opts": ["3", "2", "6"],
+    "ans": 1,
+    "why": "\\(\\Delta x=(b-a)/n=6/3=2\\)."
+   }
+  },
+  "mid": {
+   "idea": "Replace each strip by a rectangle whose height is \\(f\\) at the <b>middle</b> of the strip. Then add the heights and multiply by \\(\\Delta x\\).",
+   "mistake": "Evaluating \\(f\\) at the strip edges instead of the midpoints. The midpoints of \\([0,10]\\) with \\(n=5\\) are \\(1,3,5,7,9\\), not \\(0,2,4,\\dots\\).",
+   "check": {
+    "q": "Midpoint rule for \\(\\int_0^4 x^2\\,dx\\) with \\(n=2\\). What is the estimate?",
+    "opts": ["20", "10", "40"],
+    "ans": 0,
+    "why": "\\(\\Delta x=2\\), midpoints \\(1\\) and \\(3\\): \\(2(1^2+3^2)=2(10)=20\\). The exact value is \\(64/3\\approx21.3\\)."
+   }
+  },
+  "trap": {
+   "idea": "Join neighbouring points with straight lines and add the trapezoids. The end values count once, every interior value counts <b>twice</b>, because two trapezoids share it: weights \\(1,2,2,\\dots,2,1\\), times \\(\\Delta x/2\\).",
+   "mistake": "Giving the end points weight 2 as well, or forgetting the factor \\(\\Delta x/2\\) (half, not full \\(\\Delta x\\)).",
+   "check": {
+    "q": "Trapezoidal rule for \\(\\int_0^2 x^2\\,dx\\) with \\(n=2\\) (points \\(0,1,2\\)). What is the estimate?",
+    "opts": ["2", "8/3", "3"],
+    "ans": 2,
+    "why": "\\(\\Delta x=1\\): \\(\\tfrac12[0+2(1)+4]=3\\). It overshoots the exact \\(8/3\\) because the curve bends upward, so the chords lie above it."
+   }
+  },
+  "simp": {
+   "idea": "Fit a parabola through every <i>pair</i> of strips. The weights follow the pattern \\(1,4,2,4,\\dots,2,4,1\\), times \\(\\Delta x/3\\). It is exact for cubics.",
+   "mistake": "Using Simpson's 1/3 rule with an odd number of segments (for example 4 points, \\(n=3\\)) and writing \\(1,4,4,1\\). Strips must pair up, so \\(n\\) must be even; the weights must add up to \\(3n\\).",
+   "check": {
+    "q": "Which weight list is correct for Simpson's 1/3 rule with \\(n=6\\)?",
+    "opts": ["1, 4, 2, 4, 2, 4, 1", "1, 4, 4, 4, 4, 4, 1", "1, 2, 4, 2, 4, 2, 1"],
+    "ans": 0,
+    "why": "Odd-index points get 4, even interior points get 2, ends get 1. Check: the sum is \\(18=3n\\)."
+   }
+  },
+  "quad": {
+   "idea": "Gaussian quadrature chooses <i>where</i> to sample: \\(n\\) well-placed points are exact for polynomials up to degree \\(2n-1\\). Adaptive quadrature chooses <i>where to use more strips</i>: it compares one parabola with two on each strip and splits only where they disagree.",
+   "mistake": "Applying the table of nodes for \\([-1,1]\\) directly to another interval. You must first map the nodes with \\(x=\\tfrac{b-a}{2}t+\\tfrac{a+b}{2}\\) and multiply by \\(\\tfrac{b-a}{2}\\).",
+   "check": {
+    "q": "2-point Gauss on \\([-1,1]\\) uses nodes \\(\\pm1/\\sqrt3\\) with weights 1, 1. For \\(\\int_{-1}^{1}t^2\\,dt\\) it gives",
+    "opts": ["1", "2/3", "0"],
+    "ans": 1,
+    "why": "\\(1\\cdot\\tfrac13+1\\cdot\\tfrac13=\\tfrac23\\), which is exact, because 2 points are exact up to degree \\(2(2)-1=3\\)."
+   }
+  },
+  "ode": {
+   "idea": "In \\(dy/dx=f(x,y)\\), the function \\(f\\) is a <b>slope rule</b>: give it a point and it returns the slope of the solution there. The initial value \\(y(x_0)=y_0\\) picks one curve from the family.",
+   "mistake": "Treating \\(f(x,y)\\) as the solution itself. It is the <i>slope</i>, not the height \\(y\\).",
+   "check": {
+    "q": "For \\(dy/dx=x+y\\), what is the slope of the solution at the point \\((1,2)\\)?",
+    "opts": ["1", "2", "3"],
+    "ans": 2,
+    "why": "Plug in: \\(f(1,2)=1+2=3\\)."
+   }
+  },
+  "euler": {
+   "idea": "Euler's method: new height = old height + step width \\(\\times\\) slope at the current point, \\(y_{i+1}=y_i+h\\,f(x_i,y_i)\\). Repeat until you reach the \\(x\\) you want. It is first order: halving \\(h\\) roughly halves the error.",
+   "mistake": "Using the slope at the end of the step, or forgetting to multiply by \\(h\\). Euler uses the slope at the <i>start</i> and moves by \\(h\\cdot\\)slope.",
+   "check": {
+    "q": "\\(dy/dx=2y\\), \\(y(0)=1\\), \\(h=0.1\\). What is \\(y_1\\) from one Euler step?",
+    "opts": ["1.1", "1.2", "2.1"],
+    "ans": 1,
+    "why": "\\(y_1=1+0.1\\cdot f(0,1)=1+0.1\\cdot2=1.2\\)."
+   }
+  },
+  "rk": {
+   "idea": "Runge-Kutta samples the slope several times across each step and averages them. RK4 uses weights \\(1,2,2,1\\) and is fourth order, so it can take much larger steps than Euler. <code>ode45</code> also adapts the step size automatically.",
+   "mistake": "Thinking more slope samples are just extra work. Each RK4 step costs 4 evaluations of \\(f\\), but the error shrinks so fast that it still wins by a wide margin.",
+   "check": {
+    "q": "You halve the step size \\(h\\) in RK4 (fourth order). The error drops by about",
+    "opts": ["2 times", "4 times", "16 times"],
+    "ans": 2,
+    "why": "Fourth order means error \\(\\propto h^4\\), and \\(2^4=16\\). For Euler (first order) halving \\(h\\) only halves the error."
+   }
+  }
+ }
+}

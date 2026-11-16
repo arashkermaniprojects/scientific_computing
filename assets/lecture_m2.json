@@ -1,0 +1,266 @@
+{
+ "minutes": 45,
+ "oneIdea": "Hard equations are solved by <i>guess, improve, repeat</i>. For one equation, bisection is safe but slow, Newton and secant are fast, and fixed-point depends on a good rearrangement. For many linear equations, Gaussian elimination turns the system into a triangle, and LU and Cholesky save that work so it can be reused.",
+ "goals": [
+  "Rewrite \\(f(x)=0\\) as \\(x=g(x)\\) and run fixed-point iteration, using \\(|g'(x^*)|&lt;1\\) to judge convergence.",
+  "Run bisection, Newton and secant by hand with a stopping rule \\(E_n&lt;\\varepsilon\\).",
+  "Choose a root-finding method by comparing what each needs (bracket, derivative, two guesses) and how fast it converges.",
+  "Solve a small linear system by forward elimination and back substitution.",
+  "Build \\(A=LU\\) and \\(A=LL^T\\) for small matrices and use them to solve \\(A\\mathbf{x}=\\mathbf{b}\\) with two triangular solves.",
+  "Say when Cholesky applies (symmetric positive definite) and why pivoting matters."
+ ],
+ "sections": {
+  "intro": {
+   "idea": "A root of \\(f\\) is an input that makes the output zero: where the curve crosses the \\(x\\)-axis. Most equations cannot be solved by a formula, so we <i>improve a guess</i> step by step.",
+   "mistake": "Stopping when \\(f(x)\\) merely looks small, or after a fixed number of steps, without a clear tolerance. Always stop on \\(|x_{k+1}-x_k|&lt;\\varepsilon\\) (or a maximum iteration count).",
+   "check": {
+    "q": "Which value is a root of \\(f(x)=x^2-x-2\\)?",
+    "opts": [
+     "\\(x=1\\)",
+     "\\(x=3\\)",
+     "\\(x=2\\)"
+    ],
+    "ans": 2,
+    "why": "\\(f(2)=4-2-2=0\\). But \\(f(1)=-2\\) and \\(f(3)=4\\), so those are not roots."
+   }
+  },
+  "fixed": {
+   "idea": "Rewrite \\(f(x)=0\\) as \\(x=g(x)\\), then keep feeding the answer back in: \\(x_{k+1}=g(x_k)\\). It settles on a value that \\(g\\) maps to itself, a <b>fixed point</b>.",
+   "mistake": "Believing every rearrangement works. The same equation can be rewritten many ways, and only those with \\(|g'(x^*)|&lt;1\\) near the root converge.",
+   "check": {
+    "q": "Take \\(g(x)=\\tfrac{x}{2}+1\\) and \\(x_0=0\\). What is \\(x_2\\)?",
+    "opts": [
+     "\\(x_2=1.5\\)",
+     "\\(x_2=1\\)",
+     "\\(x_2=2\\)"
+    ],
+    "ans": 0,
+    "why": "\\(x_1=g(0)=1\\), then \\(x_2=g(1)=0.5+1=1.5\\). The iterates (0, 1, 1.5, ...) are creeping towards the fixed point 2."
+   }
+  },
+  "fixed-demo": {
+   "idea": "Each cobweb step is two moves: <i>up</i> to the curve (this computes \\(g(x_k)\\)), then <i>across</i> to the line \\(y=x\\) (this makes it the next input).",
+   "mistake": "Reading the picture as if the dots must always move towards the crossing. If the curve is steeper than the line \\(y=x\\) the cobweb spirals or steps <i>away</i>.",
+   "check": {
+    "q": "With \\(g(x)=x^2\\) and \\(x_0=0.5\\), what happens?",
+    "opts": [
+     "It converges to 1",
+     "It converges to 0",
+     "It diverges to infinity"
+    ],
+    "ans": 1,
+    "why": "\\(0.5\\to0.25\\to0.0625\\to\\cdots\\to0\\). Squaring a number below 1 shrinks it. Starting at \\(x_0=2\\) would give 4, 16, 256, ... instead."
+   }
+  },
+  "fixed-example": {
+   "idea": "The table shows the error \\(E_n=|x_{n+1}-x_n|\\) shrinking by roughly the same factor every step. We stop at the first \\(n\\) where it drops below \\(\\varepsilon\\).",
+   "mistake": "Comparing the wrong quantity with \\(\\varepsilon\\), for example checking \\(x_n\\) instead of the change \\(E_n\\), or rounding the numbers so hard that \\(E_n\\) looks like zero too early.",
+   "check": {
+    "q": "In the table, \\(E_3=0.0002\\) and \\(E_4=0.00003\\). With \\(\\varepsilon=10^{-4}\\), when do we stop?",
+    "opts": [
+     "At \\(n=3\\)",
+     "At \\(n=2\\)",
+     "At \\(n=4\\)"
+    ],
+    "ans": 2,
+    "why": "\\(0.0002&gt;10^{-4}\\), so we must continue; \\(0.00003&lt;10^{-4}\\), so we stop at \\(n=4\\)."
+   }
+  },
+  "fixed-theory": {
+   "idea": "The error is multiplied by about \\(g'(x^*)\\) each step. Slope smaller than 1 in size: errors shrink. Larger than 1: errors grow.",
+   "mistake": "Treating the slope test as a global guarantee. \\(|g'(x^*)|&lt;1\\) only promises convergence when you start <i>close enough</i>; the safe range of \\(x_0\\) needs the interval (contraction) condition.",
+   "check": {
+    "q": "Near the root \\(|g'(x^*)|=0.5\\) and the current error is 0.2. About what is the error two steps later?",
+    "opts": [
+     "About 0.05",
+     "About 0.1",
+     "About 0.4"
+    ],
+    "ans": 0,
+    "why": "Each step multiplies the error by 0.5: \\(0.2\\to0.1\\to0.05\\)."
+   }
+  },
+  "bisect": {
+   "idea": "If a continuous \\(f\\) is negative at one end of an interval and positive at the other, a root is trapped inside. Cut at the midpoint, keep the half that still changes sign, repeat.",
+   "mistake": "Starting without a sign change. You need \\(f(a)\\,f(b)&lt;0\\); if both ends have the same sign the method may miss roots (two roots in the interval can cancel the sign change).",
+   "check": {
+    "q": "The width of the bracket after \\(n\\) cuts is \\((b-a)/2^n\\). Starting from \\([0,8]\\), how many cuts give a width \\(\\le1\\)?",
+    "opts": [
+     "2",
+     "3",
+     "8"
+    ],
+    "ans": 1,
+    "why": "\\(8/2^3=1\\). After 2 cuts the width is still \\(8/4=2\\)."
+   }
+  },
+  "bisect-demo": {
+   "idea": "Watch the shaded bracket shrink by half each step; the root is never lost because the kept half always has a sign change.",
+   "mistake": "Keeping the half by guessing where the root 'looks closer'. The rule is only about signs: keep the half where \\(f\\) has opposite signs at the ends.",
+   "check": {
+    "q": "For \\(f(x)=x^2-2\\) on \\([0,2]\\), the midpoint is \\(c=1\\) and \\(f(1)=-1\\). Which half do we keep?",
+    "opts": [
+     "\\([0,1]\\)",
+     "Either half",
+     "\\([1,2]\\)"
+    ],
+    "ans": 2,
+    "why": "\\(f(1)=-1&lt;0\\) and \\(f(2)=2&gt;0\\): the sign change is in \\([1,2]\\). On \\([0,1]\\) both ends are negative."
+   }
+  },
+  "bisect-example": {
+   "idea": "Every row halves the bracket, so the error bound \\(E_n=\\tfrac{b-a}{2}\\) of the current interval halves too (0.5, 0.25, 0.125, ...).",
+   "mistake": "Quoting the midpoint as exact. It is only guaranteed within \\(E_n\\), so report digits that the error bound supports.",
+   "check": {
+    "q": "The table starts with \\(E_1=0.5\\) and halves each step. What is \\(E_5\\)?",
+    "opts": [
+     "\\(0.031\\)",
+     "\\(0.1\\)",
+     "\\(0.25\\)"
+    ],
+    "ans": 0,
+    "why": "\\(0.5/2^4=0.03125\\), matching the table's 0.031."
+   }
+  },
+  "newton": {
+   "idea": "Replace the curve by its tangent line at the current guess and jump to where that line hits the axis: \\(x_{k+1}=x_k-f(x_k)/f'(x_k)\\).",
+   "mistake": "Forgetting the minus sign or dividing the wrong way round (using \\(f'/f\\)). Also: starting where \\(f'\\) is near zero, which sends the next guess far away.",
+   "check": {
+    "q": "For \\(f(x)=x^2-4\\) and \\(x_0=4\\), what is \\(x_1\\)?",
+    "opts": [
+     "\\(x_1=3\\)",
+     "\\(x_1=2.5\\)",
+     "\\(x_1=2\\)"
+    ],
+    "ans": 1,
+    "why": "\\(f(4)=12\\), \\(f'(4)=8\\), so \\(x_1=4-12/8=2.5\\). The true root is 2."
+   }
+  },
+  "newton-demo": {
+   "idea": "A tangent leap lands very close to the root when you start nearby; the steps shrink dramatically.",
+   "mistake": "Choosing a start where the tangent is nearly flat. A flat tangent hits the axis far away, so the iteration can jump to a different root or diverge.",
+   "check": {
+    "q": "For \\(f(x)=x^2-2\\), what goes wrong if you start Newton at \\(x_0=0\\)?",
+    "opts": [
+     "Nothing, it converges at once",
+     "It converges to \\(-\\sqrt2\\) only",
+     "\\(f'(0)=0\\), so the step divides by zero"
+    ],
+    "ans": 2,
+    "why": "\\(x_1=0-(-2)/0\\) is undefined. The tangent at 0 is horizontal and never meets the axis."
+   }
+  },
+  "newton-example": {
+   "idea": "Newton's error is roughly <i>squared</i> each step (0.046, 0.00045, \\(10^{-7}\\)): the number of correct digits about doubles.",
+   "mistake": "Expecting the same fast speed from a bad start. Quadratic convergence only appears once you are close to the root.",
+   "check": {
+    "q": "A Newton iteration has error 0.001. About what is the next error?",
+    "opts": [
+     "About \\(10^{-6}\\)",
+     "About 0.0005",
+     "About 0.0009"
+    ],
+    "ans": 0,
+    "why": "Squaring: \\((10^{-3})^2=10^{-6}\\). Linear methods would only reduce it by a constant factor."
+   }
+  },
+  "secant": {
+   "idea": "Same tangent idea as Newton, but the slope is estimated from the two latest points, so no derivative is needed.",
+   "mistake": "Using only one starting value. The formula uses \\(x_k\\) and \\(x_{k-1}\\), so you must supply two initial guesses.",
+   "check": {
+    "q": "For \\(f(x)=x^2-4\\) with \\(x_0=1,\\ x_1=3\\), what is \\(x_2\\)?",
+    "opts": [
+     "\\(x_2=2\\)",
+     "\\(x_2=1.75\\)",
+     "\\(x_2=2.5\\)"
+    ],
+    "ans": 1,
+    "why": "\\(f(1)=-3,\\ f(3)=5\\), so \\(x_2=3-5\\cdot\\tfrac{3-1}{5-(-3)}=3-1.25=1.75\\)."
+   }
+  },
+  "secant-demo": {
+   "idea": "The orange line through the two latest points is the secant; where it crosses the axis is the next guess.",
+   "mistake": "Mixing up the order of the two points in the slope. The slope \\(\\tfrac{f(x_k)-f(x_{k-1})}{x_k-x_{k-1}}\\) is the same either way, but numerator and denominator must use the same order.",
+   "check": {
+    "q": "The latest two points are \\((2,1)\\) and \\((4,5)\\). What is the slope of the secant?",
+    "opts": [
+     "4",
+     "0.5",
+     "2"
+    ],
+    "ans": 2,
+    "why": "\\(\\tfrac{5-1}{4-2}=2\\)."
+   }
+  },
+  "secant-example": {
+   "idea": "Look at the table: each row reuses the previous two values, and only one new \\(f\\) value is needed per step.",
+   "mistake": "Computing a new derivative at each step. The secant method never needs \\(f'\\).",
+   "check": {
+    "q": "Per iteration, what does the secant method need to evaluate newly?",
+    "opts": [
+     "Just \\(f\\) at the new point",
+     "Both \\(f\\) and \\(f'\\)",
+     "\\(f\\) at both old points again"
+    ],
+    "ans": 0,
+    "why": "The old \\(f\\) values are reused, so one new function evaluation per step (Newton needs \\(f\\) and \\(f'\\))."
+   }
+  },
+  "compare": {
+   "idea": "Bisection is safe but slow, Newton is fast but needs \\(f'\\) and a good start, secant sits in between. Real solvers (like <code>fzero</code>) combine them.",
+   "mistake": "Picking the 'fastest' method blindly. Fast methods give no guarantee; if it must not fail, bracket first.",
+   "check": {
+    "q": "You have no formula for \\(f'\\), but want faster convergence than bisection. Which method fits?",
+    "opts": [
+     "Newton",
+     "Secant",
+     "Fixed-point with a random \\(g\\)"
+    ],
+    "ans": 1,
+    "why": "Secant avoids derivatives and converges superlinearly (order about 1.62). Newton needs \\(f'\\)."
+   }
+  },
+  "gauss": {
+   "idea": "Use row operations to turn the system into a triangle, then solve from the bottom up. This is how you solve \\(A\\mathbf{x}=\\mathbf{b}\\) by hand.",
+   "mistake": "Dividing by a zero (or tiny) pivot. Swap in a row with a bigger pivot first (partial pivoting); MATLAB's <code>\\</code> does that for you.",
+   "check": {
+    "q": "Solve \\(2x+y=5\\), \\(4x+3y=11\\). After \\(R_2\\leftarrow R_2-2R_1\\), what is \\(y\\)?",
+    "opts": [
+     "\\(y=2\\)",
+     "\\(y=3\\)",
+     "\\(y=1\\)"
+    ],
+    "ans": 2,
+    "why": "\\(R_2\\) becomes \\(0x+y=1\\). Then \\(2x+1=5\\) gives \\(x=2\\)."
+   }
+  },
+  "lu": {
+   "idea": "Factor once into \\(A=LU\\), then every new right-hand side costs only two quick triangular solves. \\(L\\) stores the multipliers.",
+   "mistake": "Re-doing the whole elimination for each new \\(\\mathbf{b}\\). Keep \\(L\\) and \\(U\\) and reuse them.",
+   "check": {
+    "q": "For \\(A=\\begin{bmatrix}2&1\\\\6&5\\end{bmatrix}\\), what is the entry \\(l_{21}\\) of \\(L\\)?",
+    "opts": [
+     "3",
+     "2",
+     "6"
+    ],
+    "ans": 0,
+    "why": "\\(l_{21}=6/2=3\\) (the multiplier used to clear the 6). Then \\(U=\\begin{bmatrix}2&1\\\\0&2\\end{bmatrix}\\)."
+   }
+  },
+  "chol": {
+   "idea": "If \\(A\\) is symmetric and positive definite you can write \\(A=LL^T\\): half the work of LU, and a failed square root tells you the matrix is not positive definite.",
+   "mistake": "Applying Cholesky to a matrix that is not symmetric. Check \\(a_{ij}=a_{ji}\\) first.",
+   "check": {
+    "q": "For \\(A=\\begin{bmatrix}9&3\\\\3&5\\end{bmatrix}\\), \\(l_{11}=3\\) and \\(l_{21}=1\\). What is \\(l_{22}\\)?",
+    "opts": [
+     "4",
+     "2",
+     "5"
+    ],
+    "ans": 1,
+    "why": "\\(l_{22}=\\sqrt{a_{22}-l_{21}^2}=\\sqrt{5-1}=2\\)."
+   }
+  }
+ }
+}
