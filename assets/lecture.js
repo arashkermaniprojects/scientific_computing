@@ -45,7 +45,7 @@
       if (S.idea && h2) {
         const d = document.createElement("div"); d.className = "lec-idea";
         d.innerHTML = '<span class="lec-tag">Big picture</span> ' + S.idea;
-        const after = $(".voicebar", panel) || h2; after.insertAdjacentElement("afterend", d);
+        const after = $(".voicebar", panel) || h2; after.insertAdjacentElement("afterend", d); typeset(d);
       }
       const tail = document.createElement("div"); tail.className = "lec-tail";
       if (S.mistake) tail.innerHTML += '<div class="lec-mistake"><div class="lec-k">COMMON MISTAKE</div>' + S.mistake + '</div>';
