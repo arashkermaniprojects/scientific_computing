@@ -309,7 +309,7 @@ legend('data','linear','spline','polynomial'); grid on;</textarea>
     <section class="section" id="quiz">
       <div class="panel">
         <h2>Practice examples</h2>
-        <p class="section-sub">One example per topic (4.1–4.6). Work it on paper, then reveal.</p>
+        <p class="section-sub">One example per topic (4.1–4.6). Work it on paper, then reveal. Below selected examples, 🎲 random practice gives endless new numbers.</p>
 
         <div class="practice"><span class="ptag">✏️ 4.1 Polynomial interpolation</span>
           <div class="given">Given (1, 3) and (2, 7), estimate y at x = 1.5. How many points fix a unique degree-≤ n polynomial?</div>
@@ -319,6 +319,7 @@ legend('data','linear','spline','polynomial'); grid on;</textarea>
             <span class="final">2 points → a line; 3 points → a parabola; …</span>
           </div></details>
         </div>
+        <div class="gen-practice" data-gen="interp1"></div>
 
         <div class="practice"><span class="ptag">✏️ 4.2 Lagrange interpolating polynomial</span>
           <div class="given">Find the polynomial through (0,1), (1,3), (3,2) using Lagrange's form. Then estimate P(2).</div>
@@ -328,6 +329,7 @@ legend('data','linear','spline','polynomial'); grid on;</textarea>
             <span class="final">P(2) = 10/3 ≈ 3.333   (expanded: P(x) = −(5/6)x² + (17/6)x + 1)</span>
           </div></details>
         </div>
+        <div class="gen-practice" data-gen="lagrange"></div>
 
         <div class="practice"><span class="ptag">✏️ 4.3 Newton's divided-difference form</span>
           <div class="given">For (1,2), (2,3), (4,7) build the divided-difference table and write P(x); then find P(3).</div>
@@ -339,6 +341,7 @@ legend('data','linear','spline','polynomial'); grid on;</textarea>
             <span class="final">the Newton coefficients are the top of each divided-difference column</span>
           </div></details>
         </div>
+        <div class="gen-practice" data-gen="newton4"></div>
 
         <div class="practice"><span class="ptag">✏️ 4.4 The danger of high-degree interpolation</span>
           <div class="given">You have 20 noisy measurements. Fit one degree-19 interpolating polynomial, or least-squares fit a low-degree curve?</div>
@@ -382,6 +385,8 @@ yq = interp1(x, y, xq, 'pchip');    % shape-preserving cubic</code></pre>
 
 <footer class="site">BCS 311 · Scientific Computing — Module 4 of 5 · Dr. Arash Kermani Kolankeh.</footer>
 
+<script src="assets/practice-gen.js?v=1794300000"></script>
+<script src="assets/practice-gen45.js?v=1794300000"></script>
 <script src="assets/app.js"></script>
 <script>
 /* ===== Interpolation demo ===== */
