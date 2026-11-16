@@ -36,9 +36,9 @@
         <li><a href="#poly">4.1 Polynomial interpolation</a></li>
         <li><a href="#lagrange">4.2 Lagrange polynomials</a></li>
         <li><a href="#newton">4.3 Newton divided differences</a></li>
-        <li><a href="#runge">4.4 The danger of high degree</a></li>
-        <li><a href="#demo">🎛 Demo: interpolate</a></li>
-        <li><a href="#spline">4.5 Piecewise &amp; splines</a></li>
+        <li><a href="#runge">4.4 The problem: high degree</a></li>
+        <li><a href="#spline">4.5 The solution: splines</a></li>
+        <li><a href="#demo">🎛 Demo: problem vs solution</a></li>
         <li><a href="#matlab">4.6 MATLAB built-ins</a></li>
         <li><a href="#quiz">✏️ Practice examples</a></li>
       </ul>
@@ -192,22 +192,41 @@ P                   % 2.375</textarea>
 
     <section class="section" id="runge">
       <div class="panel">
-        <h2>4.4 The danger of high-degree interpolation</h2>
+        <h2>4.4 The problem: high-degree interpolation oscillates</h2>
         <div class="voicebar"><span class="vlabel">🔊 Listen to this section</span><audio controls preload="metadata" src="assets/audio/m4_runge.mp3"></audio></div>
         <p>It is tempting to fit many points with one high-degree polynomial. But high-degree interpolants <b>oscillate wildly</b> between equally spaced points — especially near the ends of the interval. This is <b>Runge's phenomenon</b>, classically shown with</p>
         <div class="eqn">\[ f(x) = \frac{1}{1+25x^2} \quad\text{on}\quad [-1,1]. \]</div>
         <div class="figout" style="margin:1rem 0;border-top:1px solid #cfd9e6;border-radius:12px"><img src="assets/figs/m4_runge.png" alt="Runge's phenomenon. The polynomial (red) passes through every node (black dots) but, with 11 nodes, it oscillates wildly near the ends of the interval while the true function (grey) stays smooth."><div class="cap">Runge's phenomenon. The polynomial (red) passes through every node (black dots) but, with 11 nodes, it oscillates wildly near the ends of the interval while the true function (grey) stays smooth.</div></div>
-<p>As you add equally spaced nodes, the interpolating polynomial fits the nodes exactly yet swings further and further from \(f\) between them. The demo below lets you watch this happen.</p>
+<p>As you add equally spaced nodes, the interpolating polynomial fits the nodes exactly yet swings further and further from \(f\) between them. You can see it live in the demo after Section 4.5.</p>
         <div class="callout warn"><div class="h">⚠️ Why does this happen?</div>A polynomial of degree \(n-1\) can have up to \(n-2\) bends. To thread through many points it must bend a lot, and the bends are largest near the ends. "Passing through the points" does not mean "staying close to the true curve in between".</div>
-        <div class="callout idea"><div class="h">💡 The fix</div>Don't raise the degree — lower it and use <b>many low-degree pieces</b>. That is exactly what splines do.</div>
+        <div class="callout idea"><div class="h">➡️ So what is the solution?</div>The problem is the <b>single high-degree polynomial</b>. The fix is not to raise the degree but to <b>lower it and use many low-degree pieces</b>, one per interval. That is exactly what splines do, and it is the topic of the next section.</div>
+      </div>
+    </section>
+
+    <section class="section" id="spline">
+      <div class="panel">
+        <h2>4.5 The solution: piecewise &amp; spline interpolation</h2>
+        <div class="voicebar"><span class="vlabel">🔊 Listen to this section</span><audio controls preload="metadata" src="assets/audio/m4_spline.mp3"></audio></div>
+        <table class="data" style="text-align:center">
+          <thead><tr><th>Problem (4.4)</th><th>Cause</th><th>Solution (4.5)</th></tr></thead>
+          <tbody><tr><td>The curve oscillates between the nodes, worst near the ends</td><td>One polynomial of high degree must bend many times to hit every point</td><td>Use many low-degree pieces, one per interval, joined smoothly</td></tr></tbody>
+        </table>
+        <p>Instead of one global polynomial, a <b>spline</b> joins many low-degree polynomials, one per interval between data points. Because each piece only has to fit two neighbouring points, no piece needs to bend wildly.</p>
+        <ul>
+          <li><b>Linear spline:</b> connect adjacent points with straight segments. Simple, but kinked (the slope jumps at each node).</li>
+          <li><b>Cubic spline:</b> a separate cubic on each interval, chosen so the pieces meet smoothly — matching value, first derivative, and second derivative at every interior node. The result is smooth and avoids Runge oscillation.</li>
+        </ul>
+        <div class="figout" style="margin:1rem 0;border-top:1px solid #cfd9e6;border-radius:12px"><img src="assets/figs/m4_pieces.png" alt="The same six points (from \(1/(1+25x^2)\), dashed) interpolated three ways. The linear version has corners, the cubic spline is smooth and stays close to the curve, and a single polynomial starts to wiggle near the ends."><div class="cap">The same six points (from \(1/(1+25x^2)\), dashed) interpolated three ways. The linear version has corners, the cubic spline is smooth and stays close to the curve, and a single polynomial starts to wiggle near the ends.</div></div>
+<div class="callout idea"><div class="h">🔎 What "smooth" means here</div>"Matching the first derivative" means the slopes of two neighbouring pieces agree at the joint, so there is no corner. "Matching the second derivative" means the curvature agrees too, so the bending does not suddenly change. Think of a flexible ruler pinned at the data points: it bends smoothly, and that shape is a cubic spline.</div>
+        <div class="callout def"><div class="h">📐 Why cubic?</div>Cubic is the lowest degree that can match position and curvature smoothly at the joints. That is why cubic splines are the standard for smooth interpolation of tabulated data.</div>
       </div>
     </section>
 
     <!-- DEMO -->
     <section class="section" id="demo">
       <div class="panel">
-        <h2>🎛 Demo: interpolation methods &amp; Runge's phenomenon</h2>
-        <p><b>Click to add points</b>, or load the Runge preset and increase the node count. Compare the single high-degree <b>Lagrange polynomial</b> against a <b>piecewise-linear</b> interpolant and a <b>cubic spline</b>.</p>
+        <h2>🎛 Demo: the problem and its solution, side by side</h2>
+        <p>Try it yourself. <b>Step 1, see the problem (4.4):</b> press <i>Load Runge function</i>, choose <i>Lagrange polynomial</i>, and raise the node count. Watch the curve oscillate near the ends. <b>Step 2, see the solution (4.5):</b> keep the same nodes and switch the method to <i>Cubic spline</i> (or <i>Piecewise linear</i>). The wiggles disappear. You can also click to add your own points.</p>
         <div class="demo">
           <div class="demo-head"><span class="pill">Live</span> Interpolation explorer</div>
           <canvas id="inCanvas" height="340" style="cursor:crosshair"></canvas>
@@ -234,25 +253,9 @@ P                   % 2.375</textarea>
       </div>
     </section>
 
-    <section class="section" id="spline">
-      <div class="panel">
-        <h2>4.5 Piecewise &amp; spline interpolation</h2>
-        <div class="voicebar"><span class="vlabel">🔊 Listen to this section</span><audio controls preload="metadata" src="assets/audio/m4_spline.mp3"></audio></div>
-        <p>Instead of one global polynomial, a <b>spline</b> joins many low-degree polynomials, one per interval between data points.</p>
-        <ul>
-          <li><b>Linear spline:</b> connect adjacent points with straight segments. Simple, but kinked (the slope jumps at each node).</li>
-          <li><b>Cubic spline:</b> a separate cubic on each interval, chosen so the pieces meet smoothly — matching value, first derivative, and second derivative at every interior node. The result is smooth and avoids Runge oscillation.</li>
-        </ul>
-        <div class="figout" style="margin:1rem 0;border-top:1px solid #cfd9e6;border-radius:12px"><img src="assets/figs/m4_pieces.png" alt="The same six points (from \(1/(1+25x^2)\), dashed) interpolated three ways. The linear version has corners, the cubic spline is smooth and stays close to the curve, and a single polynomial starts to wiggle near the ends."><div class="cap">The same six points (from \(1/(1+25x^2)\), dashed) interpolated three ways. The linear version has corners, the cubic spline is smooth and stays close to the curve, and a single polynomial starts to wiggle near the ends.</div></div>
-<div class="callout idea"><div class="h">🔎 What "smooth" means here</div>"Matching the first derivative" means the slopes of two neighbouring pieces agree at the joint, so there is no corner. "Matching the second derivative" means the curvature agrees too, so the bending does not suddenly change. Think of a flexible ruler pinned at the data points: it bends smoothly, and that shape is a cubic spline.</div>
-        <div class="callout def"><div class="h">📐 Why cubic?</div>Cubic is the lowest degree that can match position and curvature smoothly at the joints. That is why cubic splines are the standard for smooth interpolation of tabulated data.</div>
-      </div>
-    </section>
-
     <section class="section" id="matlab">
       <div class="panel">
         <h2>4.6 MATLAB's built-in interpolation</h2>
-        <div class="voicebar"><span class="vlabel">🔊 Listen to this section</span><audio controls preload="metadata" src="assets/audio/m4_matlab.mp3"></audio></div>
         <p>MATLAB ships fast, robust interpolation functions — you rarely write your own in practice:</p>
         <div class="codewrap editable has-output">
           <div class="codehead"><span class="lang"><span class="dot"></span>MATLAB · editable · interp1, spline, polyfit</span><button class="copybtn">Copy</button></div>
