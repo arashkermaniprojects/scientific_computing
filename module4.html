@@ -141,7 +141,6 @@ xq = linspace(1, 3, 50);
 yq = lagrange_interp(x, y, xq);
 plot(x, y, 'ro', xq, yq, 'b-'); grid on;   % recovers y = x^2</textarea>
         </div>
-<div class="figout"><div class="mout-head" style="background:#eef3f9">Figure output</div><img src="assets/figs/m4_lagrange.png" alt="figure: Lagrange interpolant through (1,1),(2,4),(3,9) — recovers y = x²"><div class="cap">figure: Lagrange interpolant through (1,1),(2,4),(3,9) — recovers y = x²</div></div>
 
         <p class="note-src">Source: Interpolation lecture (Lagrange code lab).</p>
       </div>
@@ -211,8 +210,7 @@ P                   % 2.375</textarea>
         <div class="voicebar"><span class="vlabel">🔊 Listen to this section</span><audio controls preload="metadata" src="assets/audio/m4_runge.mp3"></audio></div>
         <p>It is tempting to fit many points with one high-degree polynomial. But high-degree interpolants <b>oscillate wildly</b> between equally spaced points — especially near the ends of the interval. This is <b>Runge's phenomenon</b>, classically shown with</p>
         <div class="eqn">\[ f(x) = \frac{1}{1+25x^2} \quad\text{on}\quad [-1,1]. \]</div>
-        <div class="figout" style="margin:1rem 0;border-top:1px solid #cfd9e6;border-radius:12px"><img src="assets/figs/m4_runge.png" alt="Runge's phenomenon. The polynomial (red) passes through every node (black dots) but, with 11 nodes, it oscillates wildly near the ends of the interval while the true function (grey) stays smooth."><div class="cap">Runge's phenomenon. The polynomial (red) passes through every node (black dots) but, with 11 nodes, it oscillates wildly near the ends of the interval while the true function (grey) stays smooth.</div></div>
-<p>As you add equally spaced nodes, the interpolating polynomial fits the nodes exactly yet swings further and further from \(f\) between them. You can see it live in the demo after Section 4.5.</p>
+<p>As you add equally spaced nodes, the interpolating polynomial fits the nodes exactly yet swings further and further from \(f\) between them. <b>See it live:</b> in the demo after Section 4.5, press <i>Load Runge function</i>, choose <i>Lagrange polynomial</i> and raise the node count.</p>
         <div class="callout warn"><div class="h">⚠️ Why does this happen?</div>A polynomial of degree \(n-1\) can have up to \(n-2\) bends. To thread through many points it must bend a lot, and the bends are largest near the ends. "Passing through the points" does not mean "staying close to the true curve in between".</div>
         <div class="callout idea"><div class="h">➡️ So what is the solution?</div>The problem is the <b>single high-degree polynomial</b>. The fix is not to raise the degree but to <b>lower it and use many low-degree pieces</b>, one per interval. That is exactly what splines do, and it is the topic of the next section.</div>
       </div>
@@ -222,16 +220,11 @@ P                   % 2.375</textarea>
       <div class="panel">
         <h2>4.5 The solution: piecewise &amp; spline interpolation</h2>
         <div class="voicebar"><span class="vlabel">🔊 Listen to this section</span><audio controls preload="metadata" src="assets/audio/m4_spline.mp3"></audio></div>
-        <table class="data" style="text-align:center">
-          <thead><tr><th>Problem (4.4)</th><th>Cause</th><th>Solution (4.5)</th></tr></thead>
-          <tbody><tr><td>The curve oscillates between the nodes, worst near the ends</td><td>One polynomial of high degree must bend many times to hit every point</td><td>Use many low-degree pieces, one per interval, joined smoothly</td></tr></tbody>
-        </table>
         <p>Instead of one global polynomial, a <b>spline</b> joins many low-degree polynomials, one per interval between data points. Because each piece only has to fit two neighbouring points, no piece needs to bend wildly.</p>
         <ul>
           <li><b>Linear spline:</b> connect adjacent points with straight segments. Simple, but kinked (the slope jumps at each node).</li>
           <li><b>Cubic spline:</b> a separate cubic on each interval, chosen so the pieces meet smoothly — matching value, first derivative, and second derivative at every interior node. The result is smooth and avoids Runge oscillation.</li>
         </ul>
-        <div class="figout" style="margin:1rem 0;border-top:1px solid #cfd9e6;border-radius:12px"><img src="assets/figs/m4_pieces.png" alt="The same six points (from \(1/(1+25x^2)\), dashed) interpolated three ways. The linear version has corners, the cubic spline is smooth and stays close to the curve, and a single polynomial starts to wiggle near the ends."><div class="cap">The same six points (from \(1/(1+25x^2)\), dashed) interpolated three ways. The linear version has corners, the cubic spline is smooth and stays close to the curve, and a single polynomial starts to wiggle near the ends.</div></div>
 <div class="callout idea"><div class="h">🔎 What "smooth" means here</div>"Matching the first derivative" means the slopes of two neighbouring pieces agree at the joint, so there is no corner. "Matching the second derivative" means the curvature agrees too, so the bending does not suddenly change. Think of a flexible ruler pinned at the data points: it bends smoothly, and that shape is a cubic spline.</div>
         <div class="callout def"><div class="h">📐 Why cubic?</div>Cubic is the lowest degree that can match position and curvature smoothly at the joints. That is why cubic splines are the standard for smooth interpolation of tabulated data.</div>
       </div>
@@ -291,7 +284,6 @@ y_pol = polyval(p, xq);
 plot(x, y, 'ko', xq, y_lin, 'g-', xq, y_spl, 'b-', xq, y_pol, 'r--');
 legend('data','linear','spline','polynomial'); grid on;</textarea>
         </div>
-<div class="figout"><div class="mout-head" style="background:#eef3f9">Figure output</div><img src="assets/figs/m4_interp.png" alt="figure: linear (green), spline (blue) and polynomial (red dashed) interpolation of y = x² data"><div class="cap">figure: linear (green), spline (blue) and polynomial (red dashed) interpolation of y = x² data</div></div>
 
         <div class="callout tip"><div class="h">🛠 In practice</div>Use <code>interp1(...,'spline')</code> for smooth interpolation of a data table, and <code>'linear'</code> when you just need quick in-between values. Reserve a single high-degree polynomial for a small number of points.</div>
         <p class="note-src">Source: Interpolation &amp; Functional Approximation lectures.</p>
@@ -314,20 +306,21 @@ legend('data','linear','spline','polynomial'); grid on;</textarea>
         </div>
 
         <div class="practice"><span class="ptag">✏️ 4.2 Lagrange interpolating polynomial</span>
-          <div class="given">Find the polynomial through (1,1), (2,4), (3,9). Then estimate P(2.5).</div>
+          <div class="given">Find the polynomial through (0,1), (1,3), (3,2) using Lagrange's form. Then estimate P(2).</div>
           <details class="reveal"><summary>Reveal answer</summary><div class="answer">
-            \(P(x)=1\!\cdot\!\dfrac{(x-2)(x-3)}{(1-2)(1-3)}+4\!\cdot\!\dfrac{(x-1)(x-3)}{(2-1)(2-3)}+9\!\cdot\!\dfrac{(x-1)(x-2)}{(3-1)(3-2)} = x^2.\)
-            <span class="final">P(x) = x²,  so P(2.5) = 6.25</span>
+            \(P(x)=1\!\cdot\!\dfrac{(x-1)(x-3)}{(0-1)(0-3)}+3\!\cdot\!\dfrac{(x-0)(x-3)}{(1-0)(1-3)}+2\!\cdot\!\dfrac{(x-0)(x-1)}{(3-0)(3-1)}\)<br>
+            At \(x=2\): \(1\cdot\dfrac{(1)(-1)}{3}+3\cdot\dfrac{(2)(-1)}{-2}+2\cdot\dfrac{(2)(1)}{6}=-\dfrac13+3+\dfrac23\).
+            <span class="final">P(2) = 10/3 ≈ 3.333   (expanded: P(x) = −(5/6)x² + (17/6)x + 1)</span>
           </div></details>
         </div>
 
         <div class="practice"><span class="ptag">✏️ 4.3 Newton's divided-difference form</span>
-          <div class="given">For (0,1), (1,3), (2,2) build the divided-difference table and write P(x); then find P(0.5).</div>
+          <div class="given">For (1,2), (2,3), (4,7) build the divided-difference table and write P(x); then find P(3).</div>
           <details class="reveal"><summary>Reveal answer</summary><div class="answer">
-            \(f[x_0,x_1]=\dfrac{3-1}{1-0}=2,\quad f[x_1,x_2]=\dfrac{2-3}{2-1}=-1\)<br>
-            \(f[x_0,x_1,x_2]=\dfrac{-1-2}{2-0}=-1.5\)<br>
-            \(P(x)=1+2(x-0)-1.5\,(x-0)(x-1)\)<br>
-            \(P(0.5)=1+1-1.5(0.5)(-0.5)=\mathbf{2.375}\)
+            \(f[x_0,x_1]=\dfrac{3-2}{2-1}=1,\quad f[x_1,x_2]=\dfrac{7-3}{4-2}=2\)<br>
+            \(f[x_0,x_1,x_2]=\dfrac{2-1}{4-1}=\dfrac13\)<br>
+            \(P(x)=2+1\,(x-1)+\tfrac13\,(x-1)(x-2)\)<br>
+            \(P(3)=2+2+\tfrac13(2)(1)=\mathbf{4.667}\)
             <span class="final">the Newton coefficients are the top of each divided-difference column</span>
           </div></details>
         </div>
