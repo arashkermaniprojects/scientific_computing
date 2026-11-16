@@ -2,7 +2,7 @@
    Endless random practice for CLO-4 (interpolation) and CLO-5 (integration, ODEs).
    Plugs into the widget in practice-gen.js (load AFTER it).
    Keys: interp1 · lagrange · newton   (Module 4)
-         trap · simp · gaussq · euler · rk4   (Module 5)
+         mid · trap · simp · gaussq · euler · rk4   (Module 5)
    Every displayed intermediate value is the one carried forward. */
 (function () {
   "use strict";
@@ -81,6 +81,17 @@
     const exact = c2 * (b ** 3 - a ** 3) / 3 + c1 * (b * b - a * a) / 2 + c0 * (b - a);
     return { f, tex, a, b, exact };
   }
+
+  function genMid() {
+    const q = quadFam(), n = 4, h = (q.b - q.a) / n, xs = [0, 1, 2, 3].map(i => q.a + (i + .5) * h), ys = xs.map(q.f), s = ys.reduce((a, b) => a + b, 0), M = h * s;
+    return {
+      given: `Estimate \\(\\displaystyle\\int_{${q.a}}^{${q.b}}(${q.tex})\\,dx\\) with the midpoint rule, \\(n=4\\). Compare with the exact value.`,
+      header: ["i", "midpoint \\(x_i\\)", "\\(f(x_i)\\)"],
+      steps: xs.map((x, i) => ({ title: `Midpoint ${x}`, html: `\\(f(${x})=${ys[i]}\\)`, row: [i + 1, x, ys[i]] })).concat([
+        { title: "Final answer (a number)", html: `\\(h=${h}\\).<br>\\(M=h\\sum f(x_i)=${h}(${ys.join("+")})=${h}(${s})=\\boxed{${F(M, 4)}}\\)<br>Exact \\(=${F(q.exact, 4)}\\); error \\(=${F(M - q.exact, 4)}\\).` }])
+    };
+  }
+  genMid.title = "midpoint rule";
 
   function genTrap() {
     const q = quadFam(), n = 4, h = (q.b - q.a) / n, xs = [0, 1, 2, 3, 4].map(i => q.a + i * h), ys = xs.map(q.f);
@@ -161,5 +172,5 @@
   }
   genRK4.title = "Runge–Kutta 4";
 
-  Object.assign(GEN, { interp1: genInterp1, lagrange: genLagrange, newton4: genNewton, trap: genTrap, simp: genSimp, gaussq: genGauss, euler: genEuler, rk4: genRK4 });
+  Object.assign(GEN, { mid: genMid, interp1: genInterp1, lagrange: genLagrange, newton4: genNewton, trap: genTrap, simp: genSimp, gaussq: genGauss, euler: genEuler, rk4: genRK4 });
 })();
