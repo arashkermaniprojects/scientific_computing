@@ -100,7 +100,8 @@
         <div class="callout idea"><div class="h">🔎 How to read \(L_i(x)\)</div>The numerator \(\prod (x-x_j)\) contains a factor that is <b>zero at every other node</b>, so \(L_i\) vanishes there. The denominator \(\prod (x_i-x_j)\) is just a number that rescales the piece so that \(L_i(x_i)=1\). The symbol \(\prod\) means "multiply all of these", just as \(\sum\) means "add all of these".</div>
         <h4>See it with numbers: why \(L_1\) is 0 at \(x=2\) and \(x=3\), and 1 at \(x=1\)</h4>
         <div class="voicebar"><span class="vlabel">🔊 Listen to this example</span><audio controls preload="metadata" src="assets/audio/m4_lagrange_basis.mp3"></audio></div>
-        <p>For the nodes \(x_1=1,\ x_2=2,\ x_3=3\), the first basis polynomial is a product of <b>two factors</b>, one for each <em>other</em> node (\(x_2=2\) and \(x_3=3\)):</p>
+        <p><b>Data used in this section:</b> the three points \((1,1),\ (2,4),\ (3,9)\), so the nodes are \(x_1=1,\ x_2=2,\ x_3=3\) and the values are \(y_1=1,\ y_2=4,\ y_3=9\). Notice that the basis polynomials \(L_i\) use <b>only the \(x\)-values</b>; the \(y\)-values enter later, as the weights in the sum.</p>
+        <p>The first basis polynomial is a product of <b>two factors</b>, one for each <em>other</em> node (\(x_2=2\) and \(x_3=3\)):</p>
         <div class="eqn">\[ L_1(x)=\frac{(x-2)\,(x-3)}{(1-2)\,(1-3)}=\frac{(x-2)(x-3)}{2}. \]</div>
         <p>Each factor \((x-x_j)\) becomes zero exactly when \(x\) equals that node \(x_j\). One zero factor makes the whole product zero. Plug in the three nodes:</p>
         <table class="data" style="text-align:center">
@@ -113,12 +114,25 @@
         </table>
         <p>This is exactly what the left graph shows for the teal curve \(L_1\): it passes through height 1 at \(x=1\) and through height 0 at \(x=2\) and \(x=3\). The same recipe works for \(L_2\) (factors \((x-1)(x-3)\)) and \(L_3\) (factors \((x-1)(x-2)\)): <b>leave out the factor of your own node, keep one factor for every other node.</b></p>
         <div class="figout" style="margin:1rem 0;border-top:1px solid #cfd9e6;border-radius:12px"><img src="assets/figs/m4_basis.png" alt="Left: the three basis polynomials for the nodes 1, 2, 3. Right: multiply each by its \(y\)-value (1, 4, 9) and add. The sum is \(x^2\) and passes through all three red points."><div class="cap">Left: the three basis polynomials for the nodes 1, 2, 3. Right: multiply each by its \(y\)-value (1, 4, 9) and add. The sum is \(x^2\) and passes through all three red points.</div></div>
-<h3>Worked example</h3>
+<h3>Worked example (written as on an exam)</h3>
         <div class="voicebar"><span class="vlabel">🔊 Listen to this example</span><audio controls preload="metadata" src="assets/audio/m4_lagrange_example.mp3"></audio></div>
-        <p>Interpolate the three points \((1,1),(2,4),(3,9)\):</p>
-        <div class="eqn">\[ L_1=\frac{(x-2)(x-3)}{(1-2)(1-3)},\ \ L_2=\frac{(x-1)(x-3)}{(2-1)(2-3)},\ \ L_3=\frac{(x-1)(x-2)}{(3-1)(3-2)}. \]</div>
-        <div class="eqn">\[ P(x) = 1\cdot L_1 + 4\cdot L_2 + 9\cdot L_3 = x^2. \]</div>
-        <p>As expected, the unique degree-2 polynomial through those points is \(y=x^2\).</p>
+        <p><b>Given:</b> the data points \((1,1),\ (2,4),\ (3,9)\).<br><b>Find:</b> the interpolating polynomial \(P(x)\) in Lagrange form, and estimate \(P(2.5)\).</p>
+        <p><b>Solution.</b></p>
+        <p><b>Step 1.</b> There are \(n=3\) points, so \(P(x)=y_1L_1(x)+y_2L_2(x)+y_3L_3(x)\).</p>
+        <p><b>Step 2.</b> Basis polynomials (leave out your own node's factor, divide by its value at your own node):</p>
+        <div class="eqn">\[ \begin{aligned}
+        L_1(x)&=\frac{(x-2)(x-3)}{(1-2)(1-3)}=\frac{(x-2)(x-3)}{2}=\frac{x^2-5x+6}{2},\\[4pt]
+        L_2(x)&=\frac{(x-1)(x-3)}{(2-1)(2-3)}=\frac{(x-1)(x-3)}{-1}=-(x^2-4x+3),\\[4pt]
+        L_3(x)&=\frac{(x-1)(x-2)}{(3-1)(3-2)}=\frac{(x-1)(x-2)}{2}=\frac{x^2-3x+2}{2}.
+        \end{aligned} \]</div>
+        <p><b>Step 3.</b> Weight each by its \(y\)-value and add:</p>
+        <div class="eqn">\[ \begin{aligned}
+        P(x)&=1\cdot\frac{x^2-5x+6}{2}\;+\;4\cdot\bigl(-(x^2-4x+3)\bigr)\;+\;9\cdot\frac{x^2-3x+2}{2}\\[4pt]
+        &=\frac{(x^2-5x+6)-8(x^2-4x+3)+9(x^2-3x+2)}{2}\\[4pt]
+        &=\frac{(1-8+9)\,x^2+(-5+32-27)\,x+(6-24+18)}{2}=\frac{2x^2+0\cdot x+0}{2}=x^2.
+        \end{aligned} \]</div>
+        <p><b>Step 4.</b> Check: \(P(1)=1,\ P(2)=4,\ P(3)=9\) ✓. Estimate: \(P(2.5)=2.5^2=6.25\).</p>
+        <div class="eqn">\[ \therefore\quad \boxed{P(x)=x^2},\qquad \boxed{P(2.5)=6.25}. \]</div>
         <div class="codewrap editable has-output">
           <div class="codehead"><span class="lang"><span class="dot"></span>MATLAB · editable · Lagrange interpolation</span><button class="copybtn">Copy</button></div>
           <textarea spellcheck="false" rows="20">function yq = lagrange_interp(x, y, xq)
