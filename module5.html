@@ -219,15 +219,131 @@ fprintf('Simpson estimate = %.4f\n', I);   % exact for x^2</textarea>
     <section class="section" id="quad">
       <div class="panel">
         <h2>5.4 Gaussian &amp; adaptive quadrature</h2>
-        <div class="voicebar"><span class="vlabel">🔊 Listen to this section</span><audio controls preload="metadata" src="assets/audio/m5_quad.mp3"></audio></div>
-        <p><b>Gaussian quadrature</b> drops the requirement of equally spaced points. By choosing both the sample locations <em>and</em> their weights optimally, an \(n\)-point Gauss rule integrates polynomials up to degree \(2n-1\) exactly — remarkable accuracy from very few evaluations.</p>
-        <p><b>Adaptive quadrature</b> puts the effort where the function is hard: it subdivides only the regions where the estimate is still changing, using many small strips on wiggly parts and few large strips on smooth parts. MATLAB's <code>integral</code> is adaptive.</p>
+        <div class="callout idea"><div class="h">🧭 Where we are</div>In 5.1 to 5.3 the sample points were <b>equally spaced</b>. We only chose <em>how many</em> points. This section makes two smarter choices: <b>Gaussian quadrature</b> chooses <em>where to sample</em>, and <b>adaptive quadrature</b> chooses <em>where to use more strips</em>.</div>
+
+        <h3>5.4a Gaussian quadrature: choose the sample points cleverly</h3>
+        <div class="voicebar"><span class="vlabel">🔊 Listen to this section</span><audio controls preload="metadata" src="assets/audio/m5_gauss.mp3"></audio></div>
+        <p>Every rule so far has the same shape: <b>sample the function at a few points, multiply each sample by a weight, add up</b>. With equally spaced points we are free to choose only the weights. <b>Gaussian quadrature</b> also lets us choose <em>where</em> the points go. With \(n\) free positions and \(n\) free weights we have \(2n\) numbers to tune, and that is enough to integrate every polynomial up to degree \(2n-1\) <b>exactly</b>.</p>
+        <div class="callout def"><div class="h">📐 The formula</div>On the standard interval \([-1,1]\):
+          <div class="eqn">\[ \int_{-1}^{1} f(t)\,dt \;\approx\; \sum_{i=1}^{n} w_i\, f(t_i). \]</div>
+          The numbers \(t_i\) (the <b>nodes</b>) and \(w_i\) (the <b>weights</b>) are fixed constants. You look them up once, in the table below, and reuse them for every integral.</div>
+        <table class="data" style="text-align:center">
+          <thead><tr><th>\(n\)</th><th>nodes \(t_i\)</th><th>weights \(w_i\)</th><th>exact for degree up to</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>0</td><td>2</td><td>1</td></tr>
+            <tr><td>2</td><td>\(\pm 0.577350\) \(=\pm 1/\sqrt3\)</td><td>1, 1</td><td>3</td></tr>
+            <tr><td>3</td><td>0, \(\pm 0.774597\) \(=\pm\sqrt{3/5}\)</td><td>\(8/9=0.888889\), \(5/9=0.555556\)</td><td>5</td></tr>
+            <tr><td>4</td><td>\(\pm 0.339981\), \(\pm 0.861136\)</td><td>0.652145, 0.347855</td><td>7</td></tr>
+          </tbody>
+        </table>
+        <div class="figout" style="margin:1rem 0;border-top:1px solid #cfd9e6;border-radius:12px"><img src="assets/figs/m5_gauss_vs_trap.png" alt="Trapezoid versus 2-point Gauss for the integral of e^t on [-1,1]"><div class="cap">Same two function values, very different answer. The trapezoid rule samples at the ends and overshoots (3.0862). Gauss samples at \(\pm0.577\): the line through those two points lies above the curve in the middle and below it near the ends, and the gain and the loss almost cancel (2.3427, exact 2.3504).</div></div>
+        <h4>Where do these numbers come from?</h4>
+        <p>Take \(n=2\): unknowns \(w_1,w_2,t_1,t_2\). Demand that the rule is <b>exact</b> for \(1,\ t,\ t^2,\ t^3\), four equations for four unknowns:</p>
+        <div class="eqn">\[ w_1+w_2=2,\quad w_1t_1+w_2t_2=0,\quad w_1t_1^2+w_2t_2^2=\tfrac23,\quad w_1t_1^3+w_2t_2^3=0. \]</div>
+        <p>The right-hand sides are \(\int_{-1}^{1}t^k\,dt\). By symmetry take \(t_2=-t_1\) and \(w_1=w_2\); the first equation gives \(w_1=w_2=1\), and the third becomes \(2t_1^2=\tfrac23\), so \(t_1=1/\sqrt3\approx0.5774\). For larger \(n\) the same idea works, and the nodes turn out to be the <b>roots of the Legendre polynomial</b> \(P_n\). (For example \(P_2(t)=\tfrac12(3t^2-1)\) has roots \(\pm1/\sqrt3\).) In practice you never solve this yourself: software stores the table.</p>
+        <h4>Other intervals \([a,b]\)</h4>
+        <p>Stretch and shift the standard interval with \(x=\tfrac{b-a}{2}\,t+\tfrac{a+b}{2}\). Then \(dx=\tfrac{b-a}{2}dt\), so</p>
+        <div class="eqn">\[ \int_a^b f(x)\,dx \;\approx\; \frac{b-a}{2}\sum_{i=1}^{n} w_i\, f\!\Big(\tfrac{b-a}{2}\,t_i+\tfrac{a+b}{2}\Big). \]</div>
+        <h3>Worked example</h3>
+        <div class="voicebar"><span class="vlabel">🔊 Listen to this example</span><audio controls preload="metadata" src="assets/audio/m5_gauss_example.mp3"></audio></div>
+        <p><b>Problem.</b> Use 2-point Gauss to estimate \(\int_0^4 (x^2+1)\,dx\) (the integral from the practice section; exact value \(25.333\)).</p>
+        <p><b>Step 1: map the nodes to \([0,4]\).</b> Here \(\tfrac{b-a}{2}=2\) and \(\tfrac{a+b}{2}=2\), so \(x_i=2t_i+2\): \(x_1=2-1.1547=0.8453\) and \(x_2=2+1.1547=3.1547\).</p>
+        <p><b>Step 2: evaluate.</b> \(f(0.8453)=0.8453^2+1=1.7145\) and \(f(3.1547)=3.1547^2+1=10.9521\).</p>
+        <p><b>Step 3: weight and add.</b> \(\tfrac{b-a}{2}(w_1f_1+w_2f_2)=2\,(1\cdot1.7145+1\cdot10.9521)=\mathbf{25.3333}\). This is exact, as promised, since \(x^2+1\) has degree \(2\le 3\). Only <b>two</b> function evaluations were needed.</p>
+        <div class="codewrap editable has-output">
+          <div class="codehead"><span class="lang"><span class="dot"></span>MATLAB · editable · 2-point Gauss on [a, b]</span><button class="copybtn">Copy</button></div>
+          <textarea spellcheck="false" rows="9">f = @(x) x.^2 + 1;   a = 0;  b = 4;
+t = [-1 1] / sqrt(3);          % Gauss nodes on [-1,1]
+w = [ 1 1];                    % Gauss weights
+x = (b-a)/2 * t + (a+b)/2;     % map nodes to [a,b]
+I = (b-a)/2 * sum(w .* f(x))   % 25.3333 (exact)</textarea>
+        </div>
+        <h4>🎛 Try it: Gauss versus equally spaced points</h4>
+        <p>Choose a function and the number of evaluations \(n\). The orange dots are the Gauss nodes (the teal bars show their weights); the grey ticks are where the midpoint rule would sample. Compare the errors. With the polynomial \(x^5\), Gauss becomes <em>exact</em> as soon as \(n=3\), because \(2n-1=5\).</p>
+        <div class="demo" id="gaussDemo">
+          <div class="demo-head"><span class="pill">Live</span> Gauss–Legendre nodes and weights</div>
+          <svg viewBox="0 0 560 300" role="img" aria-label="Gauss-Legendre nodes on the curve" style="width:100%;height:auto;display:block;max-width:600px;margin:0 auto" font-family="Inter,Arial,sans-serif"></svg>
+          <div class="controls">
+            <div class="control" style="min-width:240px"><label>Function</label><select class="g-fn"></select></div>
+            <div class="control" style="min-width:230px"><label>Evaluations n: <span class="val g-nval">3</span></label><input class="g-n" type="range" min="1" max="6" value="3"></div>
+          </div>
+          <div class="readout"></div>
+        </div>
+
+        <h3>5.4b Adaptive quadrature: spend effort where the function is hard</h3>
+        <div class="voicebar"><span class="vlabel">🔊 Listen to this section</span><audio controls preload="metadata" src="assets/audio/m5_adaptive.mp3"></audio></div>
+        <h4>What is the "wiggly part"?</h4>
+        <p>A Simpson parabola (5.3) follows a curve well when the curve is <b>smooth and gently bending</b>. Where the curve <b>bends sharply or oscillates quickly</b> (a spike, a steep start like \(\sqrt{x}\) near \(0\), or fast wiggles), one parabola per strip cannot follow it, and the strip's error is large. Those are the <b>wiggly (hard) parts</b>. Mathematically the Simpson error on a strip of width \(h\) is about</p>
+        <div class="eqn">\[ E \approx -\frac{h^5}{2880}\,f^{(4)}(\xi), \]</div>
+        <p>so it is large when the strip is wide <em>or</em> the fourth derivative \(f^{(4)}\) (how violently the curve bends) is large. Shrinking \(h\) helps a lot (the factor \(h^5\)).</p>
+        <h4>How do we find them, without knowing \(f^{(4)}\)?</h4>
+        <p>We cannot compute \(f^{(4)}\) from a table of values, so we use a trick: <b>compute each strip's area twice and compare.</b> On a strip \([a,b]\):</p>
+        <ul>
+          <li>\(S_1\): Simpson with <b>one</b> parabola over the whole strip.</li>
+          <li>\(S_2\): Simpson on the <b>two halves</b>, added together (a more accurate answer).</li>
+        </ul>
+        <p>If the curve is smooth, \(S_1\) and \(S_2\) nearly agree. If the strip is wiggly, they disagree, and the disagreement \(|S_2-S_1|\) tells us how bad the error is. Halving the strip cuts the Simpson error by about \(2^4=16\), which gives the key estimate</p>
+        <div class="callout def"><div class="h">📐 The error estimate</div>
+          <div class="eqn">\[ \text{error of } S_2 \;\approx\; \frac{|S_2-S_1|}{15}. \]</div>
+          (Why 15? If the error of \(S_1\) is \(16\) times the error of \(S_2\), then \(S_2-S_1\) equals \(15\) times the error of \(S_2\).)</div>
+        <h4>The algorithm</h4>
+        <ol>
+          <li>Choose a tolerance <b>tol</b> for the whole integral (for example \(10^{-6}\)).</li>
+          <li>On the current strip compute \(S_1\) and \(S_2\).</li>
+          <li>If \(|S_2-S_1|/15\) is below the strip's share of the tolerance, the strip is <b>settled</b>: keep \(S_2\) (and often improve it to \(S_2+(S_2-S_1)/15\)).</li>
+          <li>Otherwise <b>split the strip in half</b>, give each half half of the tolerance, and repeat from step 2 on each half.</li>
+        </ol>
+        <p>Smooth parts settle immediately with wide strips; wiggly parts keep splitting until the pieces are small enough. That is the whole idea.</p>
+        <h3>Worked example: finding the hard part of \(\int_0^1\sqrt{x}\,dx\)</h3>
+        <p>The exact answer is \(2/3\). The curve \(\sqrt{x}\) is very steep at \(x=0\) and gentle near \(x=1\). Compute \(S_1\) and \(S_2\) on each half of \([0,1]\):</p>
+        <table class="data" style="text-align:center">
+          <thead><tr><th>strip</th><th>\(S_1\) (one parabola)</th><th>\(S_2\) (two parabolas)</th><th>\(|S_2-S_1|/15\)</th><th>verdict</th></tr></thead>
+          <tbody>
+            <tr><td>[0, 0.5]</td><td>0.225592</td><td>0.232117</td><td><b>4.3 × 10⁻⁴</b></td><td style="color:#d97a1e"><b>wiggly: split again</b></td></tr>
+            <tr><td>[0.5, 1]</td><td>0.430934</td><td>0.430962</td><td>1.9 × 10⁻⁶</td><td style="color:#0e7c86"><b>settled</b></td></tr>
+          </tbody>
+        </table>
+        <p>The left strip's estimate is about <b>200 times</b> less reliable than the right one's, so the algorithm refines <em>only</em> near \(x=0\) and leaves \([0.5,1]\) alone. With tolerance \(10^{-6}\) the demo below needs only about 100 evaluations, while equal strips would need over 30,000.</p>
         <figure class="figblock anim" id="animQuad">
           <svg class="mini-svg" viewBox="0 0 560 300" role="img" aria-label="Animation: adaptive quadrature repeatedly splitting the strips where the estimate is still changing" font-family="Inter,Arial,sans-serif" style="max-width:560px"></svg>
           <div class="anim-read" aria-live="off"></div>
           <div class="anim-ctl"><button type="button" class="btn ghost anim-play">&#9654; Play</button><input type="range" class="anim-scrub" min="0" max="1000" value="0" aria-label="Scrub the animation"></div>
           <figcaption><b>How adaptive quadrature decides where to refine</b> (illustration with \(f(x)=e^{-x/3}\sin(0.9x^2)\)). Press <b>Play</b> or drag the slider. On every strip we compute the area twice: with <b>one</b> Simpson parabola (blue dashed) and with <b>two</b> parabolas, one per half (solid). If the two areas nearly agree, halving the strip changes nothing, so the strip is <b>settled</b> (<span style="color:#0e7c86"><b>teal</b></span>). If they disagree (you can see the dashed parabola missing the curve), the estimate is <b>still changing</b> (<span style="color:#d97a1e"><b>orange</b></span>) and the strip is split. The bars below measure that disagreement; any bar above the red limit line gets split. Effort ends up where \(f\) bends sharply.</figcaption>
         </figure>
+        <h4>🎛 Try it: adaptive strips versus equal strips</h4>
+        <p>Pick a function and a tolerance. <b>Narrow orange strips</b> appear exactly where the function is hard, <b>wide teal strips</b> where it is smooth. The readout compares the number of function evaluations with plain Simpson using equal strips for the same accuracy. Try <i>sin x</i> (smooth everywhere): there is little to gain. Try <i>√x</i> or the spike: the saving is huge.</p>
+        <div class="demo" id="adaptDemo">
+          <div class="demo-head"><span class="pill">Live</span> Adaptive Simpson</div>
+          <svg viewBox="0 0 560 300" role="img" aria-label="Adaptive Simpson strips" style="width:100%;height:auto;display:block;max-width:600px;margin:0 auto" font-family="Inter,Arial,sans-serif"></svg>
+          <div class="controls">
+            <div class="control" style="min-width:260px"><label>Function</label><select class="a-fn"></select></div>
+            <div class="control" style="min-width:230px"><label>Tolerance: <span class="val a-tolval">10^-6</span></label><input class="a-tol" type="range" min="-8" max="-2" value="-6"></div>
+          </div>
+          <div class="readout"></div>
+        </div>
+        <h4>The same idea in MATLAB</h4>
+        <div class="codewrap editable">
+          <div class="codehead"><span class="lang"><span class="dot"></span>MATLAB · editable · adaptive Simpson from scratch</span><button class="copybtn">Copy</button></div>
+          <textarea spellcheck="false" rows="22">f = @(x) sqrt(x);
+I = adapt(f, 0, 1, 1e-6)       % close to the exact value 2/3
+
+function I = adapt(f, a, b, tol)
+    m  = (a + b)/2;
+    S1 = simp(f, a, b);                  % one parabola
+    S2 = simp(f, a, m) + simp(f, m, b);  % two parabolas
+    if abs(S2 - S1) <= 15*tol            % settled?
+        I = S2 + (S2 - S1)/15;
+    else                                 % wiggly: split and recurse
+        I = adapt(f, a, m, tol/2) + adapt(f, m, b, tol/2);
+    end
+end
+
+function S = simp(f, a, b)
+    m = (a + b)/2;
+    S = (b - a)/6 * (f(a) + 4*f(m) + f(b));
+end</textarea>
+        </div>
+        <div class="callout tip"><div class="h">🛠 What MATLAB really does</div>MATLAB's <code>integral</code> <b>combines both ideas of this section</b>: on each strip it uses a <b>Gauss–Kronrod</b> rule (a Gauss rule with extra points that gives a free error estimate) and splits strips <b>adaptively</b> wherever the estimate is not yet accurate enough. You get high accuracy with few evaluations and you rarely write this yourself.</div>
         <div class="codewrap editable has-output">
           <div class="codehead"><span class="lang"><span class="dot"></span>MATLAB · editable · adaptive quadrature</span><button class="copybtn">Copy</button></div>
           <textarea spellcheck="false" rows="6">f = @(x) exp(-x.^2);          % no elementary antiderivative
@@ -455,6 +571,7 @@ legend('ode45','exact e^x'); grid on;</textarea>
 
 <script src="assets/app.js"></script>
 <script src="assets/anim5.js?v=1794195144"></script>
+<script src="assets/quad54.js?v=1"></script>
 <script>
 /* ===== Integration demo ===== */
 (function(){
