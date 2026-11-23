@@ -170,23 +170,28 @@ plot(x, y, 'ro', xq, yq, 'b-'); grid on;   % recovers y = x^2</textarea>
         <p><b>Big idea:</b> start with a constant that matches the first point, then add a line to also match the second, then a parabola to also match the third, and so on. Each new term is multiplied by factors that are zero at the earlier nodes, so it does not disturb the points already matched.</p>
         <p><b>Important:</b> there is only <b>one</b> curve at the end. Each step takes the <em>current</em> curve (grey) and <b>adds a correction term</b> (orange dashed) to it, giving the new curve (teal). The correction is exactly 0 at every node already matched, so those points stay on the curve, while at the new node it supplies just the missing height.</p>
         <div class="figout" style="margin:1rem 0;border-top:1px solid #cfd9e6;border-radius:12px"><img src="assets/figs/m4_newton_build.png" alt="Newton's form for the points (0,1), (1,3), (2,2): each added term fixes one more point (red) and leaves the earlier ones unchanged."><div class="cap">Newton's form for the points (0,1), (1,3), (2,2). <b>Grey:</b> the curve from the previous step. <b>Orange dashed:</b> the term added in this step; it is zero at the earlier points (look where it crosses \(y=0\)). <b>Teal:</b> the new curve = grey + orange. Red dots are the points matched so far.</div></div>
-<p>The coefficients \(b_k\) are <b>divided differences</b>, computed from a triangular table. A first divided difference is just a <b>slope</b>; a second divided difference is the <b>change in slope</b>, divided by the width. Higher ones are slopes of slopes.</p>
-        <div class="eqn">\[ \begin{aligned} f[x_i,x_j] &= \frac{f(x_j)-f(x_i)}{x_j-x_i},\\[4pt] f[x_i,x_j,x_k] &= \frac{f[x_j,x_k]-f[x_i,x_j]}{x_k-x_i},\ \dots \end{aligned} \]</div>
+<p>The coefficients \(b_k\) are <b>divided differences</b> of the data. The notation \(f[\,\cdot\,]\) just means "the divided difference of \(f\) over these \(x\)-values". Here \(x_i, x_j, x_k\) are three of your nodes (for our data, \(x_0=0,\ x_1=1,\ x_2=2\)), and \(f(x_i)\) is the \(y\)-value at \(x_i\).</p>
+        <ul>
+          <li><b>Zeroth difference:</b> \(f[x_i]=f(x_i)\), just the \(y\)-value. This gives \(b_0=f[x_0]\).</li>
+          <li><b>First difference</b> = a <b>slope</b> between two points. This gives \(b_1=f[x_0,x_1]\).</li>
+          <li><b>Second difference</b> = the <b>change in slope</b>, divided by the total width. This gives \(b_2=f[x_0,x_1,x_2]\).</li>
+        </ul>
+        <div class="eqn">\[ \begin{aligned} f[x_i,x_j] &= \frac{f(x_j)-f(x_i)}{x_j-x_i},\\[4pt] f[x_i,x_j,x_k] &= \frac{f[x_j,x_k]-f[x_i,x_j]}{x_k-x_i}. \end{aligned} \]</div>
+        <p>So the three coefficients are \(b_0=f[x_0]\), \(b_1=f[x_0,x_1]\), \(b_2=f[x_0,x_1,x_2]\). The worked example below computes each one in turn.</p>
         <h3>Worked example</h3>
         <div class="voicebar"><span class="vlabel">🔊 Listen to this example</span><audio controls preload="metadata" src="assets/audio/m4_newton_example.mp3"></audio></div>
         <p><b>Problem.</b> Find the interpolating polynomial through \((0,1),\ (1,3),\ (2,2)\) using Newton's form, then estimate \(P(0.5)\).</p>
-        <p><b>Step 1: build the divided-difference table.</b> Write the \(y\)-values in the first column. Each next column is computed from the column to its left: (difference of neighbours) divided by (the \(x\)-distance they span).</p>
-        <table class="data" style="text-align:center">
-          <thead><tr><th>\(x_i\)</th><th>\(f[x_i]\)</th><th>1st difference</th><th>2nd difference</th></tr></thead>
-          <tbody>
-            <tr><td>0</td><td><b>1</b></td><td></td><td></td></tr>
-            <tr><td></td><td></td><td><b>2</b> = (3−1)/(1−0)</td><td></td></tr>
-            <tr><td>1</td><td>3</td><td></td><td><b>−1.5</b> = (−1−2)/(2−0)</td></tr>
-            <tr><td></td><td></td><td>−1 = (2−3)/(2−1)</td><td></td></tr>
-            <tr><td>2</td><td>2</td><td></td><td></td></tr>
-          </tbody>
-        </table>
-        <p><b>Step 2: read off the coefficients.</b> They are the bold numbers along the top edge: \(b_0=1,\ b_1=2,\ b_2=-1.5\). So</p>
+        <p><b>Step 1: the data.</b> \(x_0=0,\ f(x_0)=1\); \(x_1=1,\ f(x_1)=3\); \(x_2=2,\ f(x_2)=2\).</p>
+        <p><b>Step 2: compute the coefficients one at a time.</b></p>
+        <p><b>\(b_0\)</b> is just the first \(y\)-value:</p>
+        <div class="eqn">\[ b_0=f[x_0]=1. \]</div>
+        <p><b>\(b_1\)</b> is the slope between the first two points:</p>
+        <div class="eqn">\[ b_1=f[x_0,x_1]=\frac{f(x_1)-f(x_0)}{x_1-x_0}=\frac{3-1}{1-0}=2. \]</div>
+        <p><b>\(b_2\)</b> needs two slopes first. We already have the slope between points 0 and 1, which is \(f[x_0,x_1]=2\). Now the slope between points 1 and 2:</p>
+        <div class="eqn">\[ f[x_1,x_2]=\frac{f(x_2)-f(x_1)}{x_2-x_1}=\frac{2-3}{2-1}=-1. \]</div>
+        <p>The slope dropped from \(2\) to \(-1\). Divide that change in slope by the total width \(x_2-x_0=2\):</p>
+        <div class="eqn">\[ b_2=f[x_0,x_1,x_2]=\frac{f[x_1,x_2]-f[x_0,x_1]}{x_2-x_0}=\frac{-1-2}{2-0}=-1.5. \]</div>
+        <p>Plugging \(b_0,b_1,b_2\) into Newton's form gives</p>
         <div class="eqn">\[ P(x)=1+2(x-0)-1.5\,(x-0)(x-1). \]</div>
         <p><b>Step 3: check it.</b> At \(x=0\) only \(b_0\) survives: \(P(0)=1\) ✓. At \(x=1\): \(1+2(1)-1.5(1)(0)=3\) ✓. At \(x=2\): \(1+4-1.5(2)(1)=2\) ✓. The curve hits all three points.</p>
         <p><b>Step 4: estimate \(P(0.5)\).</b></p>
